@@ -1,0 +1,95 @@
+
+  /* .bill-container {
+    max-width: 1240px;
+    margin: 40px auto;
+    padding: 50px;
+    border: 2px solid #ddd;
+    background: white;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    position: relative;
+    z-index: 1;
+  } */
+
+
+  .bill-header {
+  display: flex;
+  justify-content: space-between; /* Aligns left and right elements */
+  align-items: center; /* Centers items vertically */
+  margin-bottom: 30px;
+  border-bottom: 3px solid #000;
+  padding-bottom: 15px;
+}
+.customer-info {
+    display: flex;
+    justify-content: space-between; /* Space out elements */
+    align-items: center; /* Align items in the center */
+    margin-bottom: 10px;
+    border: 2px solid rgb(0, 0, 53);
+    padding: 10px;
+    background-color: #dedede3b;
+    border-radius: 5px;
+    font-size: 14px;
+    letter-spacing: 0.1cap;
+  }
+  
+  /* QR Code Styling */
+  .qr-code-container {
+    text-align: center;
+    font-size: 12px;
+  }
+  
+  .qr-code-container img {
+    width: 80px; /* Adjust the size */
+    height: 80px;
+    border-radius: 5px; /* Slight round corners */
+    margin-top: 5px;
+  }
+  
+  .table {
+    width: 100%;
+    margin-bottom: 20px;
+    border-collapse: collapse;
+  }
+  .table th, .table td {
+    border: 1px solid #919191;
+    padding: 0px;
+    font-size: 13px;
+  }
+  .table th {
+    background-color: #000;
+    color: white;
+    text-align: left;
+  }
+  .bill-footer {
+    margin-top: 20px;
+    border-top: 2px solid #000;
+    padding-top: 15px;
+    text-align: right;
+    font-size: 18px;
+  }
+  .download-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 40px;
+  }
+  .download-buttons .btn {
+    padding: 5px 10px;
+    font-size: 14px;
+  }
+  .inv-bg {
+  background-color: #000;
+  color: #ffffff;
+  padding: 5px;
+  padding-left: 30px;
+  padding-right: 30px;
+  max-width: 400px;
+  border-radius: 2px; /* Removes rounded corners */
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3); /* Adds a subtle shadow */
+}
+
+.GrandTotal{
+background-color: #dedede81;
+padding: 4px;
+border-bottom: 2px solid black;
+}

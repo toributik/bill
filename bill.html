@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bill Receipt</title>
+  <link rel="icon" type="image/png" href="img/logotab.png">
+  <link href="css/bill.css" rel="stylesheet">
+  <script src="css/all.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Righteous&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <style>
+.bill-container {
+/* max-width: 1240px; */
+max-width: 740px;
+margin: 40px auto;
+padding: 50px;
+border: 2px solid #e9e9e9;
+background: url('img/bg.jpg') no-repeat center;
+background-size: cover; /* Ensures the image covers the entire container */
+background-position: center;
+background-blend-mode: lighten; /* Helps reduce intensity if needed */
+box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+position: relative;
+z-index: 1;
+overflow: hidden;
+}
+
+body {
+    background-color: #b6b6b6;
+    position: relative;
+    font-family: "Cinzel";
+    font-optical-sizing: auto;
+  }
+
+
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="bill-container" id="billToCapture">
+      <div class="bill-header">
+        <div class="tori">
+          <div class="tori">
+            <h2>Tori Butik</h2>
+            <p style="font-size: 12px; margin: 0px 0;">Surayanagar, PO: Alipurduar Court, <br>Dist: Alipurduar, Pin: 736122<br> (M)9832280847/7679876754 </p>
+          </div>
+          
+        </div>
+        <div class="inv-bg">
+            <h2>
+                <span>INVOICE</span><br>
+                <span style="font-size: 14px;">Date & Time: <span id="billDate"></span></span>
+            </h2>
+        </div>
+    </div>
+    
+
+    <div class="customer-info">
+      <div>
+        <strong>
+          <span>BILL TO</span><br><br>
+          <i class="bi bi-person-square"></i> <span id="customerName"></span><br>
+          <i class="bi bi-phone"></i> <span id="customerMobile"></span>
+        </strong>
+      </div>
+    
+      <div class="qr-code-container">
+        <span><strong>Visit Us</strong></span>
+        <div id="qrcode"></div> <!-- QR Code will be generated here -->
+      </div>
+      
+    </div>
+    
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>SL</th>
+            <th>Item</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="billItems"></tbody>
+      </table>
+
+      <div class="bill-footer">
+        <p><strong>Sub Total: </strong> ₹<span id="billSubTotal">0</span></p>
+        <p id="discountRow" style="display:none;"><strong>Discount: </strong> <span id="billDiscount">0</span>%</p>
+        <p id="gstRow" style="display:none;"><strong>GST (18%): </strong> ₹<span id="billGST">0</span></p>
+        <h5 class="GrandTotal"><strong>Grand Total: </strong> ₹<span id="billGrandTotal">0</span></h5>
+      </div>
+    </div>
+
+    <div class="download-buttons mb-3">
+      <button class="btn btn-sm btn-primary" onclick="downloadPNG()"><i class="bi bi-image"></i></button>
+      <button class="btn btn-sm btn-danger" onclick="downloadPDF()"><i class="bi bi-filetype-pdf"></i></button>
+      <button class="btn btn-sm btn-success" onclick="shareTextOnWhatsApp()"><i class="bi bi-chat-text"></i></button>
+      <button class="btn btn-sm btn-success" onclick="shareImageOnWhatsApp()"><i class="bi bi-image"></i></button>
+      <a class="btn btn-primary" href="index.html"><i class="bi bi-arrow-left"></i></a>
+    </div>
+  </div>
+</body>
+</html>
+
+
+  <script>
+       const { jsPDF } = window.jspdf;
+    
+ 
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    function loadBillData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const billId = urlParams.get('id');
+      
+      if (billId) {
+        // Fetch bill data from Firebase
+        database.ref('bills/' + billId).once('value').then(snapshot => {
+          const billData = snapshot.val();
+          if (billData) {
+            displayBill(billData);
+          } else {
+            fallbackToLocalStorage();
+          }
+        }).catch(() => {
+          fallbackToLocalStorage();
+        });
+      } else {
+        fallbackToLocalStorage();
+      }
+    }
+
+    function fallbackToLocalStorage() {
+      const localData = localStorage.getItem('currentBillData');
+      if (localData) {
+        displayBill(JSON.parse(localData));
+      } else {
+        alert('No bill data found!');
+        window.close();
+      }
+    }
+    function displayBill(billData) {
+  // Format date
+  const billDate = new Date(billData.date);
+  const formattedDate = billDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const formattedTime = billDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  
+  document.getElementById('billDate').textContent = `${formattedDate}, ${formattedTime}`;
+
+  // Display customer info
+  document.getElementById('customerName').textContent = billData.customer.name;
+  document.getElementById('customerMobile').textContent = billData.customer.mobile;
+  
+  // Clear existing items first
+  const billItems = document.getElementById('billItems');
+  billItems.innerHTML = '';
+  
+  // Add new items
+  if (billData.items && Array.isArray(billData.items)) {
+    billData.items.forEach((item, index) => {
+      if (item && item.name) { // Check if item exists and has a name
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${item.name}</td>
+          <td class="text-center">₹${item.price.toFixed(2)}</td>
+          <td class="text-center">${item.quantity}</td>
+          <td class="text-center">₹${item.total.toFixed(2)}</td>
+        `;
+        billItems.appendChild(row);
+      }
+    });
+  }
+  
+  // Display totals
+  document.getElementById('billSubTotal').textContent = parseFloat(billData.subTotal).toFixed(2);
+  document.getElementById('billDiscount').textContent = billData.discount;
+  
+  // Show/hide discount row based on discount value
+  const discountRow = document.getElementById('discountRow');
+  if (parseFloat(billData.discount) > 0) {
+    discountRow.style.display = 'block';
+  } else {
+    discountRow.style.display = 'none';
+  }
+  
+  // Show/hide GST row based on GST amount
+  const gstRow = document.getElementById('gstRow');
+  if (parseFloat(billData.gstAmount) > 0) {
+    gstRow.style.display = 'block';
+    document.getElementById('billGST').textContent = parseFloat(billData.gstAmount).toFixed(2);
+  } else {
+    gstRow.style.display = 'none';
+  }
+  
+  document.getElementById('billGrandTotal').textContent = parseFloat(billData.grandTotal).toFixed(2);
+}
+
+    function downloadPNG() {
+  const bill = document.getElementById('billToCapture');
+
+  // Temporarily set the width to A4 portrait size
+  const originalWidth = bill.style.maxWidth;
+  bill.style.maxWidth = "794px"; 
+  bill.style.width = "794px"; 
+
+  html2canvas(bill, {
+    scale: 2, // Higher scale for better quality
+    logging: false,
+    useCORS: true,
+    allowTaint: true
+  }).then(canvas => {
+    // Restore original width
+    bill.style.maxWidth = originalWidth;
+    bill.style.width = "";
+
+    const link = document.createElement('a');
+    link.download = 'bill-' + new Date().toISOString().slice(0, 10) + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+
+function downloadPDF() {
+  const bill = document.getElementById('billToCapture');
+
+  // Temporarily set the width to A4 portrait size
+  const originalWidth = bill.style.maxWidth;
+  bill.style.maxWidth = "794px"; 
+  bill.style.width = "794px"; 
+
+  html2canvas(bill, {
+    scale: 2, // Higher scale for better quality
+    logging: false,
+    useCORS: true,
+    allowTaint: true
+  }).then(canvas => {
+    // Restore original width
+    bill.style.maxWidth = originalWidth;
+    bill.style.width = "";
+
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4'); // Portrait A4
+    const pdfWidth = 210; // A4 width in mm
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save('bill-' + new Date().toISOString().slice(0, 10) + '.pdf');
+  });
+}
+// Share only text via WhatsApp
+function shareTextOnWhatsApp() {
+  // Get customer details
+  const customerName = document.getElementById('customerName').textContent;
+  const grandTotal = document.getElementById('billGrandTotal').textContent;
+
+  // Get bill items
+  const billItems = document.querySelectorAll("#billItems tr");
+  let itemList = "";
+  
+  billItems.forEach((row, index) => {
+    const itemName = row.children[1].textContent.trim(); // Get item name
+    const itemQty = row.children[3].textContent.trim(); // Get quantity
+    itemList += `${index + 1}. ${itemName} (Qty: ${itemQty})\n`;
+  });
+
+  // Create WhatsApp share message
+  const message = `Hello ${customerName},\n\nThank you for shopping with us!\n\nYour purchased items:\n${itemList}\nGrand Total: ₹${grandTotal}\n\n- Tori Butik -`;
+
+  // Get customer mobile number (if available)
+  const customerMobile = document.getElementById('customerMobile').textContent.trim();
+  const mobileParam = customerMobile ? `&phone=${customerMobile}` : '';
+
+  // Open WhatsApp with the message
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}${mobileParam}`;
+  window.open(whatsappUrl, '_blank');
+}
+
+
+// Share image via WhatsApp (with optional text)
+function shareImageOnWhatsApp() {
+  const bill = document.getElementById('billToCapture');
+
+  // Temporarily set A4 width
+  const originalWidth = bill.style.maxWidth;
+  bill.style.maxWidth = "794px"; 
+  bill.style.width = "794px"; 
+
+  html2canvas(bill, {
+    scale: 2,
+    logging: false,
+    useCORS: true,
+    allowTaint: true
+  }).then(canvas => {
+    // Restore original width
+    bill.style.maxWidth = originalWidth;
+    bill.style.width = "";
+
+    const imgData = canvas.toDataURL('image/png');
+    
+    // Get customer details for optional text
+    const customerName = document.getElementById('customerName').textContent;
+    const grandTotal = document.getElementById('billGrandTotal').textContent;
+    const message = `Hello ${customerName},\n\nThank you for shopping with us!`;
+    
+    // Convert image to blob
+    const blob = dataURLtoBlob(imgData);
+    const file = new File([blob], "bill.png", { type: "image/png" });
+    
+    // Check if we can share files (mobile devices)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({
+        title: "Your Bill Receipt",
+        text: message,
+        files: [file]
+      }).catch(err => {
+        console.error("Sharing failed:", err);
+        whatsappImageFallback(imgData, message);
+      });
+    } else {
+      // Use fallback for desktop
+      whatsappImageFallback(imgData, message);
+    }
+  });
+}
+
+// Fallback for image sharing on desktop
+function whatsappImageFallback(imgData, message) {
+  // Create a temporary link for the image
+  const link = document.createElement('a');
+  link.href = imgData;
+  link.download = 'bill.png';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Open WhatsApp with the message (user will need to attach image manually)
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  window.open(whatsappUrl, '_blank');
+  
+  // Show instructions for desktop users
+  alert("The bill image has been downloaded. Please attach it manually to your WhatsApp message.");
+}
+// Convert base64 to Blob
+function dataURLtoBlob(dataURL) {
+  const parts = dataURL.split(";base64,");
+  const contentType = parts[0].split(":")[1];
+  const raw = window.atob(parts[1]);
+  const uInt8Array = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) {
+    uInt8Array[i] = raw.charCodeAt(i);
+  }
+  return new Blob([uInt8Array], { type: contentType });
+}
+
+
+    document.addEventListener('DOMContentLoaded', loadBillData);
+
+
+    firebase.auth().onAuthStateChanged(user => {
+  if (!user) {
+    window.location.href = "login.html"; // Redirect to login page if not authenticated
+  } else {
+    loadBillData(); // Load the bill data if authenticated
+  }
+});
+
+  </script>
+  <script>
+
+
+    new QRCode(document.getElementById("qrcode"), {
+      text: "https://toributik.github.io/tori/",
+      width: 100,
+      height: 100
+    });
+  </script>
+  
+</body>
+</html>
