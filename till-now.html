@@ -53,9 +53,18 @@
     .glass{
       margin-bottom: 10px;
     }
+    @media (max-width: 768px) { /* Targets mobile screens */
+
+   .body-text{
+    font-size: 12px;
+    }
+    .btn-sm{
+      font-size: 12px;
+    }
+}
   </style>
 </head>
-<body>
+<body class="body-text">
   <div>
     <div class="wave"></div>
     <div class="wave"></div>
@@ -64,9 +73,8 @@
   <!-- Image and text -->
   <nav class="navbar  fixed-top ">
     <div class="container">
-    <a class="navbar-brand" href="index.html">
-      <img src="img/watermark/logo.png" width="50" height="30" class="d-inline-block align-top" alt="">
-      All Bills
+    <a class="navbar-brand bg-info" href="index.html" style="padding: 10px 20px; border-radius: 50%;" >
+      <i class="fas fa-arrow-left"></i>
     </a>
   </div>
     <button class="btn btn-danger btn-sm logout-btn" onclick="logout()" alt="logout">
@@ -202,16 +210,18 @@
       document.getElementById('dateRange').textContent = dateRangeText;
     }
 
-    function displayBills(bills) {
-      const container = document.getElementById('allBillsContainer');
-      
-      if (bills.length === 0) {
-        container.innerHTML = '<div class="alert alert-info">No bills found matching your criteria</div>';
-        return;
-      }
 
-      container.innerHTML = '';
-    bills.forEach(bill => {
+
+    function displayBills(bills) {
+  const container = document.getElementById('allBillsContainer');
+  
+  if (bills.length === 0) {
+    container.innerHTML = '<div class="alert alert-info">No bills found matching your criteria</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  bills.forEach(bill => {
     const billCard = document.createElement('div');
     billCard.className = 'glass';
 
@@ -222,22 +232,28 @@
     const totalItems = bill.items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
 
     billCard.innerHTML = `
-      <div class="d-flex justify-content-between" >
+      <div class="d-flex justify-content-between">
         <p style="display: none;">Bill #${bill.id.substring(0, 8)}</p>
-        <small class="text-muted" >${formattedDate}, ${formattedTime}</small>  
+        <small class="text-muted">${formattedDate}, ${formattedTime}</small>  
       </div>
-      <span>${bill.customer.name}, (M) ${bill.customer.mobile || 'No mobile'}</span>
-      <p><strong>Items:</strong> ${totalItems} | <strong>Total:</strong> ₹${bill.grandTotal}</p>
+      <div class="d-flex justify-content-between">
+        <p><span><strong><i class="fas fa-user"></i> ${bill.customer.name}</strong></span>
+          <span>${bill.customer.mobile || 'No mobile'}</span><br>
+          <span><strong>Items:</strong> ${totalItems} | <strong>Total:</strong> ₹${bill.grandTotal}</span>
+        </p>
+      </div>
       <div class="bill-actions">
         <button class="btn btn-sm btn-info" onclick="viewBill('${bill.id}')">View Bill</button>
+        <a href="details.html?name=${encodeURIComponent(bill.customer.name)}&mobile=${bill.customer.mobile || ''}" 
+        class="btn btn-sm btn-outline-primary mr-1">
+        <i class="fas fa-user"></i> Details
+        </a>
         <button class="btn btn-sm btn-danger float-right" onclick="deleteBill('${bill.id}')">Delete</button>
       </div>
     `;
     container.appendChild(billCard);
-});
-
-
-    }
+  });
+}
 
     function viewBill(billId) {
       showLoading(true);

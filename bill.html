@@ -106,6 +106,7 @@ body {
       <button class="btn btn-sm btn-primary" onclick="downloadPNG()"><i class="bi bi-image"></i></button>
       <button class="btn btn-sm btn-danger" onclick="downloadPDF()"><i class="bi bi-filetype-pdf"></i></button>
       <button class="btn btn-sm btn-success" onclick="shareTextOnWhatsApp()"><i class="bi bi-chat-text"></i></button>
+      <button class="btn btn-sm btn-info" onclick="copyBillText()"><i class="bi bi-clipboard"></i></button>
       <button class="btn btn-sm btn-success" onclick="shareImageOnWhatsApp()"><i class="bi bi-image"></i></button>
       <a class="btn btn-primary" href="index.html"><i class="bi bi-arrow-left"></i></a>
     </div>
@@ -265,35 +266,114 @@ function shareTextOnWhatsApp() {
   // Get customer details
   const customerName = document.getElementById('customerName').textContent;
   const grandTotal = document.getElementById('billGrandTotal').textContent;
+  const billDate = document.getElementById('billDate').textContent;
+  const subTotal = document.getElementById('billSubTotal').textContent;
+  
+  // Check for discount
+  const discountRow = document.getElementById('discountRow');
+  let discountText = '';
+  if (discountRow.style.display !== 'none') {
+    const discountPercent = document.getElementById('billDiscount').textContent;
+    discountText = `*Discount:* ${discountPercent}%\n`;
+  }
 
   // Get bill items
   const billItems = document.querySelectorAll("#billItems tr");
   let itemList = "";
   
   billItems.forEach((row, index) => {
-    const itemName = row.children[1].textContent.trim(); // Get item name
-    const itemQty = row.children[3].textContent.trim(); // Get quantity
-    itemList += `${index + 1}. ${itemName} (Qty: ${itemQty})\n`;
+    const itemName = row.children[1].textContent.trim();
+    const itemPrice = row.children[2].textContent.trim();
+    const itemQty = row.children[3].textContent.trim();
+    const itemTotal = row.children[4].textContent.trim();
+    itemList += `${index + 1}. ${itemName} - ${itemPrice} × ${itemQty} = ${itemTotal}\n`;
   });
 
-  // Create WhatsApp share message
-  const message = `Hello ${customerName},\n\nThank you for shopping with us!\n\nYour purchased items:\n${itemList}\nGrand Total: ₹${grandTotal}\n\n- Tori Butik -`;
+  // Create WhatsApp share message in your exact requested format
+  const message = `*Tori Butik - Invoice*\n` +
+                  //`*Date:* ${billDate}\n\n` +
+                  `Hello ${customerName},\n\n` +
+                  `*Your purchased items:*\n${itemList}\n` +
+                  `*Sub Total:* ₹${subTotal}\n` +
+                  `${discountText}` +
+                  `*Grand Total:* ₹${grandTotal}\n\n` +
+                  `Thank you for shopping with us!\n` +
+                  `  Surayanagar, Alipurduar\n` +
+                  `  9832280847/7679876754`;
 
   // Get customer mobile number (if available)
-  const customerMobile = document.getElementById('customerMobile').textContent.trim();
-  const mobileParam = customerMobile ? `&phone=${customerMobile}` : '';
+  const customerMobile = document.getElementById('customerMobile').textContent.trim().replace(/\D/g, '');
+  
+  // Create WhatsApp URL
+  let whatsappUrl;
+  
+  if (customerMobile.length === 10) {
+    whatsappUrl = `https://wa.me/91${customerMobile}?text=${encodeURIComponent(message)}`;
+  } else {
+    whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  }
 
-  // Open WhatsApp with the message
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}${mobileParam}`;
+  // Open WhatsApp in a new tab
   window.open(whatsappUrl, '_blank');
 }
 
+function copyBillText() {
+  // Get customer details
+  const customerName = document.getElementById('customerName').textContent;
+  const grandTotal = document.getElementById('billGrandTotal').textContent;
+  const billDate = document.getElementById('billDate').textContent;
+  const subTotal = document.getElementById('billSubTotal').textContent;
+  
+  // Check for discount
+  const discountRow = document.getElementById('discountRow');
+  let discountText = '';
+  if (discountRow.style.display !== 'none') {
+    const discountPercent = document.getElementById('billDiscount').textContent;
+    discountText = `*Discount:* ${discountPercent}%\n`;
+  }
+
+  // Get bill items
+  const billItems = document.querySelectorAll("#billItems tr");
+  let itemList = "";
+  
+  billItems.forEach((row, index) => {
+    const itemName = row.children[1].textContent.trim();
+    const itemPrice = row.children[2].textContent.trim();
+    const itemQty = row.children[3].textContent.trim();
+    const itemTotal = row.children[4].textContent.trim();
+    itemList += `${index + 1}. ${itemName} - ${itemPrice} × ${itemQty} = ${itemTotal}\n`;
+  });
+
+  // Create the text to copy (same format as WhatsApp message)
+  const textToCopy = `*Tori Butik - Invoice*\n` +
+                  `Hello ${customerName},\n\n` +
+                  `*Your purchased items:*\n${itemList}\n` +
+                  `*Sub Total:* ₹${subTotal}\n` +
+                  `${discountText}` +
+                  `*Grand Total:* ₹${grandTotal}\n\n` +
+                  `Thank you for shopping with us!\n` +
+                  `  Surayanagar, Alipurduar\n` +
+                  `  9832280847/7679876754`;
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    // Show a temporary tooltip or alert to indicate success
+    const originalText = event.target.innerHTML;
+    event.target.innerHTML = '<i class="bi bi-check2"></i>';
+    setTimeout(() => {
+      event.target.innerHTML = originalText;
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy text: ', err);
+    alert('Failed to copy text. Please try again or copy manually.');
+  });
+}
 
 // Share image via WhatsApp (with optional text)
 function shareImageOnWhatsApp() {
   const bill = document.getElementById('billToCapture');
 
-  // Temporarily set A4 width
+  // Temporarily set A4 width for better image quality
   const originalWidth = bill.style.maxWidth;
   bill.style.maxWidth = "794px"; 
   bill.style.width = "794px"; 
@@ -308,63 +388,68 @@ function shareImageOnWhatsApp() {
     bill.style.maxWidth = originalWidth;
     bill.style.width = "";
 
-    const imgData = canvas.toDataURL('image/png');
-    
-    // Get customer details for optional text
+    // Get customer details for the text message
     const customerName = document.getElementById('customerName').textContent;
     const grandTotal = document.getElementById('billGrandTotal').textContent;
-    const message = `Hello ${customerName},\n\nThank you for shopping with us!`;
+    const billDate = document.getElementById('billDate').textContent;
     
-    // Convert image to blob
-    const blob = dataURLtoBlob(imgData);
-    const file = new File([blob], "bill.png", { type: "image/png" });
-    
-    // Check if we can share files (mobile devices)
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({
-        title: "Your Bill Receipt",
-        text: message,
-        files: [file]
-      }).catch(err => {
-        console.error("Sharing failed:", err);
-        whatsappImageFallback(imgData, message);
-      });
-    } else {
-      // Use fallback for desktop
-      whatsappImageFallback(imgData, message);
-    }
+    // Create the accompanying text message in your preferred format
+    const message = `Hello ${customerName},\n\n` +
+                   `Please find your bill receipt attached.\n\n` +
+                   `*Tori Butik - Invoice*\n` +
+                   `*Date:* ${billDate}\n` +
+                   `*Grand Total:* ₹${grandTotal}\n\n` +
+                   `Thank you for shopping with us!\n` +
+                   `  Surayanagar, Alipurduar\n` +
+                   `  9832280847/7679876754`;
+
+    // Convert canvas to blob
+    canvas.toBlob(function(blob) {
+      // Create the file object
+      const file = new File([blob], "ToriButik_Receipt.png", { type: "image/png" });
+
+      // Check if Web Share API is available (mobile devices)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({
+          title: "Your Tori Butik Receipt",
+          text: message,
+          files: [file]
+        }).catch(err => {
+          console.error("Sharing failed:", err);
+          whatsappImageFallback(canvas, message);
+        });
+      } else {
+        // Fallback for desktop
+        whatsappImageFallback(canvas, message);
+      }
+    }, 'image/png');
   });
 }
 
-// Fallback for image sharing on desktop
-function whatsappImageFallback(imgData, message) {
-  // Create a temporary link for the image
+function whatsappImageFallback(canvas, message) {
+  // Get customer mobile number (if available)
+  const customerMobile = document.getElementById('customerMobile').textContent.trim().replace(/\D/g, '');
+  
+  // First save the image
+  const imgData = canvas.toDataURL('image/png');
   const link = document.createElement('a');
   link.href = imgData;
-  link.download = 'bill.png';
+  link.download = 'ToriButik_Receipt.png';
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   
-  // Open WhatsApp with the message (user will need to attach image manually)
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  // Create WhatsApp URL with the message
+  const whatsappUrl = customerMobile.length === 10 ?
+    `https://wa.me/91${customerMobile}?text=${encodeURIComponent(message)}` :
+    `https://wa.me/?text=${encodeURIComponent(message)}`;
+  
+  // Open WhatsApp with the message
   window.open(whatsappUrl, '_blank');
   
   // Show instructions for desktop users
-  alert("The bill image has been downloaded. Please attach it manually to your WhatsApp message.");
+  alert("The receipt image has been saved. Please attach it manually to your WhatsApp message along with the pre-filled text.");
 }
-// Convert base64 to Blob
-function dataURLtoBlob(dataURL) {
-  const parts = dataURL.split(";base64,");
-  const contentType = parts[0].split(":")[1];
-  const raw = window.atob(parts[1]);
-  const uInt8Array = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) {
-    uInt8Array[i] = raw.charCodeAt(i);
-  }
-  return new Blob([uInt8Array], { type: contentType });
-}
-
 
     document.addEventListener('DOMContentLoaded', loadBillData);
 
