@@ -106,7 +106,7 @@ body {
       <button class="btn btn-sm btn-primary" onclick="downloadPNG()"><i class="bi bi-image"></i></button>
       <button class="btn btn-sm btn-danger" onclick="downloadPDF()"><i class="bi bi-filetype-pdf"></i></button>
       <button class="btn btn-sm btn-success" onclick="shareTextOnWhatsApp()"><i class="bi bi-chat-text"></i></button>
-      <button class="btn btn-sm btn-info" onclick="copyBillText()"><i class="bi bi-clipboard"></i></button>
+      <button class="btn btn-sm btn-info" onclick="copyBillText(event)"><i class="bi bi-clipboard"></i></button>
       <button class="btn btn-sm btn-success" onclick="shareImageOnWhatsApp()"><i class="bi bi-image"></i></button>
       <a class="btn btn-primary" href="index.html"><i class="bi bi-arrow-left"></i></a>
     </div>
@@ -317,8 +317,8 @@ function shareTextOnWhatsApp() {
   window.open(whatsappUrl, '_blank');
 }
 
-function copyBillText() {
-  // Get customer details
+function copyBillText(event) {
+  // Get all the bill data
   const customerName = document.getElementById('customerName').textContent;
   const grandTotal = document.getElementById('billGrandTotal').textContent;
   const billDate = document.getElementById('billDate').textContent;
@@ -344,7 +344,7 @@ function copyBillText() {
     itemList += `${index + 1}. ${itemName} - ${itemPrice} × ${itemQty} = ${itemTotal}\n`;
   });
 
-  // Create the text to copy (same format as WhatsApp message)
+  // Create the text to copy
   const textToCopy = `*Tori Butik - Invoice*\n` +
                   `Hello ${customerName},\n\n` +
                   `*Your purchased items:*\n${itemList}\n` +
@@ -355,18 +355,66 @@ function copyBillText() {
                   `  Surayanagar, Alipurduar\n` +
                   `  9832280847/7679876754`;
 
-  // Copy to clipboard
-  navigator.clipboard.writeText(textToCopy).then(() => {
-    // Show a temporary tooltip or alert to indicate success
-    const originalText = event.target.innerHTML;
-    event.target.innerHTML = '<i class="bi bi-check2"></i>';
-    setTimeout(() => {
-      event.target.innerHTML = originalText;
-    }, 2000);
-  }).catch(err => {
-    console.error('Failed to copy text: ', err);
-    alert('Failed to copy text. Please try again or copy manually.');
-  });
+  // Try modern Clipboard API first
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      showCopySuccess(event.target);
+    }).catch(() => {
+      fallbackCopyText(textToCopy, event.target);
+    });
+  } else {
+    fallbackCopyText(textToCopy, event.target);
+  }
+}
+
+function fallbackCopyText(text, button) {
+  // Create a temporary textarea element
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';  // Prevent scrolling to bottom
+  document.body.appendChild(textarea);
+  textarea.select();
+  
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      showCopySuccess(button);
+    } else {
+      showCopyError(button);
+    }
+  } catch (err) {
+    showCopyError(button);
+    // Optional: Show the text so user can manually copy
+    alert('Please copy the following text manually:\n\n' + text);
+  }
+  
+  document.body.removeChild(textarea);
+}
+
+function showCopySuccess(button) {
+  const originalHTML = button.innerHTML;
+  button.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+  button.classList.remove('btn-info');
+  button.classList.add('btn-success');
+  
+  setTimeout(() => {
+    button.innerHTML = originalHTML;
+    button.classList.remove('btn-success');
+    button.classList.add('btn-info');
+  }, 2000);
+}
+
+function showCopyError(button) {
+  const originalHTML = button.innerHTML;
+  button.innerHTML = '<i class="bi bi-x"></i> Failed';
+  button.classList.remove('btn-info');
+  button.classList.add('btn-danger');
+  
+  setTimeout(() => {
+    button.innerHTML = originalHTML;
+    button.classList.remove('btn-danger');
+    button.classList.add('btn-info');
+  }, 2000);
 }
 
 // Share image via WhatsApp (with optional text)
