@@ -14,9 +14,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <style>
-
- 
-
     .search-container {
       margin-bottom: 20px;
     }
@@ -28,9 +25,7 @@
       border-radius: 5px;
       text-align: center;
     }
-    #contentContainer {
-      display: none;
-    }
+
     .summary-card {
       background-color: #f8f9fa;
       border-radius: 5px;
@@ -54,16 +49,15 @@
       margin-bottom: 10px;
     }
     @media (max-width: 768px) { /* Targets mobile screens */
-
-   .body-text{
-    font-size: 12px;
+      .body-text{
+        font-size: 12px;
+      }
+      .btn-sm{
+        font-size: 12px;
+      }
     }
-    .btn-sm{
-      font-size: 12px;
-    }
-}
 
-.btn-icon {
+    .btn-icon {
       margin-right: 5px;
     }
     .modal-content {
@@ -80,6 +74,124 @@
       padding: 8px;
       border-radius: 4px;
     }
+    
+    /* Side filter panel styles */
+    .filter-panel {
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 400px;
+      height: 100%;
+      background-color: white;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+      z-index: 1050;
+      transition: right 0.3s ease;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .filter-panel.open {
+      right: 0;
+    }
+    
+    .filter-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1040;
+      display: none;
+    }
+    
+    .filter-overlay.show {
+      display: block;
+    }
+    
+    .filter-section {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+    
+    .filter-section h5 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    .filter-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    
+    @media (max-width: 576px) {
+      .filter-panel {
+        width: 300px;
+      }
+    }
+    
+    .filter-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .filter-row select {
+      flex: 1;
+      margin-right: 10px;
+    }
+    
+    .filter-row input {
+      flex: 1;
+    }
+    
+    .filter-row .btn {
+      margin-left: 10px;
+    }
+
+    .input-group-append select {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+}
+
+.input-group input {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+
+.autocomplete {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.autocomplete-items {
+  position: absolute;
+  border: 1px solid #d4d4d4;
+  border-bottom: none;
+  border-top: none;
+  z-index: 99;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.autocomplete-items div {
+  padding: 10px;
+  cursor: pointer;
+  background-color: #fff;
+  border-bottom: 1px solid #d4d4d4;
+}
+
+.autocomplete-items div:hover {
+  background-color: #e9e9e9;
+}
   </style>
 </head>
 <body class="body-text">
@@ -89,6 +201,7 @@
     <div class="wave"></div>
     <div class="wave"></div>
   </div>
+  
   <!-- Image and text -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
     <div class="container d-flex justify-content-between align-items-center">
@@ -97,90 +210,175 @@
       <a class="navbar-brand d-flex align-items-center" href="index.html" style="padding: 8px 12px; border-radius: 50%; background-color: #17a2b8;">
         <i class="fas fa-arrow-left text-white"></i>
       </a>
+      <div class="justify-content-end">
+        <button class="btn btn-outline-light btn-sm mr-2" onclick="downloadExcel()" title="Download Excel">
+          <i class="fas fa-file-excel"></i> Excel
+        </button>
+      <!-- Filter Button -->
+      <button class="btn btn-outline-light btn-sm mr-2" onclick="toggleFilterPanel()" title="Filter">
+        <i class="fas fa-filter"></i> Filter
+      </button>
   
       <!-- Logout Button -->
       <button class="btn btn-outline-light btn-sm" onclick="logout()" title="Logout">
         <i class="fas fa-sign-out-alt"></i> Logout
       </button>
     </div>
+    </div>
   </nav>
+  
+  <!-- Filter Overlay -->
+  <div class="filter-overlay" id="filterOverlay" onclick="toggleFilterPanel()"></div>
+  
+  <!-- Filter Panel -->
+  <div class="filter-panel" id="filterPanel">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4>Advanced Filters</h4>
+      <button type="button" class="close" onclick="toggleFilterPanel()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    
+    <div class="filter-section">
+      <h5>Date Range</h5>
+      <div class="form-group">
+        <label>From Date</label>
+        <input type="date" id="filterFromDate" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>To Date</label>
+        <input type="date" id="filterToDate" class="form-control">
+      </div>
+    </div>
+    
+    <div class="filter-section">
+      <h5>Customer</h5>
+      <div class="form-group">
+        <label>Name</label>
+        <div class="autocomplete">
+          <div class="input-group">
+            <input type="text" id="filterCustomerName" class="form-control" placeholder="Customer name" autocomplete="off">
+            <div class="input-group-append">
+              <select id="filterNameCondition" class="form-control">
+                <option value="contains">Contains</option>
+                <option value="startsWith">Starts with</option>
+                <option value="endsWith">Ends with</option>
+                <option value="exact">Exact match</option>
+              </select>
+            </div>
+          </div>
+          <div id="customerNameSuggestions" class="autocomplete-items"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Mobile Number</label>
+        <input type="text" id="filterCustomerMobile" class="form-control" placeholder="Mobile number">
+      </div>
+    </div>
+    
+    <div class="filter-section">
+      <h5>Bill Amount</h5>
+      <div class="filter-row">
+        <select id="filterAmountCondition" class="form-control">
+          <option value="greater">Greater than</option>
+          <option value="less">Less than</option>
+          <option value="equal">Equal to</option>
+          <option value="between">Between</option>
+        </select>
+        <input type="number" id="filterAmountValue1" class="form-control" placeholder="Amount">
+      </div>
+      <div class="filter-row" id="filterAmountValue2Row" style="display: none;">
+        <span>and</span>
+        <input type="number" id="filterAmountValue2" class="form-control" placeholder="Amount">
+      </div>
+    </div>
+    
+    <div class="filter-section">
+      <h5>Items Count</h5>
+      <div class="filter-row">
+        <select id="filterItemsCondition" class="form-control">
+          <option value="greater">Greater than</option>
+          <option value="less">Less than</option>
+          <option value="equal">Equal to</option>
+        </select>
+        <input type="number" id="filterItemsValue" class="form-control" placeholder="Count">
+      </div>
+    </div>
+    
+    <div class="filter-actions">
+      <button class="btn btn-secondary" onclick="resetFilters()">
+        <i class="fas fa-undo btn-icon"></i> Reset
+      </button>
+      <button class="btn btn-primary" onclick="applyFilters()">
+        <i class="fas fa-check btn-icon"></i> Apply
+      </button>
+    </div>
+  </div>
+  
   <div id="productMessage">
     <p class="indi"> <i class="fa-solid fa-circle-check"></i> Success</p>
   </div>
+  
   <div class="container mt-5" style="padding-top: 2px;">
-  <div id="authContainer" >
-    <h3>Authentication Required</h3>
-    <p>Please sign in to view bills</p>
-    <button class="btn btn-primary" onclick="window.location.href='login.html'">Go to Login</button>
-  </div>
-
-  <div id="contentContainer" class="container mt-4">
-
-    
-    <div class="glass">
-      <div class="row">
-        <div class="col-md-4">
-          <p><strong>Total Records:</strong> <span id="totalRecords">0</span></p>
-        </div>
-        <div class="col-md-4">
-          <p><strong>Total Amount:</strong> ₹<span id="totalAmount">0</span></p>
-        </div>
-        <div class="col-md-4" style="display: none;">
-          <p><strong>Date Range:</strong> <span id="dateRange">All</span></p>
+    <div id="contentContainer" class="container mt-4">
+      <div class="glass">
+        <div class="row">
+          <div class="col-md-4">
+            <p><strong>Total Records:</strong> <span id="totalRecords">0</span></p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Total Amount:</strong> ₹<span id="totalAmount">0</span></p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Date Range:</strong> <span id="dateRange">All</span></p>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <div class="search-container">
-      <div class="row">
-        <div class="col-md-3">
-          <input type="date" id="fromDate" class="form-control mb-1" placeholder="From Date">
-        </div>
-        <div class="col-md-3">
-          <input type="date" id="toDate" class="form-control mb-1" placeholder="To Date">
-        </div>
-        <div class="col-md-6">
-          <input type="text" id="searchInput" class="form-control mb-1" placeholder="Search by customer name or mobile" oninput="filterBills()">
+      
+      <div class="search-container">
+        <div class="row">
+          <div class="col-md-12">
+            <input type="text" id="searchInput" class="form-control mb-1" placeholder="Search by customer name, mobile, bill ID..." oninput="filterBills()">
+          </div>
         </div>
       </div>
-    </div>
-    
-    <div id="loadingSpinner" class="text-center mb-3" style="display: none;">
-      <div class="loading-spinner"></div> Loading bills...
-    </div>
-    
-    <div id="allBillsContainer">
-      <!-- Bills will be loaded here -->
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="editBillModal" tabindex="-1" role="dialog" aria-labelledby="editBillModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="editBillModalLabel">Edit Bill</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+      
+      <div id="loadingSpinner" class="text-center mb-3" style="display: none;">
+        <div class="loading-spinner"></div> Loading bills...
       </div>
-      <div class="modal-body" id="editBillModalBody">
-        <!-- Content will be loaded here dynamically -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-          <i class="fas fa-times btn-icon"></i> Close
-        </button>
-        <button type="button" class="btn btn-primary" onclick="saveEditedBill()">
-          <i class="fas fa-save btn-icon"></i> Save Changes
-        </button>
+      
+      <div id="allBillsContainer">
+        <!-- Bills will be loaded here -->
       </div>
     </div>
   </div>
-</div>
+
+  <!-- Edit Bill Modal (unchanged from your original code) -->
+  <div class="modal fade" id="editBillModal" tabindex="-1" role="dialog" aria-labelledby="editBillModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editBillModalLabel">Edit Bill</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" id="editBillModalBody">
+          <!-- Content will be loaded here dynamically -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            <i class="fas fa-times btn-icon"></i> Close
+          </button>
+          <button type="button" class="btn btn-primary" onclick="saveEditedBill()">
+            <i class="fas fa-save btn-icon"></i> Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
-
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const auth = firebase.auth();
@@ -189,16 +387,24 @@
 
     // Check auth state
     auth.onAuthStateChanged(user => {
-      if (user) {
-        // User is signed in
-        document.getElementById('authContainer').style.display = 'none';
-        document.getElementById('contentContainer').style.display = 'block';
+      if (!user) {
+        window.location.href = "login.html"; // Redirect if not logged in
+      } else {
         showLoading(true);
         loadAllBills();
-      } else {
-        // No user signed in
-        document.getElementById('authContainer').style.display = 'block';
-        document.getElementById('contentContainer').style.display = 'none';
+
+        // Check if user is toributik33@gmail.com
+        if (user.email === "toributik33@gmail.com") {
+          // Show admin buttons
+          document.querySelectorAll('.admin-only').forEach(el => {
+            el.classList.remove('admin-only');
+          });
+        } else {
+          // Hide admin buttons
+          document.querySelectorAll('.admin-only').forEach(el => {
+            el.classList.add('admin-only');
+          });
+        }
       }
     });
 
@@ -217,6 +423,7 @@
         });
         updateSummary(allBills);
         displayBills(allBills.reverse()); // Show newest first
+        initAutocomplete();
         showLoading(false);
       }).catch(error => {
         console.error("Error loading bills:", error);
@@ -227,96 +434,289 @@
 
     function filterBills() {
       const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-      const fromDate = document.getElementById('fromDate').value;
-      const toDate = document.getElementById('toDate').value;
-      
       const filteredBills = allBills.filter(bill => {
-        const billDate = new Date(bill.date).toISOString().split('T')[0];
-        const matchesSearch = bill.customer.name.toLowerCase().includes(searchTerm) || 
-                            (bill.customer.mobile && bill.customer.mobile.includes(searchTerm));
+        const matchesSearch = 
+          (bill.customer.name && bill.customer.name.toLowerCase().includes(searchTerm)) || 
+          (bill.customer.mobile && bill.customer.mobile.includes(searchTerm)) ||
+          (bill.billId && bill.billId.toLowerCase().includes(searchTerm));
         
-        const matchesFromDate = fromDate ? billDate >= fromDate : true;
-        const matchesToDate = toDate ? billDate <= toDate : true;
-        
-        return matchesSearch && matchesFromDate && matchesToDate;
+        return matchesSearch;
       });
       
       updateSummary(filteredBills);
       displayBills(filteredBills.reverse());
     }
 
+    function applyFilters() {
+  // Get filter values from the UI
+  const fromDate = document.getElementById('filterFromDate').value;
+  const toDate = document.getElementById('filterToDate').value;
+  const customerName = document.getElementById('filterCustomerName').value.toLowerCase();
+  const nameCondition = document.getElementById('filterNameCondition').value;
+  const customerMobile = document.getElementById('filterCustomerMobile').value;
+  
+  // Amount filters
+  const amountCondition = document.getElementById('filterAmountCondition').value;
+  const amountValue1 = parseFloat(document.getElementById('filterAmountValue1').value) || 0;
+  const amountValue2 = parseFloat(document.getElementById('filterAmountValue2').value) || 0;
+  
+  // Items count filters
+  const itemsCondition = document.getElementById('filterItemsCondition').value;
+  const itemsValue = parseInt(document.getElementById('filterItemsValue').value) || 0;
+
+  // Apply all filters to the bills
+  const filteredBills = allBills.filter(bill => {
+    // Date filter
+    const billDate = new Date(bill.date).toISOString().split('T')[0];
+    const matchesFromDate = fromDate ? billDate >= fromDate : true;
+    const matchesToDate = toDate ? billDate <= toDate : true;
+    
+    // Customer name filter with different conditions
+    let matchesCustomerName = true;
+    if (customerName) {
+      const billName = bill.customer.name ? bill.customer.name.toLowerCase() : '';
+      
+      switch(nameCondition) {
+        case 'contains':
+          matchesCustomerName = billName.includes(customerName);
+          break;
+        case 'startsWith':
+          matchesCustomerName = billName.startsWith(customerName);
+          break;
+        case 'endsWith':
+          matchesCustomerName = billName.endsWith(customerName);
+          break;
+        case 'exact':
+          matchesCustomerName = billName === customerName;
+          break;
+        default:
+          matchesCustomerName = billName.includes(customerName);
+      }
+    }
+    
+    // Customer mobile filter
+    const matchesCustomerMobile = customerMobile ? 
+      (bill.customer.mobile && bill.customer.mobile.includes(customerMobile)) : true;
+    
+    // Amount filter
+    const billAmount = parseFloat(bill.grandTotal) || 0;
+    let matchesAmount = true;
+    
+    switch(amountCondition) {
+      case 'greater':
+        matchesAmount = billAmount > amountValue1;
+        break;
+      case 'less':
+        matchesAmount = billAmount < amountValue1;
+        break;
+      case 'equal':
+        matchesAmount = billAmount === amountValue1;
+        break;
+      case 'between':
+        matchesAmount = billAmount >= amountValue1 && billAmount <= amountValue2;
+        break;
+    }
+    
+    // Items count filter
+    const totalItems = bill.items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
+    let matchesItems = true;
+    
+    switch(itemsCondition) {
+      case 'greater':
+        matchesItems = totalItems > itemsValue;
+        break;
+      case 'less':
+        matchesItems = totalItems < itemsValue;
+        break;
+      case 'equal':
+        matchesItems = totalItems === itemsValue;
+        break;
+    }
+    
+    // All conditions must be true for the bill to be included
+    return matchesFromDate && matchesToDate && 
+           matchesCustomerName && matchesCustomerMobile && 
+           matchesAmount && matchesItems;
+  });
+  
+  // Update the UI with filtered results
+  updateSummary(filteredBills);
+  displayBills(filteredBills.reverse());
+  toggleFilterPanel(); // Close the filter panel after applying
+  
+  // Show message if no results found
+  if (filteredBills.length === 0) {
+    showToastMessage('No bills found matching your filters', 'info');
+  }
+}
+
+// Helper function to show toast messages (add this if you don't have it)
+function showToastMessage(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `toast show align-items-center text-white bg-${type} border-0`;
+  toast.style.position = 'fixed';
+  toast.style.bottom = '20px';
+  toast.style.right = '20px';
+  toast.style.zIndex = '1100';
+  
+  toast.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">
+        ${message}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  `;
+  
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
+    function resetFilters() {
+      // Reset all filter inputs
+      document.getElementById('filterFromDate').value = '';
+      document.getElementById('filterToDate').value = '';
+      document.getElementById('filterCustomerName').value = '';
+      document.getElementById('filterCustomerMobile').value = '';
+      document.getElementById('filterAmountCondition').value = 'greater';
+      document.getElementById('filterAmountValue1').value = '';
+      document.getElementById('filterAmountValue2').value = '';
+      document.getElementById('filterItemsCondition').value = 'greater';
+      document.getElementById('filterItemsValue').value = '';
+      
+      // Reset the main search
+      document.getElementById('searchInput').value = '';
+      
+      // Show all bills
+      updateSummary(allBills);
+      displayBills(allBills.reverse());
+    }
+
+    function toggleFilterPanel() {
+      const panel = document.getElementById('filterPanel');
+      const overlay = document.getElementById('filterOverlay');
+      
+      panel.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    // Update amount filter UI when condition changes
+    document.getElementById('filterAmountCondition').addEventListener('change', function() {
+      const betweenRow = document.getElementById('filterAmountValue2Row');
+      betweenRow.style.display = this.value === 'between' ? 'flex' : 'none';
+    });
+
     function updateSummary(bills) {
       const totalRecords = bills.length;
       const totalAmount = bills.reduce((sum, bill) => sum + parseFloat(bill.grandTotal), 0);
-      const fromDate = document.getElementById('fromDate').value;
-      const toDate = document.getElementById('toDate').value;
       
       document.getElementById('totalRecords').textContent = totalRecords;
       document.getElementById('totalAmount').textContent = totalAmount.toFixed(2);
       
+      // Update date range display
       let dateRangeText = 'All';
+      const fromDate = document.getElementById('filterFromDate').value;
+      const toDate = document.getElementById('filterToDate').value;
+      
       if (fromDate || toDate) {
         dateRangeText = `${fromDate || 'Start'} to ${toDate || 'End'}`;
       }
       document.getElementById('dateRange').textContent = dateRangeText;
     }
 
-
-
     function displayBills(bills) {
-      const container = document.getElementById('allBillsContainer');
-      
-      if (bills.length === 0) {
-        container.innerHTML = '<div class="alert alert-info">No bills found matching your criteria</div>';
-        return;
-      }
+  const container = document.getElementById('allBillsContainer');
+  
+  if (bills.length === 0) {
+    container.innerHTML = '<div class="alert alert-info">No bills found matching your criteria</div>';
+    return;
+  }
 
-      container.innerHTML = '';
-      bills.forEach(bill => {
-        const billCard = document.createElement('div');
-        billCard.className = 'glass';
+  container.innerHTML = '';
+  bills.forEach(bill => {
+    const billCard = document.createElement('div');
+    billCard.className = 'glass';
 
-        const billDate = new Date(bill.date);
-        const formattedDate = billDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-        const formattedTime = billDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const billDate = new Date(bill.date);
+    const formattedDate = billDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const formattedTime = billDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-        const totalItems = bill.items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
+    const totalItems = bill.items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
 
-        billCard.innerHTML = `
-          <div class="d-flex justify-content-between">
-            <p style="display: none;">Bill #${bill.id.substring(0, 8)}</p>
-            <small class="text-muted">${formattedDate}, ${formattedTime}</small>  
-          </div>
-          <div class="d-flex justify-content-between">
-            <p><span><strong><i class="fas fa-user"></i> ${bill.customer.name}</strong></span>
-              <span>${bill.customer.mobile || 'No mobile'}</span><br>
-              <span><strong>Items:</strong> ${totalItems} | <strong>Total:</strong> ₹${bill.grandTotal}</span>
-            </p>
-          </div>
-          <div class="bill-actions">
-            <button class="btn btn-sm btn-info" onclick="viewBill('${bill.id}')">
-              <i class="fas fa-eye btn-icon"></i> View
-            </button>
-            <button class="btn btn-sm btn-info" onclick="viewSlip('${bill.id}')">
-              <i class="fas fa-receipt btn-icon"></i> Slip
-            </button>
-            <button class="btn btn-sm btn-warning" onclick="editBill('${bill.id}')">
-              <i class="fas fa-edit btn-icon"></i> Edit
-            </button>
-            <a href="details.html?name=${encodeURIComponent(bill.customer.name)}&mobile=${bill.customer.mobile || ''}" 
-              class="btn btn-sm btn2 mr-1">
-              <i class="fas fa-user btn-icon"></i> Details
-            </a>
-            <button class="btn btn-sm btn-danger float-right" onclick="deleteBill('${bill.id}')">
-              <i class="fas fa-trash btn-icon"></i> Delete
-            </button>
-          </div>
-        `;
-        container.appendChild(billCard);
+    billCard.innerHTML = `
+      <div class="d-flex justify-content-between">
+        <p style="display: none;">Bill #${bill.id.substring(0, 8)}</p>
+        <small class="text-muted">${formattedDate}, ${formattedTime} | ${bill.billId}</small>  
+      </div>
+      <div class="d-flex justify-content-between">
+        <p><span><strong><i class="fas fa-user"></i> ${bill.customer.name}</strong></span>
+          <span>${bill.customer.mobile || 'No mobile'}</span><br>
+          <span><strong>Items:</strong> ${totalItems} | <strong>Total:</strong> ₹${bill.grandTotal} </span>
+        </p>
+      </div>
+      <div class="bill-actions">
+        <button class="btn btn-sm btn-info" onclick="viewBill('${bill.id}')">
+          <i class="fas fa-eye btn-icon"></i> View
+        </button>
+        <button class="btn btn-sm btn-info" onclick="viewSlip('${bill.id}')">
+          <i class="fas fa-receipt btn-icon"></i> Slip
+        </button>
+        <button class="btn btn-sm btn-warning" onclick="editBill('${bill.id}')">
+          <i class="fas fa-edit btn-icon"></i> Edit
+        </button>
+        <a href="details.html?name=${encodeURIComponent(bill.customer.name)}&mobile=${bill.customer.mobile || ''}" 
+          class="btn btn-sm btn2 mr-1">
+          <i class="fas fa-user btn-icon"></i> Details
+        </a>
+        <button class="btn btn-sm btn-danger float-right" onclick="deleteBill('${bill.id}')">
+          <i class="fas fa-trash btn-icon"></i> Delete
+        </button>
+      </div>
+    `;
+    container.appendChild(billCard);
+  });
+}
+
+    // The rest of your existing functions (viewBill, editBill, saveEditedBill, etc.) remain unchanged
+    function viewBill(billId) {
+      showLoading(true);
+      database.ref('bills/' + billId).once('value').then(snapshot => {
+        const billData = snapshot.val();
+        if (billData) {
+          localStorage.setItem('currentBillData', JSON.stringify(billData));
+          window.open('bill.html?id=' + billId, '_self');
+        } else {
+          alert('Bill data not found!');
+        }
+        showLoading(false);
+      }).catch(error => {
+        console.error("Error loading bill:", error);
+        alert('Error loading bill: ' + error.message);
+        showLoading(false);
       });
     }
 
-    // Add these new functions for editing bills
+    function viewSlip(billId) {
+      showLoading(true);
+      database.ref('bills/' + billId).once('value').then(snapshot => {
+        const billData = snapshot.val();
+        if (billData) {
+          localStorage.setItem('currentBillData', JSON.stringify(billData));
+          window.open('slip-bill.html?id=' + billId, '_self');
+        } else {
+          alert('Bill data not found!');
+        }
+        showLoading(false);
+      }).catch(error => {
+        console.error("Error loading bill:", error);
+        alert('Error loading bill: ' + error.message);
+        showLoading(false);
+      });
+    }
+
     let currentlyEditingBillId = null;
 
     function editBill(billId) {
@@ -330,7 +730,6 @@
           const dateStr = billDate.toISOString().split('T')[0];
           const timeStr = billDate.toTimeString().substring(0, 5);
           
-          // Populate the modal with bill data (only editable fields)
           const modalBody = document.getElementById('editBillModalBody');
           modalBody.innerHTML = `
             <div class="form-group">
@@ -380,12 +779,10 @@
             </div>
           `;
           
-          // Add event listeners for item changes to calculate totals
           document.querySelectorAll('.item-quantity, .item-price').forEach(input => {
             input.addEventListener('input', calculateItemTotal);
           });
           
-          // Show the modal
           $('#editBillModal').modal('show');
         } else {
           alert('Bill data not found!');
@@ -422,15 +819,11 @@
       
       showLoading(true);
       
-      // Get the edited values
       const billDate = document.getElementById('editBillDate').value;
       const billTime = document.getElementById('editBillTime').value;
-      
-      // Combine date and time into a single timestamp
       const newDate = new Date(`${billDate}T${billTime}:00`);
       const timestamp = newDate.getTime();
       
-      // Get edited items
       const itemRows = document.querySelectorAll('#editBillItems tr');
       const items = Array.from(itemRows).map(row => {
         return {
@@ -442,7 +835,6 @@
       
       const grandTotal = parseFloat(document.getElementById('editGrandTotal').value);
       
-      // Update the bill in Firebase
       database.ref('bills/' + currentlyEditingBillId).update({
         date: timestamp,
         items: items,
@@ -450,67 +842,21 @@
       }).then(() => {
         showSuccessMessage('Bill updated successfully');
         $('#editBillModal').modal('hide');
-        loadAllBills(); // Refresh the list
+        loadAllBills();
       }).catch(error => {
         alert('Error updating bill: ' + error.message);
         showLoading(false);
       });
     }
 
-    // Update your showSuccessMessage function to accept a custom message
     function showSuccessMessage(message = "Success") {
       const messageDiv = document.getElementById("productMessage");
       messageDiv.innerHTML = `<p class="indi"><i class="fa-solid fa-circle-check"></i> ${message}</p>`;
       messageDiv.style.display = "block";
       
-      // Hide the message after 3 seconds
       setTimeout(() => {
         messageDiv.style.display = "none";
       }, 3000);
-    }
-
-    function viewBill(billId) {
-      showLoading(true);
-      // Get the specific bill data from Firebase
-      database.ref('bills/' + billId).once('value').then(snapshot => {
-        const billData = snapshot.val();
-        if (billData) {
-          // Store in localStorage and open bill.html
-          localStorage.setItem('currentBillData', JSON.stringify(billData));
-          //window.open('bill.html?id=' + billId, '_blank');
-          window.open('bill.html?id=' + billId, '_self');
-
-        } else {
-          alert('Bill data not found!');
-        }
-        showLoading(false);
-      }).catch(error => {
-        console.error("Error loading bill:", error);
-        alert('Error loading bill: ' + error.message);
-        showLoading(false);
-      });
-    }
-
-    function viewSlip(billId) {
-      showLoading(true);
-      // Get the specific bill data from Firebase
-      database.ref('bills/' + billId).once('value').then(snapshot => {
-        const billData = snapshot.val();
-        if (billData) {
-          // Store in localStorage and open bill.html
-          localStorage.setItem('currentBillData', JSON.stringify(billData));
-          //window.open('bill.html?id=' + billId, '_blank');
-          window.open('slip-bill.html?id=' + billId, '_self');
-
-        } else {
-          alert('Bill data not found!');
-        }
-        showLoading(false);
-      }).catch(error => {
-        console.error("Error loading bill:", error);
-        alert('Error loading bill: ' + error.message);
-        showLoading(false);
-      });
     }
 
     function deleteBill(billId) {
@@ -528,29 +874,106 @@
       }
     }
 
-    // Initialize date inputs to current month
-    document.addEventListener('DOMContentLoaded', function() {
-      const today = new Date();
-      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-      
-      document.getElementById('fromDate').valueAsDate = firstDay;
-      document.getElementById('toDate').valueAsDate = today;
-      
-      // Add event listeners for date changes
-      document.getElementById('fromDate').addEventListener('change', filterBills);
-      document.getElementById('toDate').addEventListener('change', filterBills);
-    });
-
     function logout() {
       auth.signOut().then(() => {
         window.location.href = "login.html";
       });
     }
-    auth.onAuthStateChanged(user => {
-  if (!user) {
-    window.location.href = "login.html"; // Redirect to login if not authenticated
+
+    // Initialize date inputs to current month
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date();
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+      
+      document.getElementById('filterFromDate').valueAsDate = firstDay;
+      document.getElementById('filterToDate').valueAsDate = today;
+    });
+
+
+    // Customer name autocomplete
+let customerNames = [];
+
+function initAutocomplete() {
+  // Get all unique customer names
+  customerNames = [...new Set(allBills.map(bill => bill.customer.name))];
+  
+  const nameInput = document.getElementById('filterCustomerName');
+  const suggestionsContainer = document.getElementById('customerNameSuggestions');
+  
+  nameInput.addEventListener('input', function() {
+    const input = this.value.toLowerCase();
+    suggestionsContainer.innerHTML = '';
+    
+    if (!input) return;
+    
+    const matches = customerNames.filter(name => 
+      name.toLowerCase().includes(input)
+    ).slice(0, 5); // Show max 5 suggestions
+    
+    matches.forEach(match => {
+      const div = document.createElement('div');
+      div.innerHTML = match;
+      div.addEventListener('click', function() {
+        nameInput.value = match;
+        suggestionsContainer.innerHTML = '';
+      });
+      suggestionsContainer.appendChild(div);
+    });
+  });
+  
+  // Close suggestions when clicking elsewhere
+  document.addEventListener('click', function(e) {
+    if (e.target !== nameInput) {
+      suggestionsContainer.innerHTML = '';
+    }
+  });
+}
+
+// Excel download function
+function downloadExcel() {
+  // Get currently filtered bills (or all if no filters)
+  let billsToExport = allBills;
+  const container = document.getElementById('allBillsContainer');
+  
+  // If there's a "no bills found" message, don't export
+  if (container.querySelector('.alert-info')) {
+    alert('No bills to export');
+    return;
   }
-});
+  
+  // If there are filtered bills, use those
+  const billCards = container.querySelectorAll('.glass');
+  if (billCards.length > 0 && billCards.length < allBills.length) {
+    const visibleBillIds = Array.from(billCards).map(card => 
+      card.querySelector('button[onclick^="viewBill"]').getAttribute('onclick').match(/'([^']+)'/)[1]
+    );
+    billsToExport = allBills.filter(bill => visibleBillIds.includes(bill.id));
+  }
+  
+  // Prepare CSV content
+  let csvContent = "Bill ID,Date,Customer Name,Mobile,Items,Total\n";
+  
+  billsToExport.forEach(bill => {
+    const date = new Date(bill.date).toLocaleString();
+    const customerName = bill.customer.name || '';
+    const mobile = bill.customer.mobile || '';
+    const items = bill.items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
+    const total = bill.grandTotal;
+    
+    csvContent += `"${bill.billId}","${date}","${customerName}","${mobile}","${items}","${total}"\n`;
+  });
+  
+  // Create download link
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `bills_${new Date().toISOString().slice(0,10)}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
   </script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
