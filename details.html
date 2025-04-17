@@ -22,10 +22,7 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       margin-bottom: 20px;
     }
-    .total-card {
-      background-color: #f8f9fa;
-      border-left: 4px solid #28a745;
-    }
+   
     .back-btn {
       margin-bottom: 20px;
     }
@@ -34,6 +31,10 @@
 .card-header .btn-sm {
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
+  
+}
+.card{
+  border-left: 4px solid green;
 }
 
 /* Modal styles */
@@ -61,47 +62,52 @@
 </head>
 <body>
   <div>
+    <div class="particles" id="particles"></div>
     <div class="wave"></div>
     <div class="wave"></div>
     <div class="wave"></div>
   </div>
   
-  <nav class="navbar fixed-top">
-    <div class="container">
-      <a class="navbar-brand" href="index.html">
-        <img src="img/watermark/logo.png" width="50" height="30" class="d-inline-block align-top" alt="">
-        Customer Details
-      </a>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
+    <div class="container d-flex justify-content-between align-items-center">
+      
+      <!-- Back Button -->
+      <button class=" btn navbar-brand d-flex align-items-center" onclick="window.history.back()" style="padding: 8px 12px; border-radius: 50%; background-color: #17a2b8;">
+        <i class="fas fa-arrow-left text-white"></i>
+      </button>
+  
+      <!-- Logout Button -->
+      <button class="btn btn-outline-light btn-sm" onclick="logout()" title="Logout">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
     </div>
-    <button class="btn btn-danger btn-sm logout-btn" onclick="logout()" alt="logout">
-      <i class="fas fa-sign-out-alt"></i>
-    </button>
   </nav>
-
+  <div id="productMessage">
+    <p class="indi"> <i class="fa-solid fa-circle-check"></i> Success</p>
+  </div>
   <div class="container mt-5" style="padding-top: 20px;">
-    <button class="btn btn-secondary back-btn" onclick="window.history.back()">
-      <i class="fas fa-arrow-left"></i> Back
-    </button>
-    
+  
     <!-- Customer Information Card -->
     <div class="card customer-card mb-4">
-      <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">Customer Information</h4>
+      <div class="card-header bg-warning text-white p-2 rounded">
+        <h5 class="mb-0">
+        <button class="btn btn2 btn-sm " data-toggle="modal" data-target="#updateCustomerModal">
+          <i class="fas fa-edit"></i> Update Customer Information
+        </button>
+      </h5>
       </div>
       <div class="card-body">
         <div class="row">
           <div class="col-md-6">
-            <p><strong>Name:</strong> <span id="customerNameDisplay">Loading...</span></p>
-            <p><strong>Mobile:</strong> <span id="customerMobileDisplay">Loading...</span></p>
+            <span><strong>Name:</strong> <span id="customerNameDisplay">Loading...</span></span><br>
+            <span><strong>Mobile:</strong> <span id="customerMobileDisplay">Loading...</span></span>
           </div>
           <div class="col-md-6">
-            <p><strong>Total Bills:</strong> <span id="totalBills">0</span></p>
-            <p><strong>Total Amount Spent:</strong> ₹<span id="totalAmountSpent">0.00</span></p>
+            <span><strong>Total Bills:</strong> <span id="totalBills">0</span></span><br>
+            <span><strong>Total Amount Spent:</strong> ₹<span id="totalAmountSpent">0.00</span></span>
           </div>
         </div>
-        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#updateCustomerModal">
-            <i class="fas fa-edit"></i> Update
-        </button>
+        
       </div>
     </div>
     
@@ -137,7 +143,7 @@
     
     <!-- Total Summary Card -->
     <div class="card total-card mt-4">
-      <div class="card-body">
+      <div class="">
         <div class="row">
           <div class="col-md-4">
             <p class="mb-1"><strong>First Purchase:</strong> <span id="firstPurchaseDate">-</span></p>
@@ -391,7 +397,8 @@ $('#saveCustomerChanges').click(function() {
       $('#saveCustomerChanges').html('Save Changes');
       $('#saveCustomerChanges').prop('disabled', false);
       
-      alert('Customer information updated successfully!');
+      //alert('Customer information updated successfully!');
+      showSuccessMessage();
       
       // Update URL parameters if needed
       const url = new URL(window.location.href);

@@ -1,58 +1,152 @@
 body {
-font-family: "Josefin Sans", serif;
-font-optical-sizing: auto;
-overflow: auto;
-background: linear-gradient(315deg, rgba(101, 0, 94, 0.368) 3%, rgba(60, 133, 206, 0.434) 38%, rgba(48, 238, 225, 0.39) 68%, rgba(255, 25, 25, 0.336) 98%);
-animation: gradient 15s ease infinite;
-background-size: 400% 400%;
-background-attachment: fixed;
+  font-family: "Josefin Sans", serif;
+  font-optical-sizing: auto;
+  overflow: auto;
+  background: linear-gradient(315deg, 
+      rgba(101, 0, 94, 0.368) 3%, 
+      rgba(60, 133, 206, 0.434) 38%, 
+      rgba(48, 238, 225, 0.39) 68%, 
+      rgba(141, 255, 59, 0.336) 98%);
+  animation: gradient 15s ease infinite, pulse 8s ease infinite;
+  background-size: 400% 400%;
+  background-attachment: fixed;
+  min-height: 100vh;
 }
+
+/* Floating particles animation */
+.particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  background: rgba(0, 8, 110, 0.305);
+  border-radius: 50%;
+  animation: float linear infinite;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none; /* Important for click-through */
+}
+
+@keyframes float {
+  0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+  }
+  100% {
+      transform: translateY(-1000px) rotate(720deg);
+      opacity: 0;
+  }
+}
+
+/* Enhanced wave animations */
 .wave {
-background: rgba(192, 255, 245, 0.418);
-border-radius: 1000% 1000% 0 0;
-position: fixed;
-width: 200%;
-height: 12em;
-animation: wave 10s -3s linear infinite;
-transform: translate3d(0, 0, 0);
-opacity: 0.8;
-bottom: 0;
-left: 0;
-z-index: -1;
+  background: rgba(0, 34, 253, 0.07);
+  border-radius: 1000% 1000% 0 0;
+  position: fixed;
+  width: 200%;
+  height: 12em;
+  animation: wave 10s -3s linear infinite, waveOpacity 4s ease-in-out infinite alternate;
+  transform: translate3d(0, 0, 0);
+  opacity: 0.8;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  filter: blur(1px);
 }
 
 .wave:nth-of-type(2) {
-bottom: -1.25em;
-animation: wave 18s linear reverse infinite;
-opacity: 0.8;
+  bottom: -1.25em;
+  animation: wave 18s linear reverse infinite, waveOpacity 5s ease-in-out infinite alternate;
+  opacity: 0.8;
+  filter: blur(1.5px);
 }
 
 .wave:nth-of-type(3) {
-bottom: -2.5em;
-animation: wave 20s -1s reverse infinite;
-opacity: 0.9;
+  bottom: -2.5em;
+  animation: wave 20s -1s reverse infinite, waveOpacity 6s ease-in-out infinite alternate;
+  opacity: 0.9;
+  filter: blur(2px);
 }
 
 @keyframes wave {
-2% {
-transform: translateX(1);
+  0% {
+      transform: translateX(0);
+  }
+  25% {
+      transform: translateX(-25%);
+  }
+  50% {
+      transform: translateX(-50%);
+  }
+  75% {
+      transform: translateX(-25%);
+  }
+  100% {
+      transform: translateX(0);
+  }
 }
 
-25% {
-transform: translateX(-25%);
+@keyframes waveOpacity {
+  0% {
+      opacity: 0.7;
+  }
+  100% {
+      opacity: 0.9;
+  }
 }
 
-50% {
-transform: translateX(-50%);
+/* Additional animations */
+@keyframes gradient {
+  0% {
+      background-position: 0% 0%;
+  }
+  50% {
+      background-position: 100% 100%;
+  }
+  100% {
+      background-position: 0% 0%;
+  }
 }
 
-75% {
-transform: translateX(-25%);
+@keyframes pulse {
+  0% {
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1);
+  }
+  70% {
+      box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+  }
+  100% {
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
 }
 
-100% {
-transform: translateX(1);
+/* Floating content animation */
+.content {
+  animation: floatUp 3s ease-in-out infinite alternate;
+  position: relative;
+  z-index: 1; /* Above background but below navbar */
+  padding-top: 80px; /* Prevent navbar overlap */
 }
+
+@keyframes floatUp {
+  0% {
+      transform: translateY(0);
+  }
+  100% {
+      transform: translateY(-10px);
+  }
 }
 .card{
 background: rgba(241, 255, 253, 0.17);
@@ -97,10 +191,23 @@ color: #006164;
     color: #006164;
     }
 
-    .navbar{
-      background: linear-gradient(315deg, rgb(253, 223, 251) 3%, rgb(210, 232, 255) 38%, rgb(35, 255, 240) 68%, rgb(172, 222, 255) 98%);
-      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.286);
+    .navbar {
+      background: rgba(0, 5, 75, 0.75); /* Semi-transparent dark */
+      backdrop-filter: blur(8px);      /* Smooth blur effect */
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Soft outer shadow */
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Thin border line */
+      transition: all 0.3s ease-in-out;
+      border-bottom: 3px solid rgb(255, 247, 231);
+      border-top: 3px solid rgb(255, 247, 231);
     }
+
+    .navbar:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.85);
+    }
+    
+    
 
     .from-input{
       background: rgba(241, 255, 253, 0.17);
@@ -134,4 +241,265 @@ color: #006164;
   }
 
 
+
+
+  /* Toast Massage Start */
+
+  .indi {
+    background-color: rgb(0, 129, 86);
+    color: #ffffff;
+    padding: 5px 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.288);
+    animation: fadeSlideIn 0.8s ease-out forwards;
+    opacity: 0;
+    transform: translateY(-10px);
+    white-space: nowrap;
+    overflow: hidden;
+    border-right: 3px solid white;
+    border-left: 3px solid white;
+    width: fit-content;
+    max-width: 100%;
+    animation: typing 1s steps(30, end), fadeSlideIn 0.5s ease-out forwards;
+  }
+
+  .indi-red {
+    font-size: 14px;
+    background-color: rgb(189, 0, 142);
+    color: #ffffff;
+    padding: 5px 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.288);
+    animation: fadeSlideIn 0.8s ease-out forwards;
+    opacity: 0;
+    transform: translateY(-10px);
+    white-space: nowrap;
+    overflow: hidden;
+    border-right: 3px solid white;
+    border-left: 3px solid white;
+    width: fit-content;
+    max-width: 100%;
+    animation: typing 1s steps(30, end), fadeSlideIn 0.5s ease-out forwards;
+  }
   
+  /* Slide + fade in */
+  @keyframes fadeSlideIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Typing effect */
+  @keyframes typing {
+    from {
+      width: 0;
+    }
+    to {
+      width: 15%;
+    }
+  }
+
+  #productMessage{
+    display: none; 
+    position: fixed; 
+    top: 100px; 
+    left: 20px; 
+    z-index: 1000;
+  }
+
+    /* Toast Massage End */
+
+
+    .btn1 {
+      background: linear-gradient(135deg, #17a2b8, #138496);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 4px 20px rgba(23, 162, 184, 0.3);
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      letter-spacing: 0.5px;
+      text-transform: capitalize;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn1::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+    }
+    
+    .btn1:hover {
+      background: linear-gradient(135deg, #138496, #117a8b);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
+      color: #00fff2;
+    }
+    
+    .btn1:hover::before {
+      left: 100%;
+    }
+    
+    .btn1:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 10px rgba(23, 162, 184, 0.4);
+    }
+    
+    .btn1:focus {
+      box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.4);
+    }
+    
+    /* Optional: Add an icon */
+    .btn1 i {
+      font-size: 1.1rem;
+      transition: transform 0.3s ease;
+    }
+    
+    .btn1:hover i {
+      transform: translateX(3px);
+    }
+
+
+    .btn2 {
+      background: linear-gradient(135deg, #17a2b8, #138496);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      box-shadow: 0 4px 20px rgba(23, 162, 184, 0.3);
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      letter-spacing: 0.5px;
+      text-transform: capitalize;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    /* Ant element */
+    .btn2::after {
+      content: '';
+      position: absolute;
+      width: 8px;              /* reduced from 12px */
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0;
+      box-shadow: 
+        -10px 0 0 white,       /* reduced spacing */
+        -5px -3px 0 white;     /* reduced offset */
+      transition: opacity 0.3s ease;
+    }
+    
+    
+    /* Ant animation path */
+    .btn2:hover::after {
+      opacity: 1;
+      animation: antCrawl 3s linear infinite;
+    }
+    
+    @keyframes antCrawl {
+      0% {
+        top: 10%;
+        left: -20px;
+        transform: scaleX(1);
+      }
+      25% {
+        top: 10%;
+        left: 25%;
+        transform: scaleX(1);
+      }
+      30% {
+        transform: scaleX(-1);
+      }
+      50% {
+        top: 80%;
+        left: 25%;
+        transform: scaleX(-1);
+      }
+      55% {
+        transform: scaleX(1);
+      }
+      75% {
+        top: 80%;
+        left: 75%;
+        transform: scaleX(1);
+      }
+      80% {
+        transform: scaleX(-1);
+      }
+      100% {
+        top: 10%;
+        left: 100%;
+        transform: scaleX(-1);
+      }
+    }
+    
+    .btn2::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+    }
+    
+    .btn2:hover {
+      background: linear-gradient(135deg, #138496, #117a8b);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
+      color: #ddfdfb;
+    }
+    
+    .btn2:hover::before {
+      left: 100%;
+    }
+    
+    .btn2:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 10px rgba(23, 162, 184, 0.4);
+    }
+    
+    .btn2:focus {
+      box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.4);
+    }
+    
+    .btn2 i {
+      font-size: 1.1rem;
+      transition: transform 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .btn2:hover i {
+      transform: translateX(3px);
+    }
+    
+    /* Button text positioning */
+    .btn2 span {
+      position: relative;
+      z-index: 1;
+    }
+  
+   

@@ -40,8 +40,6 @@ body {
     font-optical-sizing: auto;
   }
 
-
-
   </style>
 </head>
 <body>
@@ -60,6 +58,10 @@ body {
                 <span>INVOICE</span><br>
                 <span style="font-size: 14px;">Date & Time: <span id="billDate"></span></span>
             </h2>
+            <!-- Add this right after the invoice header -->
+
+  
+
         </div>
     </div>
     
@@ -67,7 +69,7 @@ body {
     <div class="customer-info">
       <div>
         <strong>
-          <span>BILL TO</span><br><br>
+          <span>Bill ID: <span id="billId"></span><br><br>
           <i class="bi bi-person-square"></i> <span id="customerName"></span><br>
           <i class="bi bi-phone"></i> <span id="customerMobile"></span>
         </strong>
@@ -163,6 +165,9 @@ body {
   // Display customer info
   document.getElementById('customerName').textContent = billData.customer.name;
   document.getElementById('customerMobile').textContent = billData.customer.mobile;
+
+   // Display Bill ID
+   document.getElementById('billId').textContent = billData.billId || 'N/A';
   
   // Clear existing items first
   const billItems = document.getElementById('billItems');

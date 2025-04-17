@@ -29,40 +29,89 @@
       font-size: 10px;
     }
   }
+
+  .logo {
+        width: 45px; /* Adjust size as needed */
+        height: 40px;
+        transition: transform 0.3s ease-in-out; /* Smooth animation */
+        }
+
+        .logo:hover {
+            transform: rotate(360deg) scale(1.1); /* Spins and slightly enlarges on hover */
+        }
+
+        
   </style>
 </head>
 <body>
   <div>
+    <div class="particles" id="particles"></div>
     <div class="wave"></div>
     <div class="wave"></div>
     <div class="wave"></div>
   </div>
   <!-- Image and text -->
-  <nav class="navbar  fixed-top ">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
     <div class="container">
-    <a class="navbar-brand" href="index.html">
-      <img src="img/watermark/logo.png" width="50" height="30" class="d-inline-block align-top" alt="">
-      Billing System
+      <a class="navbar-brand d-flex align-items-center text-light" href="#">
+        <img src="img/sumadhu.png" alt="Logo" class="logo me-3" style="margin-right: 10px;">
+        <strong> Billing System</strong>
     </a>
-  </div>
-    <button class="btn btn-danger btn-sm logout-btn" onclick="logout()" alt="logout">
-      <i class="fas fa-sign-out-alt"></i>
-    </button>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+  
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav align-items-center">
+          <li class="nav-item">
+            <a class="btn btn1 btn-sm mr-2" href="till-now.html">View All Bills</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn1 btn-sm mr-2" href="product.html">Products Management</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn1 btn-sm mr-3" href="boutique-messages.html">Messages</a>
+          </li>
+          <li class="nav-item">
+            <button class="btn btn-danger btn-sm" onclick="logout()" title="Logout">
+              <i class="fas fa-sign-out-alt"></i> LogOut
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
   </nav>
-  <div class="container mt-5" style="padding-top: 20px;">
+  <div id="productMessage">
+    <p class="indi"> <i class="fa-solid fa-circle-check"></i> Success</p>
+  </div>
+  <div class="container mt-5" style="padding-top: 35px;">
     <!-- Customer Details -->
     <div class="row mb-2">
       <div class="col-md-4">
         <!-- Customer Name Input with Suggestions -->
-      <input type="text" id="customerName" class="form-control from-input  form-control from-input-sm mb-1" placeholder="Customer Name (Optional)" list="customerList" oninput="fillCustomerMobile()" autocomplete="off">
+      <input type="text" id="customerName" class="form-control from-input  form-control from-input-sm mb-1" placeholder="Customer Name (Optional)" list="customerList" oninput="fillCustomerMobile()" onchange="fillCustomerMobile()" autocomplete="off">
       <datalist id="customerList"></datalist>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-2">
         <input type="tel" id="customerMobile" class="form-control from-input form-control from-input-sm mb-1" placeholder="Mobile Number">
       </div>
-      <div class="col-md-4">
-        <button class="btn btn-info w-100" onclick="location.href='till-now.html'">View All Bills</button>
+      <div class="col-md-2">
+        <div class="input-group">
+          <!-- <div class="input-group-prepend">
+            <span class="form-control  form-control from-input-sm mb-1">Bill ID</span>
+          </div> -->
+          <input type="text" id="billId" class="form-control from-input form-control from-input-sm mb-1" readonly>
+        </div>
       </div>
+      <!-- Add this after the customerMobile input field -->
+<div class="col-md-2">
+  <input type="date" id="billDate" class="form-control from-input form-control from-input-sm mb-1">
+</div>
+<div class="col-md-2">
+  <input type="time" id="billTime" class="form-control from-input form-control from-input-sm mb-1">
+</div>
+      
     </div>
 
     <!-- Product Selection & Input Fields -->
@@ -79,17 +128,23 @@
       <div class="col-md-2">
         <input type="number" id="quantity" class="form-control from-input form-control from-input-sm mb-1" placeholder="Quantity">
       </div>
-      <div class="col-md-4">
-        <button class="btn btn-primary w-100" onclick="addItem()">Add Item</button>
+      <div class="col-md-2">
+        <select id="billType" class="form-control from-input form-control from-input-sm mb-1">
+          <option value="bill.html" selected>Detailed Bill</option>
+          <option value="slip-bill.html">Slip Bill</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn2 w-100" onclick="addItem()">  <i class="fas fa-plus-circle"></i>Add Item</button>
       </div>
     </div>
-
+    
     <!-- Items Table -->
     <table class="table table-bordered">
       <thead class="table-dark">
         <tr>
           <th>#</th> <!-- Add this for serial number -->
-          <th>Product Name</th>
+          <th>Products</th>
           <th>Price</th>
           <th>Quantity</th>
           <th>Total</th>
@@ -103,38 +158,46 @@
     <div class="row justify-content-end">
         <div class="col-md-4">
           <div class="card">
-            <div class="card-body p-2">  <!-- Reduced padding -->
-              <div class="form-group mb-2">  <!-- Reduced margin -->
-                <label for="subTotal" class="mb-0">Sub Total:</label>  <!-- Removed label margin -->
+            <div class="card-body p-1">  <!-- Reduced padding -->
+              <div class="form-group d-flex align-items-center justify-content-between">  <!-- Reduced margin -->
+                <label for="subTotal" class="" style="min-width: 100px;">Sub Total:</label>  <!-- Removed label margin -->
                 <input type="number" id="subTotal" class="form-control from-input form-control from-input-sm" readonly value="0">  <!-- Smaller input -->
               </div>
-              <div class="form-group mb-2">
-                <label for="discount" class="mb-0">Discount %:</label>
+              <div class="form-group d-flex align-items-center justify-content-between">
+                <label for="discount" class="mb-0" style="min-width: 100px;">Discount %:</label>
                 <input type="number" id="discount" value="0" class="form-control from-input form-control from-input-sm" placeholder="0" oninput="applyDiscount()">
               </div>
+              <hr>
               <div class="form-group form-check mb-2">
                 <input type="checkbox" class="form-check-input" id="enableGST" onchange="applyGST()">
                 <label class="form-check-label" for="enableGST">GST (18%)</label>  <!-- Shortened label -->
               </div>
-              <div class="form-group mb-2">
-                <label class="mb-0">GST Amt:</label>  <!-- Shortened label -->
+              <div class="form-group d-flex align-items-center justify-content-between mb-2">
+                <label class="mb-0" style="min-width: 100px;">GST Amt:</label>  <!-- Shortened label -->
                 <input type="number" id="gstAmount" class="form-control from-input form-control from-input-sm" readonly value="0">
               </div>
-              <div class="form-group mb-1">  <!-- Smallest margin -->
-                <label for="grandTotal" class="mb-0">Grand Total:</label>
+              <div class="form-group d-flex align-items-center justify-content-between mb-2">  <!-- Smallest margin -->
+                <label for="grandTotal" class="mb-0" style="min-width: 100px;">Grand Total:</label>
                 <input type="number" id="grandTotal" class="form-control from-input form-control from-input-sm font-weight-bold" readonly value="0">  <!-- Bold for emphasis -->
               </div>
+              
             </div>
           </div>
         </div>
       </div>
 
     <!-- Generate Bill Button -->
-    <div class="text-center mt-4">
-      <button class="btn btn-success w-100 mb-1" onclick="generateBill()">Generate Bill</button>
-      <a class="btn btn-primary float-right w-100 mb-1" href="product.html">Products Management</a>
-      <a class="btn btn-warning float-right w-100 mb-1" href="boutique-messages.html">Boutique Messages</a>
+    <div class="text-center mt-2">
+      <button class="btn btn1 w-100 mb-1" onclick="generateBill()" style="height: 60px; font-size: 1.20rem;">
+        <i class="fas fa-bolt"></i> <span>Generate Bill</span>   
+      </button>
+      
+    <!-- Add this above the Generate Bill button -->
+<div class="row mb-3">
+  <div class="col-md-12">
     
+  </div>
+</div>
     </div>
   </div>
 
@@ -184,7 +247,8 @@
   let productName = productSelect.options[productSelect.selectedIndex].text;
 
   if (!productName || isNaN(price) || isNaN(quantity) || price <= 0 || quantity <= 0) {
-    alert("Please select a valid product and enter quantity.");
+    //alert("Please select a valid product and enter quantity.");
+    showMessage('Please select a valid product and enter quantity.');
     return;
   }
 
@@ -261,20 +325,51 @@ function removeItem(button, itemTotal) {
       }
     }
 
-    function generateBill() {
+// Add this function to generate the next Bill ID
+async function getNextBillId() {
+  try {
+    const snapshot = await database.ref("bills").orderByKey().limitToLast(1).once("value");
+    let lastBillId = "BTB0"; // Default starting point
+    
+    if (snapshot.exists()) {
+      const lastBillKey = Object.keys(snapshot.val())[0];
+      const lastBillData = snapshot.val()[lastBillKey];
+      
+      if (lastBillData.billId) {
+        lastBillId = lastBillData.billId;
+      }
+    }
+    
+    // Extract the number part and increment
+    const lastNumber = parseInt(lastBillId.replace("BTB", "")) || 0;
+    return `BTB${lastNumber + 1}`;
+  } catch (error) {
+    console.error("Error fetching last bill ID:", error);
+    return "BTB1"; // Fallback if there's an error
+  }
+}
+
+// Modify your generateBill function to include the billId
+async function generateBill() {
   // Check if there are any items in the bill table
   const billTable = document.getElementById("billTable");
   if (billTable.rows.length === 0) {
-    alert("Please add at least one item before generating the bill.");
+    // alert("Please add at least one item before generating the bill.");
+    showMessage('Please add at least one item before generating the bill.');
     return;
   }
+
+  // Get the selected bill type
+  const billType = document.getElementById("billType").value;
 
   // Disable the button to prevent multiple clicks
   const generateBtn = document.querySelector('button[onclick="generateBill()"]');
   generateBtn.disabled = true;
-  //generateBtn.textContent = "Generating...";
   generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
 
+  // Get the next bill ID
+  const billId = await getNextBillId();
+  document.getElementById("billId").value = billId;
 
   const customerName = document.getElementById("customerName").value || "Walk-in Customer";
   const customerMobile = document.getElementById("customerMobile").value || "";
@@ -295,22 +390,38 @@ function removeItem(button, itemTotal) {
     }
   }).filter(item => item && item.name);
 
+  // const billData = {
+  //   billId: billId, // Add the billId to the data
+  //   customer: { name: customerName, mobile: customerMobile },
+  //   items,
+  //   subTotal,
+  //   discount,
+  //   gstAmount,
+  //   grandTotal,
+  //   date: new Date().toISOString()
+  // };
+
+  // In your generateBill function, modify the billData object creation:
   const billData = {
-    customer: { name: customerName, mobile: customerMobile },
-    items,
-    subTotal,
-    discount,
-    gstAmount,
-    grandTotal,
-    date: new Date().toISOString()
-  };
+  billId: billId,
+  customer: { name: customerName, mobile: customerMobile },
+  items,
+  subTotal,
+  discount,
+  gstAmount,
+  grandTotal,
+  date: combineDateTime(
+    document.getElementById("billDate").value,
+    document.getElementById("billTime").value
+  ) || new Date().toISOString()
+};
 
   // Save to database
   const newBillRef = database.ref("bills").push();
   newBillRef.set(billData)
     .then(() => {
       localStorage.setItem("currentBillData", JSON.stringify(billData));
-      window.location.href = "bill.html";
+      window.location.href = billType;
     })
     .catch((error) => {
       console.error("Error saving bill:", error);
@@ -320,6 +431,36 @@ function removeItem(button, itemTotal) {
     });
 }
 
+function combineDateTime(dateString, timeString) {
+  if (!dateString) return null;
+  
+  // If no time is provided, default to current time
+  if (!timeString) {
+    timeString = new Date().toTimeString().substring(0, 5);
+  }
+  
+  // Combine date and time into ISO format
+  const dateTimeString = `${dateString}T${timeString}:00`;
+  const dateTime = new Date(dateTimeString);
+  
+  // Return as ISO string (includes timezone offset)
+  return dateTime.toISOString();
+}
+
+// Call this when the page loads to display the next bill ID
+document.addEventListener('DOMContentLoaded', async function() {
+  const nextBillId = await getNextBillId();
+  document.getElementById("billId").value = nextBillId;
+
+   // Set default date and time to now
+  const now = new Date();
+  document.getElementById("billDate").value = now.toISOString().split('T')[0];
+  document.getElementById("billTime").value = now.toTimeString().substring(0, 5);
+  
+  // Rest of your existing DOMContentLoaded code...
+  fetchProducts();
+  fetchCustomers();
+});
 
     function logout() {
       auth.signOut().then(() => {
@@ -336,26 +477,75 @@ function removeItem(button, itemTotal) {
     fetchProducts();
 
 
-    function fetchCustomers() {
+//     function fetchCustomers() {
+//     database.ref("bills").on("value", (snapshot) => {
+//         let customers = {};
+//         snapshot.forEach((childSnapshot) => {
+//             let bill = childSnapshot.val();
+//             if (bill.customer && bill.customer.name) {
+//                 customers[bill.customer.name] = bill.customer.mobile; // Store name & mobile
+//             }
+//         });
+
+//         let datalist = document.getElementById("customerList");
+//         datalist.innerHTML = ""; // Clear previous suggestions
+//         for (let name in customers) {
+//             let option = document.createElement("option");
+//             option.value = name;
+//             option.dataset.mobile = customers[name]; // Store mobile in dataset
+//             datalist.appendChild(option);
+//         }
+//     });
+// }
+
+function fetchCustomers() {
     database.ref("bills").on("value", (snapshot) => {
-        let customers = {};
+        let nameToMobile = {};
+        let mobileToName = {};
         snapshot.forEach((childSnapshot) => {
             let bill = childSnapshot.val();
-            if (bill.customer && bill.customer.name) {
-                customers[bill.customer.name] = bill.customer.mobile; // Store name & mobile
+            if (bill.customer && bill.customer.name && bill.customer.mobile) {
+                nameToMobile[bill.customer.name] = bill.customer.mobile;
+                mobileToName[bill.customer.mobile] = bill.customer.name;
             }
         });
 
+        // Store these mappings in the window object for easy access
+        window.customerData = {
+            nameToMobile: nameToMobile,
+            mobileToName: mobileToName
+        };
+
+        // Update the datalist for name suggestions
         let datalist = document.getElementById("customerList");
-        datalist.innerHTML = ""; // Clear previous suggestions
-        for (let name in customers) {
+        datalist.innerHTML = "";
+        for (let name in nameToMobile) {
             let option = document.createElement("option");
             option.value = name;
-            option.dataset.mobile = customers[name]; // Store mobile in dataset
+            option.dataset.mobile = nameToMobile[name];
             datalist.appendChild(option);
         }
     });
 }
+
+// function fillCustomerMobile() {
+//     let customerName = document.getElementById("customerName").value;
+//     let options = document.querySelectorAll("#customerList option");
+
+//     for (let option of options) {
+//         if (option.value === customerName) {
+//             document.getElementById("customerMobile").value = option.dataset.mobile;
+//             return;
+//         }
+//     }
+// }
+
+document.getElementById("customerMobile").addEventListener("input", function() {
+    let mobile = this.value.trim();
+    if (window.customerData && window.customerData.mobileToName[mobile]) {
+        document.getElementById("customerName").value = window.customerData.mobileToName[mobile];
+    }
+});
 
 function fillCustomerMobile() {
     let customerName = document.getElementById("customerName").value;
@@ -371,6 +561,19 @@ function fillCustomerMobile() {
 
 // Fetch customers on page load
 fetchCustomers();
+
+
+// Update your showSuccessMessage function to accept a custom message
+function showMessage(message = "sdsf ") {
+      const messageDiv = document.getElementById("productMessage");
+      messageDiv.innerHTML = `<p class="indi-red"><i class="fa-solid fa-xmark"></i> ${message}</p>`;
+      messageDiv.style.display = "block";
+      
+      // Hide the message after 3 seconds
+      setTimeout(() => {
+        messageDiv.style.display = "none";
+      }, 4000);
+    }
 
   </script>
 </body>
