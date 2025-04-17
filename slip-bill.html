@@ -95,6 +95,7 @@
       width: 100%;
       margin-top: 20px;
     }
+
   </style>
 </head>
 <body>
@@ -161,15 +162,20 @@
     </div>
 
     <!-- Print button (hidden when printing) -->
-    <button class="btn btn-primary btn-print no-print" onclick="window.print()">
+     <div class="text-center mt-5">
+    <button class="btn btn-primary btn2 no-print" onclick="window.print()">
       <i class="fas fa-print"></i> Print Bill
     </button>
-    <button class="btn btn-secondary btn-print no-print" onclick="window.close()">
-      <i class="fas fa-times"></i> Close
+    <button class="btn btn-success btn2 no-print" onclick="shareBill()">
+      <i class="fas fa-share-alt"></i> Share Bill
     </button>
+    <button class="btn btn-secondary btn2 no-print" onclick="window.history.back()">
+      <i class="fas fa-times"></i> Back
+    </button>
+    </div>
   </div>
 
-
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
    <script>
     // Load bill data from localStorage
     document.addEventListener('DOMContentLoaded', function() {
@@ -232,6 +238,51 @@
       
       document.getElementById('grandTotal').textContent = `₹${parseFloat(billData.grandTotal).toFixed(2)}`;
     });
+
+
+    // Add this new function for sharing the bill
+    async function shareBill() {
+      try {
+        const slipContainer = document.querySelector('.slip-container');
+        
+        // Capture the bill as an image
+        const canvas = await html2canvas(slipContainer, {
+          scale: 2, // Higher quality
+          logging: false,
+          useCORS: true,
+          allowTaint: true
+        });
+        
+        // Convert canvas to blob
+        canvas.toBlob(async (blob) => {
+          try {
+            const file = new File([blob], 'bill.png', { type: 'image/png' });
+            
+            // Check if Web Share API is available
+            if (navigator.share && navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                title: 'Your Bill from Tori Butik',
+                text: 'Here is your purchase bill',
+                files: [file]
+              });
+            } else {
+              // Fallback for browsers without Web Share API
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = 'ToriButik_bill.png';
+              link.click();
+              alert('Bill image downloaded. You can now share it manually.');
+            }
+          } catch (error) {
+            console.error('Error sharing:', error);
+            alert('Could not share the bill. Please try printing instead.');
+          }
+        }, 'image/png');
+      } catch (error) {
+        console.error('Error generating image:', error);
+        alert('Failed to generate bill image. Please try printing instead.');
+      }
+    }
 </script>
 
 </body>
