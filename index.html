@@ -7,6 +7,8 @@
   <link rel="icon" type="image/png" href="img/logotab.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="css/bg.css" rel="stylesheet">
+  <!-- Add this with your other script includes -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
   <!-- Font Awesome for the logout icon -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.min.css">
@@ -42,7 +44,21 @@
 
         .hide-auth {
   display: none !important;
-    }     
+    }    
+    
+
+/*
+#barcodeInput {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+}
+
+#barcodeInput.d-none {
+  display: none;
+}
+} */
   </style>
 </head>
 <body>
@@ -67,18 +83,18 @@
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav align-items-center">
           <li class="nav-item">
-            <a class="btn btn1 btn-sm mr-2" href="till-now.html">View All Bills</a>
+            <a class="btn btn1 btn-sm mr-2 mb-1" href="till-now.html">View All Bills</a>
           </li>
           <li class="nav-item">
-            <a class="btn btn1 btn-sm mr-2" href="product.html">Products Management</a>
+            <a class="btn btn1 btn-sm mr-2 mb-1" href="product.html">Products Management</a>
           </li>
           <li class="nav-item ">
             <div id="main-content" class="hide-auth">
-            <a class="btn btn1  btn-sm mr-3" href="boutique-messages.html">Messages</a>
+            <a class="btn btn1  btn-sm mr-3 mb-1" href="boutique-messages.html">Messages</a>
           </div>
           </li>
           <li class="nav-item">
-            <button class="btn btn-danger btn-sm" onclick="logout()" title="Logout">
+            <button class="btn btn-danger btn-sm mb-1" onclick="logout()" title="Logout">
               <i class="fas fa-sign-out-alt"></i> LogOut
             </button>
           </li>
@@ -92,13 +108,13 @@
   <div class="container mt-5" style="padding-top: 35px;">
     <!-- Customer Details -->
     <div class="row mb-2">
-      <div class="col-md-4">
+      <div class="col-md-2">
         <!-- Customer Name Input with Suggestions -->
-      <input type="text" id="customerName" class="form-control from-input  form-control from-input-sm mb-1" placeholder="Customer Name (Optional)" list="customerList" oninput="fillCustomerMobile()" onchange="fillCustomerMobile()" autocomplete="off">
+      <input type="text" id="customerName" class="form-control from-input  form-control from-input-sm mb-1" placeholder="Customer Name" list="customerList" oninput="fillCustomerMobile()" onchange="fillCustomerMobile()" autocomplete="off">
       <datalist id="customerList"></datalist>
       </div>
       <div class="col-md-2">
-        <input type="tel" id="customerMobile" class="form-control from-input form-control from-input-sm mb-1" placeholder="Mobile Number">
+        <input type="tel" id="customerMobile" class="form-control from-input form-control from-input-sm mb-1" placeholder="Mobile Number" autocomplete="off">
       </div>
       <div class="col-md-2">
         <div class="input-group">
@@ -109,13 +125,20 @@
         </div>
       </div>
       <!-- Add this after the customerMobile input field -->
-<div class="col-md-2">
-  <input type="date" id="billDate" class="form-control from-input form-control from-input-sm mb-1">
-</div>
-<div class="col-md-2">
-  <input type="time" id="billTime" class="form-control from-input form-control from-input-sm mb-1">
-</div>
-      
+      <div class="col-md-2">
+        <input type="date" id="billDate" class="form-control from-input form-control from-input-sm mb-1">
+      </div>
+      <div class="col-md-2">
+        <input type="time" id="billTime" class="form-control from-input form-control from-input-sm mb-1">
+      </div>
+      <!-- Add this in your product selection row, just before the product select -->
+      <div class="col-md-2">
+        <button class="btn btn-info w-100 mb-1" onclick="startBarcodeScan()">
+          <i class="fas fa-barcode"></i> Scan Barcode
+        </button>
+        <input type="text" id="barcodeInput" class="form-control from-input form-control from-input-sm d-none" 
+              placeholder="Scan barcode" autocomplete="off">
+      </div>
     </div>
 
     <!-- Product Selection & Input Fields -->
@@ -132,14 +155,25 @@
       <div class="col-md-2">
         <input type="number" id="quantity" class="form-control from-input form-control from-input-sm mb-1" placeholder="Quantity">
       </div>
-      <div class="col-md-2">
-        <select id="billType" class="form-control from-input form-control from-input-sm mb-1">
-          <option value="bill.html" selected>Detailed Bill</option>
-          <option value="slip-bill.html">Slip Bill</option>
+       <!-- Add this after the billTime input field -->
+       <div class="col-md-2">
+        <select id="remarks" class="form-control from-input form-control from-input-sm mb-1" onchange="handleRemarksChange()">
+          <option value="">Payment Method</option>
+          <option value="UPI">UPI</option>
+          <option value="Cash">Cash</option>
+          <option value="DUE">DUE</option>
+          <option value="Other">Other</option>
         </select>
       </div>
+      
       <div class="col-md-2">
         <button class="btn btn2 w-100" onclick="addItem()">  <i class="fas fa-plus-circle"></i>Add Item</button>
+      </div>
+      <div class="col-md-2">
+        <select id="billType" class="form-control from-input form-control from-input-sm mb-1 d-none">
+          <option value="bill.html" >Detailed Bill</option>
+          <option value="slip-bill.html" selected>Slip Bill</option>
+        </select>
       </div>
     </div>
     
@@ -204,7 +238,53 @@
 </div>
     </div>
   </div>
+<!-- Due Amount Modal -->
+<div class="modal fade" id="dueAmountModal" tabindex="-1" role="dialog" aria-labelledby="dueAmountModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="dueAmountModalLabel">Enter Due Amount</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="dueAmount">Due Amount:</label>
+          <input type="number" class="form-control" id="dueAmount" placeholder="Enter due amount">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveDueAmount()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- Other Remarks Modal -->
+<div class="modal fade" id="otherRemarksModal" tabindex="-1" role="dialog" aria-labelledby="otherRemarksModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="otherRemarksModalLabel">Enter Remarks</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="customRemarks">Remarks:</label>
+          <input type="text" class="form-control" id="customRemarks" placeholder="Enter your remarks">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveOtherRemarks()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
   <!-- Scripts -->
   <script src="css/all.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -330,26 +410,70 @@ function removeItem(button, itemTotal) {
     }
 
 // Add this function to generate the next Bill ID
+// async function getNextBillId() {
+//   try {
+//     const snapshot = await database.ref("bills").orderByKey().limitToLast(1).once("value");
+//     let lastBillId = "BTB0"; // Default starting point
+    
+//     if (snapshot.exists()) {
+//       const lastBillKey = Object.keys(snapshot.val())[0];
+//       const lastBillData = snapshot.val()[lastBillKey];
+      
+//       if (lastBillData.billId) {
+//         lastBillId = lastBillData.billId;
+//       }
+//     }
+    
+//     // Extract the number part and increment
+//     const lastNumber = parseInt(lastBillId.replace("BTB", "")) || 0;
+//     return `BTB${lastNumber + 1}`;
+//   } catch (error) {
+//     console.error("Error fetching last bill ID:", error);
+//     return "BTB1"; // Fallback if there's an error
+//   }
+// }
+
 async function getNextBillId() {
   try {
-    const snapshot = await database.ref("bills").orderByKey().limitToLast(1).once("value");
-    let lastBillId = "BTB0"; // Default starting point
+    // Get current date components
+    const now = new Date();
+    const currentYear = now.getFullYear().toString().slice(-2);
+    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 
+                        'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const currentMonth = monthNames[now.getMonth()];
+    
+    // Format: B25APRTB1 (Year + Month, sequence continues in same month)
+    const prefix = `B${currentYear}${currentMonth}TB`;
+    
+    const snapshot = await database.ref("bills")
+      .orderByChild("billId")
+      .startAt(prefix)
+      .endAt(prefix + "\uf8ff")
+      .limitToLast(1)
+      .once("value");
+    
+    let lastNumber = 0; // Default starting point if no bills exist this month
     
     if (snapshot.exists()) {
-      const lastBillKey = Object.keys(snapshot.val())[0];
-      const lastBillData = snapshot.val()[lastBillKey];
-      
-      if (lastBillData.billId) {
-        lastBillId = lastBillData.billId;
+      const lastBill = Object.values(snapshot.val())[0];
+      if (lastBill.billId && lastBill.billId.startsWith(prefix)) {
+        // Extract the number part after the prefix
+        const numberPart = lastBill.billId.replace(prefix, "");
+        lastNumber = parseInt(numberPart) || 0;
       }
     }
     
-    // Extract the number part and increment
-    const lastNumber = parseInt(lastBillId.replace("BTB", "")) || 0;
-    return `BTB${lastNumber + 1}`;
+    return `${prefix}${lastNumber + 1}`;
   } catch (error) {
     console.error("Error fetching last bill ID:", error);
-    return "BTB1"; // Fallback if there's an error
+    // Fallback with sequence 1 if there's an error
+    const now = new Date();
+    const currentYear = now.getFullYear().toString().slice(-2);
+    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 
+                        'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const currentMonth = monthNames[now.getMonth()];
+    
+    return `B${currentYear}${currentMonth}TB1`;
   }
 }
 
@@ -381,6 +505,17 @@ async function generateBill() {
   const discount = document.getElementById("discount").value;
   const gstAmount = document.getElementById("gstAmount").value;
   const grandTotal = document.getElementById("grandTotal").value;
+  const remarks = document.getElementById("remarks").value || "";
+
+  // In your generateBill function, modify the remarks part:
+let formattedRemarks = "";
+if (remarksData.type === "DUE" && remarksData.dueAmount) {
+  formattedRemarks = `Due: ${remarksData.dueAmount}`;
+} else if (remarksData.type === "Other" && remarksData.customRemarks) {
+  formattedRemarks = remarksData.customRemarks;
+} else {
+  formattedRemarks = remarksData.type;
+}
 
   const items = Array.from(document.querySelectorAll("#billTable tr")).map(row => {
     let cells = row.getElementsByTagName("td");
@@ -414,6 +549,7 @@ async function generateBill() {
   discount,
   gstAmount,
   grandTotal,
+  remarks: formattedRemarks, // Store the formatted string
   date: combineDateTime(
     document.getElementById("billDate").value,
     document.getElementById("billTime").value
@@ -561,12 +697,12 @@ function fetchCustomers() {
 //     }
 // }
 
-document.getElementById("customerMobile").addEventListener("input", function() {
-    let mobile = this.value.trim();
-    if (window.customerData && window.customerData.mobileToName[mobile]) {
-        document.getElementById("customerName").value = window.customerData.mobileToName[mobile];
-    }
-});
+// document.getElementById("customerMobile").addEventListener("input", function() {
+//     let mobile = this.value.trim();
+//     if (window.customerData && window.customerData.mobileToName[mobile]) {
+//         document.getElementById("customerName").value = window.customerData.mobileToName[mobile];
+//     }
+// });
 
 function fillCustomerMobile() {
     let customerName = document.getElementById("customerName").value;
@@ -596,6 +732,164 @@ function showMessage(message = "sdsf ") {
       }, 4000);
     }
 
+
+
+    // Global variables to store remarks data
+let remarksData = {
+  type: "",
+  dueAmount: "",
+  customRemarks: ""
+};
+
+function handleRemarksChange() {
+  const remarksSelect = document.getElementById("remarks");
+  const selectedValue = remarksSelect.value;
+  
+  remarksData.type = selectedValue;
+  
+  if (selectedValue === "DUE") {
+    $('#dueAmountModal').modal('show');
+  } else if (selectedValue === "Other") {
+    $('#otherRemarksModal').modal('show');
+  } else {
+    // For UPI and Cash, just use the selected value
+    remarksData.dueAmount = "";
+    remarksData.customRemarks = "";
+  }
+}
+
+function saveDueAmount() {
+  const dueAmount = document.getElementById("dueAmount").value;
+  if (!dueAmount || isNaN(dueAmount) || parseFloat(dueAmount) <= 0) {
+    alert("Please enter a valid due amount");
+    return;
+  }
+  
+  remarksData.dueAmount = dueAmount;
+  $('#dueAmountModal').modal('hide');
+  document.getElementById("dueAmount").value = ""; // Clear the input for next time
+}
+
+function saveOtherRemarks() {
+  const customRemarks = document.getElementById("customRemarks").value;
+  if (!customRemarks || customRemarks.trim() === "") {
+    alert("Please enter remarks");
+    return;
+  }
+  
+  remarksData.customRemarks = customRemarks;
+  $('#otherRemarksModal').modal('hide');
+  document.getElementById("customRemarks").value = ""; // Clear the input for next time
+}
+
+
+// Global variable to track if we're in barcode scanning mode
+let isBarcodeScanning = false;
+
+function startBarcodeScan() {
+  isBarcodeScanning = true;
+  const scanBtn = document.querySelector('button[onclick="startBarcodeScan()"]');
+  scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
+  scanBtn.classList.remove('btn-info');
+  scanBtn.classList.add('btn-warning');
+  
+  // Show and focus the hidden barcode input
+  const barcodeInput = document.getElementById('barcodeInput');
+  barcodeInput.classList.remove('d-none');
+  barcodeInput.focus();
+  
+  // Show message to user
+  showMessage('Ready to scan - point barcode scanner at this window');
+}
+
+function stopBarcodeScan() {
+  isBarcodeScanning = false;
+  const scanBtn = document.querySelector('button[onclick="startBarcodeScan()"]');
+  scanBtn.innerHTML = '<i class="fas fa-barcode"></i> Scan Barcode';
+  scanBtn.classList.remove('btn-warning');
+  scanBtn.classList.add('btn-info');
+  
+  // Hide the barcode input
+  document.getElementById('barcodeInput').classList.add('d-none');
+}
+
+// Add event listener for barcode input
+document.getElementById('barcodeInput').addEventListener('input', function(e) {
+  if (!isBarcodeScanning) return;
+  
+  const barcode = e.target.value.trim();
+  if (barcode) {
+    // Look up product by barcode
+    lookupProductByBarcode(barcode);
+  }
+  
+  // Clear the input for next scan
+  e.target.value = '';
+});
+
+// Function to lookup product by barcode
+function lookupProductByBarcode(barcode) {
+  // First check if we have the product data already loaded
+  const product = findProductByBarcode(barcode);
+  
+  if (product) {
+    // Product found - auto-fill the form
+    autoFillProductForm(product);
+    stopBarcodeScan();
+  } else {
+    // Product not found in local data - try fetching from Firebase
+    fetchProductByBarcodeFromFirebase(barcode);
+  }
+}
+
+// Helper function to find product in local data
+function findProductByBarcode(barcode) {
+  // This assumes you have a global productData array with all products
+  // If not, you'll need to fetch from Firebase
+  return productData.find(p => p.barcode === barcode);
+}
+
+// Function to fetch product from Firebase by barcode
+function fetchProductByBarcodeFromFirebase(barcode) {
+  database.ref("products").orderByChild("barcode").equalTo(barcode).once("value")
+    .then(snapshot => {
+      if (snapshot.exists()) {
+        const product = Object.values(snapshot.val())[0];
+        autoFillProductForm(product);
+        stopBarcodeScan();
+      } else {
+        showMessage('Product not found for barcode: ' + barcode);
+        stopBarcodeScan();
+      }
+    })
+    .catch(error => {
+      console.error("Error fetching product:", error);
+      showMessage('Error looking up product');
+      stopBarcodeScan();
+    });
+}
+
+// Function to auto-fill the product form
+function autoFillProductForm(product) {
+  const productSelect = document.getElementById('productSelect');
+  
+  // Find the option that matches this product
+  for (let i = 0; i < productSelect.options.length; i++) {
+    if (productSelect.options[i].text === product.name) {
+      productSelect.selectedIndex = i;
+      $('.selectpicker').selectpicker('refresh');
+      break;
+    }
+  }
+  
+  // Set the price
+  document.getElementById('price').value = product.price;
+  
+  // Focus on quantity field for quick entry
+  document.getElementById('quantity').focus();
+  
+  showMessage(`Product found: ${product.name}`);
+}
   </script>
 </body>
 </html>

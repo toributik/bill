@@ -3,10 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bill Slip</title>
+  <title>Bill</title>
+  <link rel="icon" type="image/png" href="img/logotab.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
+  @font-face {
+  font-family: 'BingBamBoum';
+  src: url('fonts/BingBamBoum.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Hatolie';
+  src: url('fonts/Hatolie.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'KGChasingCars';
+  src: url('fonts/KGChasingCars.ttf') format('truetype');
+}
+
+.fonts1 {
+  font-family: 'BingBamBoum', sans-serif;
+}
+
+.fonts2 {
+  letter-spacing: 2px;
+  font-family: 'Hatolie', sans-serif;
+}
+
+.fonts3 {
+  letter-spacing: 5px;
+  font-family: 'KGChasingCars', sans-serif;
+
+  
+}
+
     @media print {
       body {
         padding: 0;
@@ -41,12 +75,20 @@
     }
     .shop-name {
       font-weight: bold;
-      font-size: 18px;
-      margin-bottom: 5px;
+      font-size: 37px;
+      margin-bottom: 3px;
     }
     .shop-address {
       font-size: 12px;
-      color: #555;
+      color: #1c1c1c;
+    }
+    .note {
+    font-size: 9px;
+    text-align: justify;
+    border-left: 2px solid black;
+    border-radius: 10px;
+    padding: 5px;
+    background-color: #c3c3c327;
     }
     .bill-info {
       display: flex;
@@ -55,9 +97,12 @@
       font-size: 12px;
     }
     .customer-info {
-      margin-bottom: 10px;
-      font-size: 12px;
-    }
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
     .items-table {
       width: 100%;
       border-collapse: collapse;
@@ -67,10 +112,10 @@
     .items-table th {
       border-bottom: 1px dashed #ccc;
       text-align: left;
-      padding: 3px 0;
+      padding: 3px 3px;
     }
     .items-table td {
-      padding: 3px 0;
+      padding: 3px 3px;
     }
     .total-section {
       border-top: 1px dashed #ccc;
@@ -86,7 +131,7 @@
     .footer {
       text-align: center;
       margin-top: 15px;
-      font-size: 11px;
+      font-size: 18px;
       color: #555;
       border-top: 1px dashed #ccc;
       padding-top: 10px;
@@ -95,7 +140,19 @@
       width: 100%;
       margin-top: 20px;
     }
-
+    .ndHead{
+     background-color: #dedede4b;
+     border-radius: 10px;
+     border: 1px dashed #000;
+    }
+    .dashed-line {
+    border: none;
+    border-top: 1px dashed #000; /* You can change color and thickness */
+    margin: 10px 0; /* Optional spacing */
+    }
+    thead{
+      background-color: #bebebe83;
+    }
   </style>
 </head>
 <body>
@@ -103,9 +160,12 @@
     <div class="slip-container">
       <!-- Header with shop info -->
       <div class="header">
-        <div class="shop-name">Tori Butik</div>
-        <div class="shop-address">Suryanagar, Alipurduar</div>
-        <div class="shop-address">Phone: 9832280847 / 7679876754</div>
+        <div class="shop-name fonts3">Tori Butik</div>
+        <div class="ndHead ">
+        <div class="shop-address">Suryanagar, Alipurduar, Pin-736122</div>
+        <div class="shop-address"> <i class="bi bi-telephone"></i> 9832280847 / 7679876754</div>
+       
+      </div>
       </div>
 
       <!-- Bill info -->
@@ -115,15 +175,24 @@
       </div>
 
       <!-- Customer info -->
+      <!-- Customer info -->
       <div class="customer-info">
-        <div>Customer: <span id="customerName">Walk-in Customer</span></div>
-        <div>Mobile: <span id="customerMobile">--</span></div>
+        <div>
+          <span><b>BILL TO:</b></span>
+          <div><i class="bi bi-person-square"></i> <span id="customerName">Walk-in Customer</span></div>
+          <div><i class="bi bi-telephone"></i> <span id="customerMobile">Not provided</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <div id="qrcode" style="width: 40px; height: 40px; margin-right: 20px;"></div><br>
+          <span class="shop-address fonts1" style="font-size: 8px; margin-top: 2px; margin-right: 10px;">Visit Online</span>
+        </div>
       </div>
 
       <!-- Items table -->
       <table class="items-table">
         <thead>
           <tr>
+            <th>SL</th>
             <th>Item</th>
             <th>Qty</th>
             <th>Price</th>
@@ -154,11 +223,17 @@
         </div>
       </div>
 
+      
       <!-- Footer -->
       <div class="footer">
-        <div>Thank you for shopping with us!</div>
-        <div>Please visit again</div>
+        <div class="note"><b>Note:</b> For any product issues, such as size problems or defects, the Bill or Bill Number is required for changes or replacements.</div>
+        <div class="shop-address "> <i class="bi bi-envelope"></i> toributik33@gmail.com</div>
+        <div class="fonts2"><b>Thank you for shopping with us! <br>Please visit again</b></div>
+        <!-- <div class="fonts2">Please visit again</div>       -->
       </div>
+      <hr class="dashed-line">
+      <div  style="display: flex; justify-content: center; align-items: center;"  id="qrcode"></div>
+      
     </div>
 
     <!-- Print button (hidden when printing) -->
@@ -198,13 +273,14 @@
 
       // Fill customer info
       document.getElementById('customerName').textContent = billData.customer.name;
-      document.getElementById('customerMobile').textContent = billData.customer.mobile || '--';
+      document.getElementById('customerMobile').textContent = billData.customer.mobile || '----';
 
       // Fill items
       const itemsList = document.getElementById('itemsList');
-      billData.items.forEach(item => {
+      billData.items.forEach((item, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
+          <td>${index + 1}</td>
           <td>${item.name}</td>
           <td>${item.quantity}</td>
           <td>₹${item.price.toFixed(2)}</td>
@@ -284,6 +360,14 @@
       }
     }
 </script>
+<script>
 
+
+  new QRCode(document.getElementById("qrcode"), {
+    text: "https://toributik.github.io/tori/",
+    width: 50,
+    height: 50
+  });
+</script>
 </body>
 </html>

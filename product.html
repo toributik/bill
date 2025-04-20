@@ -9,6 +9,12 @@
   <script src="css/all.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Add JsBarcode library -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <!-- Add jsPDF and html2canvas libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -17,6 +23,71 @@
       display: none;
       text-align: center;
       margin-top: 20px;
+    }
+    .barcode-container {
+      margin-top: 10px;
+      text-align: center;
+    }
+    .barcode {
+      height: 50px;
+      max-width: 100%;
+    }
+    .barcode-label {
+      font-size: 12px;
+      margin-top: 5px;
+    }
+    .product-barcode {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .export-buttons {
+      display: flex;
+      gap: 10px;
+    }
+     /* Previous styles remain the same */
+     .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+      text-align: center;
+    }
+    .modal-buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .modal-buttons button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .barcode-only-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .all-info-btn {
+      background-color: #2196F3;
+      color: white;
+    }
+    .cancel-btn {
+      background-color: #f44336;
+      color: white;
     }
   </style>
 </head>
@@ -44,27 +115,36 @@
   </nav>
   <div class="container mt-5" style="padding-top: 20px;">
     <div id="productMessage">
-    <p class="indi"> <i class="fa-solid fa-circle-check"></i> Success</p>
-  </div>
+      <p class="indi"> <i class="fa-solid fa-circle-check"></i> Success</p>
+    </div>
     <div class="row mb-1">
       <div class="col-md-4">
         <input type="text" id="searchProduct" class="form-control mb-1" placeholder="Search Products" onkeyup="searchProducts()">
       </div>
-      <div class="col-md-3">
-        <input type="text" id="productName" class="form-control  mb-1" placeholder="Product Name">
+      <div class="col-md-2">
+        <input type="text" id="productName" class="form-control mb-1" placeholder="Product Name">
       </div>
-      <div class="col-md-3">
-        <input type="number" id="productPrice" class="form-control  mb-1" placeholder="Product Price">
+      <div class="col-md-2">
+        <input type="number" id="productPrice" class="form-control mb-1" placeholder="Product Price">
+      </div>
+      <div class="col-md-2">
+        <input type="text" id="productBarcode" class="form-control mb-1" placeholder="Barcode (auto)">
       </div>
       <div class="col-md-2">
         <button id="addProductBtn" class="btn btn2 text-light mb-1 w-100" onclick="addOrUpdateProduct()"> <i class="fas fa-plus-circle"></i> Add</button>
       </div>
-      
     </div>
-
-    <!-- Product Count & Search -->
+    <!-- Product Count & Export Button -->
     <div class="d-flex justify-content-between align-items-center mb-1">
       <p class="bg-light p-2 rounded border">Total Products: <span id="productCount">0</span></p>
+      <div class="export-buttons">
+        <button id="exportExcelBtn" class="btn btn-success" onclick="exportToExcel()">
+          <i class="fas fa-file-excel"></i> Excel
+        </button>
+        <button id="exportPdfBtn" class="btn btn-danger" onclick="showPdfOptions()">
+          <i class="fas fa-file-pdf"></i> PDF
+        </button>
+      </div>
     </div>
 
     <!-- Loading Spinner -->
@@ -79,50 +159,67 @@
   </div>
 
   <script>
- 
-
+    const { jsPDF } = window.jspdf;
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const auth = firebase.auth();
     
-    let editingProductKey = null; // Stores the product key being edited
-    let allProducts = []; // Stores all products for search functionality
+    let editingProductKey = null;
+    let allProducts = [];
 
-    function addOrUpdateProduct() {
+    // Updated generateBarcode function to create barcode in the format "K250URTIS"
+    function generateBarcode(name, price) {
+  // Format: First letter of name + price
+  let formattedName = name.trim().toUpperCase();
+  let firstLetter = formattedName.charAt(0);
+  let formattedBarcode = firstLetter + price;
+  
+  // Remove any non-alphanumeric characters (except first letter)
+  formattedBarcode = firstLetter + formattedBarcode.slice(1).replace(/[^0-9]/g, '');
+  
+  document.getElementById("productBarcode").value = formattedBarcode;
+}
+
+function addOrUpdateProduct() {
   let name = document.getElementById("productName").value;
   let price = document.getElementById("productPrice").value;
+  let barcode = document.getElementById("productBarcode").value;
+  
   if (name && price) {
+    if (!barcode) {
+      generateBarcode(name, price);
+      barcode = document.getElementById("productBarcode").value;
+    }
+    
     if (editingProductKey) {
-      // If editing, update product
-      database.ref("products/" + editingProductKey).update({ name, price })
+      database.ref("products/" + editingProductKey).update({ name, price, barcode })
         .then(() => {
           showSuccessMessage();
           editingProductKey = null;
-          document.getElementById("addProductBtn").innerText = "Add Product";
+          document.getElementById("addProductBtn").innerHTML = '<i class="fas fa-plus-circle"></i> Add';
         });
     } else {
-      // If adding new product
       let newProduct = database.ref("products").push();
-      newProduct.set({ name, price })
+      newProduct.set({ name, price, barcode })
         .then(() => {
           showSuccessMessage();
         });
     }
     document.getElementById("productName").value = "";
     document.getElementById("productPrice").value = "";
+    document.getElementById("productBarcode").value = "";
   }
 }
 
-
     function fetchProducts() {
-      document.querySelector(".spinner").style.display = "block"; // Show loading spinner
+      document.querySelector(".spinner").style.display = "block";
 
       database.ref("products").on("value", snapshot => {
-        document.querySelector(".spinner").style.display = "none"; // Hide spinner
+        document.querySelector(".spinner").style.display = "none";
         allProducts = [];
         snapshot.forEach(childSnapshot => {
           let product = childSnapshot.val();
-          product.key = childSnapshot.key; // Store product key for editing
+          product.key = childSnapshot.key;
           allProducts.push(product);
         });
         displayProducts(allProducts);
@@ -132,80 +229,371 @@
     function displayProducts(products) {
       let productList = document.getElementById("productList");
       productList.innerHTML = "";
-      document.getElementById("productCount").innerText = products.length; // Update product count
+      document.getElementById("productCount").innerText = products.length;
+      
       products.forEach(product => {
+        let barcodeCanvasId = `barcode-${product.key}`;
+        let barcodeContainer = `
+          <div class="product-barcode">
+            <canvas id="${barcodeCanvasId}" class="barcode"></canvas>
+            <div class="barcode-label">${product.barcode || 'No barcode'}</div>
+          </div>
+        `;
+        
         let productItem = `
           <li class="glass mb-2 d-flex justify-content-between align-items-center">
             <div>
               <strong>${product.name}</strong><br>
               <span>Price: ₹${product.price}</span>
             </div>
-            <div>
-              <button class="btn btn-warning btn-sm mr-2" onclick="editProduct('${product.key}', '${product.name}', '${product.price}')">Edit</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteProduct('${product.key}')">Delete</button>
+            <div class="d-flex align-items-center">
+              ${barcodeContainer}
+              <div class="ml-3">
+                <button class="btn btn-warning btn-sm mr-2" onclick="editProduct('${product.key}', '${product.name}', '${product.price}', '${product.barcode || ''}')">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="deleteProduct('${product.key}')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
             </div>
           </li>
         `;
         productList.innerHTML += productItem;
+        
+        if (product.barcode) {
+          setTimeout(() => {
+            JsBarcode(`#${barcodeCanvasId}`, product.barcode, {
+            format: "CODE128",
+            lineColor: "#000",
+            width: 2,
+            height: 50,
+            displayValue: false
+          });
+          }, 100);
+        }
       });
     }
 
     function searchProducts() {
       let searchValue = document.getElementById("searchProduct").value.toLowerCase();
-      let filteredProducts = allProducts.filter(product => product.name.toLowerCase().includes(searchValue));
+      let filteredProducts = allProducts.filter(product => 
+        product.name.toLowerCase().includes(searchValue) || 
+        (product.barcode && product.barcode.toLowerCase().includes(searchValue))
+      );
       displayProducts(filteredProducts);
     }
 
-    // function editProduct(key, name, price) {
-    //   document.getElementById("productName").value = name;
-    //   document.getElementById("productPrice").value = price;
-    //   editingProductKey = key; // Store the key of the product being edited
-    //   document.getElementById("addProductBtn").innerText = "Save"; // Change button text
-    // }
-
-    function editProduct(key, name, price) {
-    document.getElementById("productName").value = name;
-    document.getElementById("productPrice").value = price;
-    editingProductKey = key; // Store the key of the product being edited
-    document.getElementById("addProductBtn").innerText = "Save"; // Change button text
-  
-  // Scroll to the input section smoothly
-    document.querySelector('.row.mb-1').scrollIntoView({
-    behavior: 'smooth',
-    block: 'start'
-  });
-  
-  // Optional: Focus on the name field for quick editing
-  document.getElementById("productName").focus();
-}
+    function editProduct(key, name, price, barcode) {
+      document.getElementById("productName").value = name;
+      document.getElementById("productPrice").value = price;
+      document.getElementById("productBarcode").value = barcode;
+      editingProductKey = key;
+      document.getElementById("addProductBtn").innerHTML = '<i class="fas fa-save"></i> Save';
+      document.querySelector('.row.mb-1').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById("productName").focus();
+    }
 
     function deleteProduct(key) {
-  // Show confirmation dialog
-  if (confirm("Are you sure you want to delete this product?")) {
-    // If user confirms, proceed with deletion
-    database.ref("products/" + key).remove()
-      .then(() => {
-        showSuccessMessage();
-      })
-      .catch((error) => {
-        console.error("Error deleting product: ", error);
-      });
-  }
-}
+      if (confirm("Are you sure you want to delete this product?")) {
+        database.ref("products/" + key).remove()
+          .then(() => {
+            showSuccessMessage();
+          })
+          .catch((error) => {
+            console.error("Error deleting product: ", error);
+          });
+      }
+    }
+
+    function showSuccessMessage() {
+      const message = document.getElementById("productMessage");
+      message.style.display = "block";
+      message.style.opacity = 1;
+      
+      setTimeout(() => {
+        message.style.opacity = 0;
+        setTimeout(() => {
+          message.style.display = "none";
+        }, 500);
+      }, 3000);
+    }
 
     function logout() {
       auth.signOut().then(() => {
         window.location.href = "login.html";
       });
     }
+
     auth.onAuthStateChanged(user => {
-  if (!user) {
-    window.location.href = "login.html"; // Redirect to login if not authenticated
-  }
+      if (!user) {
+        window.location.href = "login.html";
+      } else {
+        fetchProducts();
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+  // Auto-generate barcode when name or price changes
+  document.getElementById("productName").addEventListener('input', function() {
+    if (!editingProductKey) { // Only auto-generate when adding new products
+      let name = this.value;
+      let price = document.getElementById("productPrice").value;
+      if (name && price) {
+        generateBarcode(name, price);
+      }
+    }
+  });
+
+  document.getElementById("productPrice").addEventListener('input', function() {
+    if (!editingProductKey) { // Only auto-generate when adding new products
+      let price = this.value;
+      let name = document.getElementById("productName").value;
+      if (name && price) {
+        generateBarcode(name, price);
+      }
+    }
+  });
+
+  document.getElementById("productBarcode").addEventListener('click', function() {
+    let name = document.getElementById("productName").value;
+    let price = document.getElementById("productPrice").value;
+    if (!this.value && name && price) {
+      generateBarcode(name, price);
+    }
+  });
 });
 
-    fetchProducts();
-  </script>
+    async function exportToExcel() {
+      // Create a new workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Prepare the data
+      const excelData = allProducts.map(product => ({
+        'Product Name': product.name,
+        'Price': `₹${product.price}`,
+        'Barcode': product.barcode || ''
+      }));
+      
+      // Convert to worksheet
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Products");
+      
+      // Generate Excel file
+      const fileName = `products_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+    }
 
+    async function exportToPDF() {
+      // Show loading message
+      const loadingMessage = document.createElement('div');
+      loadingMessage.innerHTML = '<div class="text-center p-3"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div><p class="mt-2">Generating PDF with barcodes...</p></div>';
+      loadingMessage.style.position = 'fixed';
+      loadingMessage.style.top = '50%';
+      loadingMessage.style.left = '50%';
+      loadingMessage.style.transform = 'translate(-50%, -50%)';
+      loadingMessage.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+      loadingMessage.style.padding = '20px';
+      loadingMessage.style.borderRadius = '10px';
+      loadingMessage.style.zIndex = '1000';
+      loadingMessage.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
+      document.body.appendChild(loadingMessage);
+
+      try {
+        // Create a new PDF document
+        const doc = new jsPDF();
+        let yPosition = 20;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 15;
+        const columnWidth = (pageWidth - margin * 2) / 3;
+        
+        // Add title
+        doc.setFontSize(18);
+        doc.text('Product Catalog with Barcodes', pageWidth / 2, 15, { align: 'center' });
+        doc.setFontSize(12);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, 25, { align: 'center' });
+        
+        yPosition = 35;
+        
+        // Process products in batches to avoid memory issues
+        const batchSize = 6;
+        for (let i = 0; i < allProducts.length; i += batchSize) {
+          const batch = allProducts.slice(i, i + batchSize);
+          
+          // Process each product in the batch
+          for (let j = 0; j < batch.length; j++) {
+            const product = batch[j];
+            const column = j % 3;
+            const row = Math.floor(j / 3);
+            
+            const xPosition = margin + column * columnWidth;
+            const currentY = yPosition + row * 60;
+            
+            // Add product name and price
+            doc.setFontSize(10);
+            doc.text(product.name, xPosition + 5, currentY);
+            doc.text(`Price: ₹${product.price}`, xPosition + 5, currentY + 5);
+            
+            // Add barcode if exists
+            if (product.barcode) {
+              const canvas = document.querySelector(`#barcode-${product.key}`);
+              if (canvas) {
+                const canvasImage = await html2canvas(canvas);
+                const imgData = canvasImage.toDataURL('image/png');
+                
+                // Add barcode image to PDF
+                doc.addImage(imgData, 'PNG', xPosition, currentY + 10, columnWidth - 10, 20);
+                
+                // Add barcode text
+                doc.setFontSize(8);
+                doc.text(product.barcode, xPosition + (columnWidth - 10) / 2, currentY + 35, { align: 'center' });
+              }
+            }
+          }
+          
+          yPosition += 60 * (Math.ceil(batch.length / 3));
+          
+          // Add new page if there are more products
+          if (i + batchSize < allProducts.length) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        }
+        
+        // Save the PDF
+        doc.save(`products_barcodes_${new Date().toISOString().slice(0, 10)}.pdf`);
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("Error generating PDF. Please try again.");
+      } finally {
+        // Remove loading message
+        document.body.removeChild(loadingMessage);
+      }
+    }
+
+    function showPdfOptions() {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <h5>Select PDF Content</h5>
+          <p>What would you like to include in the PDF?</p>
+          <div class="modal-buttons">
+            <button class="barcode-only-btn" onclick="exportToPDF(true)">Barcodes Only</button>
+            <button class="all-info-btn" onclick="exportToPDF(false)">All Information</button>
+            <button class="cancel-btn" onclick="this.parentElement.parentElement.parentElement.remove()">Cancel</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    async function exportToPDF(barcodeOnly = false) {
+      // Remove the modal if it exists
+      const modal = document.querySelector('.modal-overlay');
+      if (modal) modal.remove();
+      
+      // Show loading message
+      const loadingMessage = document.createElement('div');
+      loadingMessage.innerHTML = `<div class="text-center p-3"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div><p class="mt-2">Generating PDF ${barcodeOnly ? 'with barcodes only' : 'with all information'}...</p></div>`;
+      loadingMessage.style.position = 'fixed';
+      loadingMessage.style.top = '50%';
+      loadingMessage.style.left = '50%';
+      loadingMessage.style.transform = 'translate(-50%, -50%)';
+      loadingMessage.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+      loadingMessage.style.padding = '20px';
+      loadingMessage.style.borderRadius = '10px';
+      loadingMessage.style.zIndex = '1000';
+      loadingMessage.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
+      document.body.appendChild(loadingMessage);
+
+      try {
+        // Create a new PDF document
+        const doc = new jsPDF();
+        let yPosition = 20;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 15;
+        
+        // Calculate column width based on barcodeOnly mode
+        const columns = barcodeOnly ? 4 : 3;
+        const columnWidth = (pageWidth - margin * 2) / columns;
+        
+        // Add title
+        doc.setFontSize(18);
+        doc.text(`Product ${barcodeOnly ? 'Barcodes' : 'Catalog'}`, pageWidth / 2, 15, { align: 'center' });
+        doc.setFontSize(12);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, 25, { align: 'center' });
+        
+        yPosition = 35;
+        
+        // Process products in batches to avoid memory issues
+        const batchSize = barcodeOnly ? 8 : 6; // More items per page for barcode-only
+        for (let i = 0; i < allProducts.length; i += batchSize) {
+          const batch = allProducts.slice(i, i + batchSize);
+          
+          // Process each product in the batch
+          for (let j = 0; j < batch.length; j++) {
+            const product = batch[j];
+            const column = j % columns;
+            const row = Math.floor(j / columns);
+            
+            const xPosition = margin + column * columnWidth;
+            const currentY = yPosition + row * (barcodeOnly ? 40 : 60);
+            
+            if (!barcodeOnly) {
+              // Add product name and price for full info mode
+              doc.setFontSize(10);
+              doc.text(product.name, xPosition + 5, currentY);
+              doc.text(`Price: ₹${product.price}`, xPosition + 5, currentY + 5);
+            }
+            
+            // Add barcode if exists
+            if (product.barcode) {
+              const canvas = document.querySelector(`#barcode-${product.key}`);
+              if (canvas) {
+                const canvasImage = await html2canvas(canvas);
+                const imgData = canvasImage.toDataURL('image/png');
+                
+                // Add barcode image to PDF
+                const imgWidth = barcodeOnly ? columnWidth - 10 : columnWidth - 10;
+                const imgHeight = barcodeOnly ? 20 : 20;
+                const imgY = barcodeOnly ? currentY : currentY + 10;
+                
+                doc.addImage(imgData, 'PNG', xPosition, imgY, imgWidth, imgHeight);
+                
+                // Add barcode text
+                doc.setFontSize(8);
+                const textY = barcodeOnly ? currentY + 25 : currentY + 35;
+                doc.text(product.barcode, xPosition + imgWidth / 2, textY, { align: 'center' });
+              }
+            }
+          }
+          
+          yPosition += (barcodeOnly ? 40 : 60) * (Math.ceil(batch.length / columns));
+          
+          // Add new page if there are more products
+          if (i + batchSize < allProducts.length) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        }
+        
+        // Save the PDF
+        const fileName = barcodeOnly 
+          ? `product_barcodes_${new Date().toISOString().slice(0, 10)}.pdf`
+          : `product_catalog_${new Date().toISOString().slice(0, 10)}.pdf`;
+        doc.save(fileName);
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("Error generating PDF. Please try again.");
+      } finally {
+        // Remove loading message
+        document.body.removeChild(loadingMessage);
+      }
+    }
+
+  </script>
 </body>
 </html>
