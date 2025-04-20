@@ -368,9 +368,6 @@
       <div class="glass">
         <div class="row">
           <div class="col-md-4">
-            <p><strong>Total Records:</strong> <span id="totalRecords">0</span></p>
-          </div>
-          <div class="col-md-4">
             <p><strong>Total Amount:</strong> ₹<span id="totalAmount">0</span></p>
           </div>
           <div class="col-md-4">
@@ -380,12 +377,16 @@
       </div>
       
       <div class="search-container">
-        <div class="row">
+        <div class="row align-items-center">
           <div class="col-md-12">
-            <input type="text" id="searchInput" class="form-control mb-1" placeholder="Search by customer name, mobile, bill ID..." oninput="filterBills()">
+            <div class="input-group">
+              <input type="text" id="searchInput" class="form-control" placeholder="Search by customer name, mobile, bill ID..." oninput="filterBills()">
+              <span class="input-group-text bg-light border-start-0">Total: <span id="totalRecords" class="ms-1">0</span></span>
+            </div>
           </div>
         </div>
       </div>
+      
       
       <div id="loadingSpinner" class="text-center mb-3" style="display: none;">
         <div class="loading-spinner"></div> Loading bills...

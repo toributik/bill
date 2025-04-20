@@ -208,117 +208,152 @@
     const auth = firebase.auth();
     
     // Check authentication
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        window.location.href = "login.html";
-      } else {
-        // Get customer details from URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const customerName = urlParams.get('name');
-        const customerMobile = urlParams.get('mobile');
-        
-        if (customerName && customerMobile) {
-          loadCustomerDetails(customerName, customerMobile);
-        } else {
-          // Handle case where parameters are missing
-          document.getElementById('customerNameDisplay').textContent = "Invalid customer";
-          document.getElementById('customerMobileDisplay').textContent = "Data not available";
-        }
-      }
-    });
+    // In your auth state changed callback:
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.href = "login.html";
+  } else {
+    const urlParams = new URLSearchParams(window.location.search);
+    const customerName = urlParams.get('name');
+    let customerMobile = urlParams.get('mobile');
     
-    function loadCustomerDetails(name, mobile) {
-      // Display basic customer info
-      document.getElementById('customerNameDisplay').textContent = name || "Walk-in Customer";
-      document.getElementById('customerMobileDisplay').textContent = mobile || "Not provided";
-      
-      // Fetch all bills for this customer
-      database.ref("bills").orderByChild("customer/name").equalTo(name).once("value")
-        .then(snapshot => {
-          const bills = [];
-          let totalAmount = 0;
-          let totalDiscount = 0;
-          let totalGST = 0;
-          let dates = [];
-          
-          snapshot.forEach(childSnapshot => {
-            const bill = childSnapshot.val();
-            // Only include bills that match both name and mobile (if mobile was provided)
-            if (!mobile || (bill.customer && bill.customer.mobile === mobile)) {
-              bill.id = childSnapshot.key; // Store the Firebase ID
-              bills.push(bill);
-              totalAmount += parseFloat(bill.grandTotal) || 0;
-              totalDiscount += (parseFloat(bill.subTotal) || 0) * (parseFloat(bill.discount) || 0) / 100;
-              totalGST += parseFloat(bill.gstAmount) || 0;
-              
-              if (bill.date) {
-                dates.push(new Date(bill.date));
-              }
-            }
-          });
-          
-          // Update summary information
-          document.getElementById('totalBills').textContent = bills.length;
-          document.getElementById('totalAmountSpent').textContent = totalAmount.toFixed(2);
-          document.getElementById('grandTotalAmount').textContent = totalAmount.toFixed(2);
-          document.getElementById('totalDiscount').textContent = totalDiscount.toFixed(2);
-          document.getElementById('totalGST').textContent = totalGST.toFixed(2);
-          
-          const average = bills.length > 0 ? totalAmount / bills.length : 0;
-          document.getElementById('averageBillAmount').textContent = average.toFixed(2);
-          
-          // Update date information
-          if (dates.length > 0) {
-            dates.sort((a, b) => a - b);
-            document.getElementById('firstPurchaseDate').textContent = formatDate(dates[0]);
-            document.getElementById('lastPurchaseDate').textContent = formatDate(dates[dates.length - 1]);
-          }
-          
-          // Populate purchase history table
-          populatePurchaseHistory(bills);
-        })
-        .catch(error => {
-          console.error("Error loading customer details:", error);
-          alert("Error loading customer details. Please try again.");
-        });
+    // Handle case where mobile is not provided in URL
+    if (customerMobile === "null" || customerMobile === "undefined") {
+      customerMobile = null;
     }
     
-    function populatePurchaseHistory(bills) {
-      const tableBody = document.getElementById('purchaseHistory');
+    if (customerName) {
+      loadCustomerDetails(customerName, customerMobile);
+    } else {
+      document.getElementById('customerNameDisplay').textContent = "Invalid customer";
+      document.getElementById('customerMobileDisplay').textContent = "Data not available";
+    }
+  }
+});
+    
+function loadCustomerDetails(name, mobile) {
+  // Display basic customer info
+  document.getElementById('customerNameDisplay').textContent = name || "Walk-in Customer";
+  document.getElementById('customerMobileDisplay').textContent = mobile || "Not provided";
+  
+  // First try to find bills by exact name and mobile match
+  database.ref("bills").orderByChild("customer/name").equalTo(name).once("value")
+    .then(snapshot => {
+      const bills = [];
+      let totalAmount = 0;
+      let totalDiscount = 0;
+      let totalGST = 0;
+      let dates = [];
       
-      if (bills.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No purchase history found</td></tr>';
+      if (!snapshot.exists()) {
+        // If no bills found, update UI accordingly
+        document.getElementById('totalBills').textContent = "0";
+        document.getElementById('purchaseHistory').innerHTML = 
+          '<tr><td colspan="8" class="text-center">No purchase history found</td></tr>';
         return;
       }
       
-      // Sort bills by date (newest first)
-      bills.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
-      tableBody.innerHTML = '';
-      bills.forEach((bill, index) => {
-        const row = document.createElement('tr');
-        
-        // Count the number of unique items
-        const itemCount = bill.items ? bill.items.length : 0;
-        
-        row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${formatDateTime(bill.date)}</td>
-          <td>${itemCount} item${itemCount !== 1 ? 's' : ''}</td>
-          <td>₹${parseFloat(bill.subTotal || 0).toFixed(2)}</td>
-          <td>${parseFloat(bill.discount || 0).toFixed(2)}%</td>
-          <td>₹${parseFloat(bill.gstAmount || 0).toFixed(2)}</td>
-          <td>₹${parseFloat(bill.grandTotal || 0).toFixed(2)}</td>
-          <td>
-            <button class="btn btn-sm btn-info" onclick="viewBillDetails('${bill.id}')">
-              <i class="fas fa-eye"></i> View
-            </button>
-          </td>
-        `;
-        
-        tableBody.appendChild(row);
+      snapshot.forEach(childSnapshot => {
+        const bill = childSnapshot.val();
+        // Check if this bill belongs to our customer
+        if (bill.customer && bill.customer.name === name) {
+          // If mobile was provided, check if it matches (unless it's "Not provided")
+          if (!mobile || mobile === "Not provided" || 
+              !bill.customer.mobile || 
+              bill.customer.mobile === mobile) {
+            bill.id = childSnapshot.key;
+            bills.push(bill);
+            
+            // Calculate totals
+            const subTotal = parseFloat(bill.subTotal) || 0;
+            const discountPercent = parseFloat(bill.discount) || 0;
+            const gstAmount = parseFloat(bill.gstAmount) || 0;
+            const grandTotal = parseFloat(bill.grandTotal) || 0;
+            
+            totalAmount += grandTotal;
+            totalDiscount += subTotal * (discountPercent / 100);
+            totalGST += gstAmount;
+            
+            if (bill.date) {
+              dates.push(new Date(bill.date));
+            }
+          }
+        }
       });
-    }
+      
+      // Update summary information
+      document.getElementById('totalBills').textContent = bills.length;
+      document.getElementById('totalAmountSpent').textContent = totalAmount.toFixed(2);
+      document.getElementById('grandTotalAmount').textContent = totalAmount.toFixed(2);
+      document.getElementById('totalDiscount').textContent = totalDiscount.toFixed(2);
+      document.getElementById('totalGST').textContent = totalGST.toFixed(2);
+      
+      const average = bills.length > 0 ? totalAmount / bills.length : 0;
+      document.getElementById('averageBillAmount').textContent = average.toFixed(2);
+      
+      // Update date information
+      if (dates.length > 0) {
+        dates.sort((a, b) => a - b);
+        document.getElementById('firstPurchaseDate').textContent = formatDate(dates[0]);
+        document.getElementById('lastPurchaseDate').textContent = formatDate(dates[dates.length - 1]);
+      }
+      
+      // Populate purchase history table
+      populatePurchaseHistory(bills);
+    })
+    .catch(error => {
+      console.error("Error loading customer details:", error);
+      document.getElementById('purchaseHistory').innerHTML = 
+        '<tr><td colspan="8" class="text-center text-danger">Error loading purchase history</td></tr>';
+    });
+}
+    
+function populatePurchaseHistory(bills) {
+  const tableBody = document.getElementById('purchaseHistory');
+  
+  if (!bills || bills.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No purchase history found</td></tr>';
+    return;
+  }
+  
+  // Sort bills by date (newest first)
+  bills.sort((a, b) => {
+    const dateA = a.date ? new Date(a.date) : new Date(0);
+    const dateB = b.date ? new Date(b.date) : new Date(0);
+    return dateB - dateA;
+  });
+  
+  tableBody.innerHTML = '';
+  bills.forEach((bill, index) => {
+    const row = document.createElement('tr');
+    
+    // Safely handle items count
+    const itemCount = bill.items ? Object.keys(bill.items).length : 0;
+    
+    // Safely handle bill values
+    const subTotal = parseFloat(bill.subTotal) || 0;
+    const discount = parseFloat(bill.discount) || 0;
+    const gstAmount = parseFloat(bill.gstAmount) || 0;
+    const grandTotal = parseFloat(bill.grandTotal) || 0;
+    
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${bill.date ? formatDateTime(bill.date) : 'Unknown date'}</td>
+      <td>${itemCount} item${itemCount !== 1 ? 's' : ''}</td>
+      <td>₹${subTotal.toFixed(2)}</td>
+      <td>${discount.toFixed(2)}%</td>
+      <td>₹${gstAmount.toFixed(2)}</td>
+      <td>₹${grandTotal.toFixed(2)}</td>
+      <td>
+        <button class="btn btn-sm btn-info" onclick="viewBillDetails('${bill.id}')">
+          <i class="fas fa-eye"></i> View
+        </button>
+      </td>
+    `;
+    
+    tableBody.appendChild(row);
+  });
+}
     
     function viewBillDetails(billId) {
       // Construct the URL with the bill ID as a parameter
@@ -374,7 +409,8 @@ $('#updateCustomerModal').on('show.bs.modal', function () {
 // Save changes button click handler
 $('#saveCustomerChanges').click(function() {
   const newName = $('#newCustomerName').val().trim();
-  const newMobile = $('#newCustomerMobile').val().trim() || "Not provided";
+  let newMobile = $('#newCustomerMobile').val().trim();
+  newMobile = newMobile ? newMobile : "Not provided"; // Handle empty mobile
   
   if (!newName) {
     alert('Customer name is required');
@@ -418,7 +454,14 @@ $('#saveCustomerChanges').click(function() {
 function updateCustomerInAllBills(oldName, oldMobile, newName, newMobile) {
   return new Promise((resolve, reject) => {
     // First, find all bills for this customer
-    database.ref("bills").orderByChild("customer/name").equalTo(oldName).once("value")
+    let query;
+    if (oldMobile && oldMobile !== "Not provided") {
+      query = database.ref("bills").orderByChild("customer/name").equalTo(oldName);
+    } else {
+      query = database.ref("bills").orderByChild("customer/name").equalTo(oldName);
+    }
+    
+    query.once("value")
       .then(snapshot => {
         const updates = {};
         let billsUpdated = 0;
@@ -427,9 +470,16 @@ function updateCustomerInAllBills(oldName, oldMobile, newName, newMobile) {
           const bill = childSnapshot.val();
           const billKey = childSnapshot.key;
           
-          // Only update bills that match both name and mobile (if mobile was provided)
-          if (!oldMobile || oldMobile === "Not provided" || 
-              (bill.customer && bill.customer.mobile === oldMobile)) {
+          // Update bills that match:
+          // 1. The name matches
+          // 2. Either:
+          //    a. No original mobile was specified, or
+          //    b. The bill's mobile matches the original mobile, or
+          //    c. The bill has no mobile number
+          if (bill.customer && bill.customer.name === oldName && 
+              (!oldMobile || oldMobile === "Not provided" || 
+               !bill.customer.mobile || 
+               bill.customer.mobile === oldMobile)) {
             updates[`bills/${billKey}/customer/name`] = newName;
             updates[`bills/${billKey}/customer/mobile`] = newMobile;
             billsUpdated++;
@@ -437,7 +487,6 @@ function updateCustomerInAllBills(oldName, oldMobile, newName, newMobile) {
         });
         
         if (billsUpdated > 0) {
-          // Perform the multi-path update
           database.ref().update(updates)
             .then(() => resolve())
             .catch(error => reject(error));
