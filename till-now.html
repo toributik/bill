@@ -289,6 +289,9 @@
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
+    .hide-auth{
+      display: none;
+    }
   </style>
 </head>
 <body class="body-text">
@@ -308,6 +311,7 @@
         <i class="fas fa-arrow-left text-white"></i>
       </a>
       <div class="justify-content-end">
+        <span id="main-content" class="hide-auth">
         <button class="btn btn-outline-light btn-sm mr-2" onclick="downloadExcel()" title="Download Excel">
           <i class="fas fa-file-excel"></i> Excel
         </button>
@@ -315,6 +319,7 @@
         <button class="btn btn-outline-light btn-sm mr-2" onclick="toggleFilterPanel()" title="Filter">
           <i class="fas fa-filter"></i> Filter
         </button>
+      </span>
         <!-- Logout Button -->
         <button class="btn btn-outline-light btn-sm" onclick="logout()" title="Logout">
           <i class="fas fa-sign-out-alt"></i> Logout
@@ -536,23 +541,25 @@
     let currentlyEditingBillId = null; // Track which bill is being edited
     let customerNames = []; // Store customer names for autocomplete
 
-    // Check auth state
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        window.location.href = "login.html"; // Redirect if not logged in
-      } else {
-        showLoading(true);
-        loadAllBills();
+   
 
-        // Check if user is admin (example email)
-        if (user.email === "toributik33@gmail.com") {
-          // Show admin buttons
-          document.querySelectorAll('.admin-only').forEach(el => {
-            el.classList.remove('admin-only');
-          });
-        }
-      }
-    });
+    auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.href = "login.html"; // Redirect if not logged in
+  } else {
+    const mainContent = document.getElementById('main-content');
+    showLoading(true);
+    loadAllBills();
+    
+    // Check if user is toributik33@gmail.com
+    if (user.email === "toributik33@gmail.com") {
+      mainContent.classList.remove('hide-auth'); // Show content
+    } else {
+      mainContent.classList.add('hide-auth'); // Hide content
+
+    }
+  }
+});
 
     function showLoading(show) {
       document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
@@ -626,6 +633,7 @@
         clearAllBtn.style.cursor = 'pointer';
         clearAllBtn.onclick = resetFilters;
         container.appendChild(clearAllBtn);
+        displayBills(allBills.reverse());
       }
       
       // Add each active filter as a tag
@@ -1178,20 +1186,75 @@
       }, 3000);
     }
 
+    // function deleteBill(billId) {
+    //   if (confirm('Are you sure you want to delete this bill?')) {
+    //     showLoading(true);
+    //     database.ref('bills/' + billId).remove()
+    //       .then(() => {
+    //         showSuccessMessage('Bill deleted successfully');
+    //         loadAllBills();
+    //       })
+    //       .catch(error => {
+    //         alert('Error deleting bill: ' + error.message);
+    //         showLoading(false);
+    //       });
+    //   }
+    // }
+
     function deleteBill(billId) {
-      if (confirm('Are you sure you want to delete this bill?')) {
-        showLoading(true);
-        database.ref('bills/' + billId).remove()
-          .then(() => {
-            showSuccessMessage('Bill deleted successfully');
-            loadAllBills();
-          })
-          .catch(error => {
-            alert('Error deleting bill: ' + error.message);
-            showLoading(false);
-          });
+  if (confirm('Are you sure you want to delete this bill?')) {
+    showLoading(true);
+    
+    // First get the bill data to know which products to restock
+    database.ref('bills/' + billId).once('value').then(snapshot => {
+      const billData = snapshot.val();
+      if (!billData) {
+        throw new Error('Bill not found');
       }
-    }
+      
+      // Get all products from the bill
+      const billItems = billData.items || [];
+      
+      // Get all products from database to match by name
+      return database.ref('products').once('value').then(productsSnapshot => {
+        const products = productsSnapshot.val();
+        const updates = {};
+        
+        // For each item in the bill, find matching product and update stock
+        billItems.forEach(item => {
+          for (const productId in products) {
+            const product = products[productId];
+            if (product.name === item.name && product.stockQuantity !== undefined) {
+              // Only update if stockQuantity exists
+              const currentStock = parseInt(product.stockQuantity) || 0;
+              const quantityToAdd = parseInt(item.quantity) || 0;
+              updates[`products/${productId}/stockQuantity`] = currentStock + quantityToAdd;
+              break; // Move to next item once we find the product
+            }
+          }
+        });
+        
+        // First delete the bill
+        return database.ref('bills/' + billId).remove().then(() => {
+          // Then update the product quantities if needed
+          if (Object.keys(updates).length > 0) {
+            return database.ref().update(updates);
+          }
+          return Promise.resolve();
+        });
+      });
+    })
+    .then(() => {
+      showSuccessMessage('Bill deleted and stock updated successfully');
+      loadAllBills();
+    })
+    .catch(error => {
+      console.error("Error deleting bill:", error);
+      alert('Error deleting bill: ' + error.message);
+      showLoading(false);
+    });
+  }
+}
 
     function logout() {
       auth.signOut().then(() => {

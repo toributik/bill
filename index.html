@@ -45,7 +45,6 @@
         .hide-auth {
   display: none !important;
     }    
-    
 
 /*
 #barcodeInput {
@@ -85,14 +84,12 @@
           <li class="nav-item">
             <a class="btn btn1 btn-sm mr-2 mb-1" href="till-now.html">View All Bills</a>
           </li>
-          <li class="nav-item">
-            <a class="btn btn1 btn-sm mr-2 mb-1" href="product.html">Products Management</a>
-          </li>
-          <li class="nav-item ">
-            <div id="main-content" class="hide-auth">
-            <a class="btn btn1  btn-sm mr-3 mb-1" href="boutique-messages.html">Messages</a>
-          </div>
-          </li>
+          
+          <div id="main-content" class="hide-auth">
+            <li class="nav-item">
+              <a class="btn btn1 btn-sm mr-2 mb-1" href="product.html">Products Management</a>
+            </li>
+        </div>
           <li class="nav-item">
             <button class="btn btn-danger btn-sm mb-1" onclick="logout()" title="Logout">
               <i class="fas fa-sign-out-alt"></i> LogOut
@@ -482,7 +479,6 @@ async function generateBill() {
   // Check if there are any items in the bill table
   const billTable = document.getElementById("billTable");
   if (billTable.rows.length === 0) {
-    // alert("Please add at least one item before generating the bill.");
     showMessage('Please add at least one item before generating the bill.');
     return;
   }
@@ -507,15 +503,14 @@ async function generateBill() {
   const grandTotal = document.getElementById("grandTotal").value;
   const remarks = document.getElementById("remarks").value || "";
 
-  // In your generateBill function, modify the remarks part:
-let formattedRemarks = "";
-if (remarksData.type === "DUE" && remarksData.dueAmount) {
-  formattedRemarks = `Due: ${remarksData.dueAmount}`;
-} else if (remarksData.type === "Other" && remarksData.customRemarks) {
-  formattedRemarks = remarksData.customRemarks;
-} else {
-  formattedRemarks = remarksData.type;
-}
+  let formattedRemarks = "";
+  if (remarksData.type === "DUE" && remarksData.dueAmount) {
+    formattedRemarks = `Due: ${remarksData.dueAmount}`;
+  } else if (remarksData.type === "Other" && remarksData.customRemarks) {
+    formattedRemarks = remarksData.customRemarks;
+  } else {
+    formattedRemarks = remarksData.type;
+  }
 
   const items = Array.from(document.querySelectorAll("#billTable tr")).map(row => {
     let cells = row.getElementsByTagName("td");
@@ -529,46 +524,84 @@ if (remarksData.type === "DUE" && remarksData.dueAmount) {
     }
   }).filter(item => item && item.name);
 
-  // const billData = {
-  //   billId: billId, // Add the billId to the data
-  //   customer: { name: customerName, mobile: customerMobile },
-  //   items,
-  //   subTotal,
-  //   discount,
-  //   gstAmount,
-  //   grandTotal,
-  //   date: new Date().toISOString()
-  // };
-
-  // In your generateBill function, modify the billData object creation:
   const billData = {
-  billId: billId,
-  customer: { name: customerName, mobile: customerMobile },
-  items,
-  subTotal,
-  discount,
-  gstAmount,
-  grandTotal,
-  remarks: formattedRemarks, // Store the formatted string
-  date: combineDateTime(
-    document.getElementById("billDate").value,
-    document.getElementById("billTime").value
-  ) || new Date().toISOString()
-};
+    billId: billId,
+    customer: { name: customerName, mobile: customerMobile },
+    items,
+    subTotal,
+    discount,
+    gstAmount,
+    grandTotal,
+    remarks: formattedRemarks,
+    date: combineDateTime(
+      document.getElementById("billDate").value,
+      document.getElementById("billTime").value
+    ) || new Date().toISOString()
+  };
 
   // Save to database
   const newBillRef = database.ref("bills").push();
+  
+  // First save the bill
   newBillRef.set(billData)
+    .then(() => {
+      // After saving the bill, update stock quantities
+      return updateStockQuantities(items);
+    })
     .then(() => {
       localStorage.setItem("currentBillData", JSON.stringify(billData));
       window.location.href = billType;
     })
     .catch((error) => {
       console.error("Error saving bill:", error);
-      alert("Error generating bill. Please try again.");
+      showMessage("Error generating bill. Please try again.");
       generateBtn.disabled = false;
-      generateBtn.textContent = "Generate Bill";
+      generateBtn.innerHTML = '<i class="fas fa-bolt"></i> <span>Generate Bill</span>';
     });
+}
+
+// Function to update stock quantities in Firebase
+async function updateStockQuantities(items) {
+  // Get all products from Firebase
+  const snapshot = await database.ref("products").once("value");
+  const products = snapshot.val();
+  
+  // Create an object to store all updates
+  const updates = {};
+  
+  // Process each item in the bill
+  for (const item of items) {
+    // Find the product in our products list
+    for (const productId in products) {
+      const product = products[productId];
+      if (product.name === item.name) {
+        // Only update if stockQuantity exists and is greater than 0
+        if (product.stockQuantity && product.stockQuantity > 0) {
+          const newQuantity = product.stockQuantity - item.quantity;
+          updates[`products/${productId}/stockQuantity`] = Math.max(0, newQuantity);
+        }
+        break; // Move to next item once we find the product
+      }
+    }
+  }
+  
+  // If we have updates, apply them
+  if (Object.keys(updates).length > 0) {
+    return database.ref().update(updates);
+  }
+  
+  return Promise.resolve();
+}
+
+// Function to find product by name (used in other parts of the code)
+async function findProductByName(productName) {
+  const snapshot = await database.ref("products").orderByChild("name").equalTo(productName).once("value");
+  if (snapshot.exists()) {
+    const products = snapshot.val();
+    // Return the first product found (should be unique if names are unique)
+    return products[Object.keys(products)[0]];
+  }
+  return null;
 }
 
 function combineDateTime(dateString, timeString) {
@@ -723,7 +756,7 @@ fetchCustomers();
 // Update your showSuccessMessage function to accept a custom message
 function showMessage(message = "sdsf ") {
       const messageDiv = document.getElementById("productMessage");
-      messageDiv.innerHTML = `<p class="indi-red"><i class="fa-solid fa-xmark"></i> ${message}</p>`;
+      messageDiv.innerHTML = `<p class="indi"><i class="fa-solid fa-xmark"></i> ${message}</p>`;
       messageDiv.style.display = "block";
       
       // Hide the message after 3 seconds

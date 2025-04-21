@@ -44,6 +44,7 @@
     .export-buttons {
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
     }
      /* Previous styles remain the same */
      .modal-overlay {
@@ -63,6 +64,7 @@
       padding: 20px;
       border-radius: 8px;
       width: 500px;
+      max-width: 90%;
       text-align: center;
     }
     .modal-buttons {
@@ -70,6 +72,7 @@
       display: flex;
       justify-content: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
     .modal-buttons button {
       padding: 8px 16px;
@@ -93,6 +96,93 @@
       cursor: pointer;
       margin-left: 5px;
     }
+    
+    /* Mobile responsive styles */
+    @media (max-width: 768px) {
+      .container {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+      
+      .row.mb-1 {
+        margin-bottom: 5px !important;
+      }
+      
+      .col-md-2, .col-md-4 {
+        padding-left: 5px;
+        padding-right: 5px;
+      }
+      
+      #productList {
+        padding-left: 0;
+      }
+      
+      .glass {
+        flex-direction: column;
+        padding: 10px;
+      }
+      
+      .product-info {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      
+      .product-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+      
+      .barcode-and-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+      }
+      
+      .product-buttons {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+        margin-top: 10px;
+      }
+      
+      .export-buttons {
+        justify-content: center;
+      }
+      
+      .export-buttons button {
+        margin-bottom: 5px;
+        font-size: 12px;
+        padding: 5px 8px;
+      }
+      
+      #generateAllBarcodesBtn, #exportExcelBtn, #exportPdfBtn {
+        font-size: 12px;
+      }
+    }
+    
+    /* Additional styles for new fields */
+    .profit-display {
+      font-size: 12px;
+      color: #28a745;
+      font-weight: bold;
+      display: none;
+    }
+    
+    .stock-display {
+      font-size: 12px;
+      color: #00515e;
+      font-weight: bold;
+      background-color: rgba(224, 255, 255, 0.534);
+      padding: 2px;
+      border-radius: 5px;
+    }
+
+    #generateAllBarcodesBtn {
+  display: none;
+}
   </style>
 </head>
 <body>
@@ -122,34 +212,49 @@
       <p class="indi"> <i class="fa-solid fa-circle-check"></i> Success</p>
     </div>
     <div class="row mb-1">
-      <div class="col-md-4">
+      <div class="col-md-4 col-12">
         <input type="text" id="searchProduct" class="form-control mb-1" placeholder="Search Products" onkeyup="searchProducts()">
       </div>
-      <div class="col-md-2">
+      <div class="col-md-2 col-6">
         <input type="text" id="productName" class="form-control mb-1" placeholder="Product Name" autocomplete="off">
       </div>
-      <div class="col-md-2">
-        <input type="number" id="productPrice" class="form-control mb-1" placeholder="Product Price" autocomplete="off">
+      <div class="col-md-2 col-6">
+        <input type="number" id="productPrice" class="form-control mb-1" placeholder="Selling Price" autocomplete="off">
       </div>
-      <div class="col-md-2">
+      <div class="col-md-2 col-6">
+        <input type="number" id="purchasePrice" class="form-control mb-1" placeholder="Purchase Price" autocomplete="off">
+      </div>
+      <div class="col-md-2 col-6">
+        <input type="number" id="stockQuantity" class="form-control mb-1" placeholder="Stock Quantity" autocomplete="off">
+      </div>
+    </div>
+    <div class="row mb-1">
+      <div class="col-md-4 col-6">
         <input type="text" id="productBarcode" class="form-control mb-1" placeholder="Barcode (auto)" autocomplete="off">
       </div>
-      <div class="col-md-2">
+      <div class="col-md-2 col-6">
         <button id="addProductBtn" class="btn btn2 text-light mb-1 w-100" onclick="addOrUpdateProduct()"> <i class="fas fa-plus-circle"></i> Add</button>
       </div>
     </div>
     <!-- Product Count & Export Button -->
-    <div class="d-flex justify-content-between align-items-center mb-1">
+    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap">
       <div>
         <p class="bg-light p-2 rounded border d-inline-block">Total Products: <span id="productCount">0</span></p>
         <span id="sortButton" class="sort-btn" title="Sort by name" onclick="toggleSort()">
           <i class="fas fa-sort-alpha-down"></i>
         </span>
       </div>
-      <div class="export-buttons">
-        <button id="generateAllBarcodesBtn" class="btn btn-info" onclick="generateAllBarcodes()">
+      <div class="export-buttons">    
+        <button id="generateAllBarcodesBtn" class="btn btn1 text-light" onclick="generateAllBarcodes()">
           <i class="fas fa-barcode"></i> Generate All
         </button>
+        <button id="downloadDemoBtn" class="btn btn1 text-light" onclick="downloadDemoFormat()">
+          <i class="fas fa-file-download"></i> Import Format
+        </button>
+        <button id="importExcelBtn" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+          <i class="fas fa-file-import"></i> Import
+        </button>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;" onchange="importFromExcel(event)">
         <button id="exportExcelBtn" class="btn btn-success" onclick="exportToExcel()">
           <i class="fas fa-file-excel"></i> Excel
         </button>
@@ -214,46 +319,57 @@
       displayProducts(sortedProducts);
     }
 
-    // Updated generateBarcode function to create barcode in the format "K250URTIS"
     function generateBarcode(name, price) {
-  // Get first letter of name (uppercase)
-  let firstLetter = name.trim().charAt(0).toUpperCase();
-  
-  // Format price (remove non-numeric characters)
-  let formattedPrice = price.toString().replace(/\D/g, '');
-  
-  // Generate 3 random unique letters (uppercase)
-  let randomLetters = '';
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const usedIndices = new Set();
-  
-  while (randomLetters.length < 3) {
-    const randomIndex = Math.floor(Math.random() * letters.length);
-    if (!usedIndices.has(randomIndex)) {
-      usedIndices.add(randomIndex);
-      randomLetters += letters.charAt(randomIndex);
+      // Get first letter of name (uppercase)
+      let firstLetter = name.trim().charAt(0).toUpperCase();
+      
+      // Format price (remove non-numeric characters)
+      let formattedPrice = price.toString().replace(/\D/g, '');
+      
+      // Generate 3 random unique letters (uppercase)
+      let randomLetters = '';
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const usedIndices = new Set();
+      
+      while (randomLetters.length < 3) {
+        const randomIndex = Math.floor(Math.random() * letters.length);
+        if (!usedIndices.has(randomIndex)) {
+          usedIndices.add(randomIndex);
+          randomLetters += letters.charAt(randomIndex);
+        }
+      }
+      
+      // Combine all parts
+      let formattedBarcode = firstLetter + formattedPrice + randomLetters;
+      
+      document.getElementById("productBarcode").value = formattedBarcode;
     }
-  }
-  
-  // Combine all parts
-  let formattedBarcode = firstLetter + formattedPrice + randomLetters;
-  
-  document.getElementById("productBarcode").value = formattedBarcode;
-}
 
     function addOrUpdateProduct() {
       let name = document.getElementById("productName").value;
       let price = document.getElementById("productPrice").value;
+      let purchasePrice = document.getElementById("purchasePrice").value;
+      let stockQuantity = document.getElementById("stockQuantity").value;
       let barcode = document.getElementById("productBarcode").value;
       
-      if (name && price) {
+      if (name && price && purchasePrice && stockQuantity) {
         if (!barcode) {
           generateBarcode(name, price);
           barcode = document.getElementById("productBarcode").value;
         }
         
+        // Calculate profit
+        let profit = parseFloat(price) - parseFloat(purchasePrice);
+        
         if (editingProductKey) {
-          database.ref("products/" + editingProductKey).update({ name, price, barcode })
+          database.ref("products/" + editingProductKey).update({ 
+            name, 
+            price, 
+            purchasePrice,
+            stockQuantity,
+            profit,
+            barcode 
+          })
             .then(() => {
               showSuccessMessage();
               editingProductKey = null;
@@ -261,31 +377,82 @@
             });
         } else {
           let newProduct = database.ref("products").push();
-          newProduct.set({ name, price, barcode })
+          newProduct.set({ 
+            name, 
+            price, 
+            purchasePrice,
+            stockQuantity,
+            profit,
+            barcode 
+          })
             .then(() => {
               showSuccessMessage();
             });
         }
         document.getElementById("productName").value = "";
         document.getElementById("productPrice").value = "";
+        document.getElementById("purchasePrice").value = "";
+        document.getElementById("stockQuantity").value = "";
         document.getElementById("productBarcode").value = "";
+      } else {
+        alert("Please fill all required fields!");
       }
     }
 
-    function fetchProducts() {
-      document.querySelector(".spinner").style.display = "block";
+    // function fetchProducts() {
+    //   document.querySelector(".spinner").style.display = "block";
 
-      database.ref("products").on("value", snapshot => {
-        document.querySelector(".spinner").style.display = "none";
-        allProducts = [];
-        snapshot.forEach(childSnapshot => {
-          let product = childSnapshot.val();
-          product.key = childSnapshot.key;
-          allProducts.push(product);
-        });
-        sortAndDisplayProducts();
+    //   database.ref("products").on("value", snapshot => {
+    //     document.querySelector(".spinner").style.display = "none";
+    //     allProducts = [];
+    //     snapshot.forEach(childSnapshot => {
+    //       let product = childSnapshot.val();
+    //       product.key = childSnapshot.key;
+    //       allProducts.push(product);
+    //     });
+    //     sortAndDisplayProducts();
+    //   });
+    // }
+    function fetchProducts() {
+  document.querySelector(".spinner").style.display = "block";
+
+  database.ref("products").on("value", snapshot => {
+    document.querySelector(".spinner").style.display = "none";
+    allProducts = [];
+    snapshot.forEach(childSnapshot => {
+      let product = childSnapshot.val();
+      product.key = childSnapshot.key;
+      allProducts.push(product);
+    });
+    sortAndDisplayProducts();
+    
+    // Check if we should show the generate barcodes button
+    checkProductsWithoutBarcodes().then(showButton => {
+      document.getElementById("generateAllBarcodesBtn").style.display = showButton ? "block" : "none";
+    });
+  });
+}
+
+
+function checkProductsWithoutBarcodes() {
+  return new Promise((resolve) => {
+    database.ref("products").once('value').then(snapshot => {
+      let hasProductsWithoutBarcodes = false;
+      
+      snapshot.forEach(childSnapshot => {
+        const product = childSnapshot.val();
+        if (!product.barcode || product.barcode.trim() === '') {
+          hasProductsWithoutBarcodes = true;
+        }
       });
-    }
+      
+      resolve(hasProductsWithoutBarcodes);
+    }).catch(error => {
+      console.error("Error checking products:", error);
+      resolve(false); // Default to not showing the button if there's an error
+    });
+  });
+}
 
     function displayProducts(products) {
       let productList = document.getElementById("productList");
@@ -302,15 +469,17 @@
         `;
         
         let productItem = `
-          <li class="glass mb-2 d-flex justify-content-between align-items-center">
-            <div>
-              <strong>${product.name}</strong><br>
-              <span>Price: ₹${product.price}</span>
+          <li class="glass mb-2 d-flex justify-content-between align-items-center flex-column flex-md-row">
+            <div class="product-info">
+              <strong>${product.name}</strong> |
+              <span>Price: ₹${product.price}</span><br>
+              <span class="profit-display">Profit: ₹${product.profit || (product.price - (product.purchasePrice || 0)).toFixed(2)}</span>
+              <span class="stock-display">Stock: ${product.stockQuantity || 0}</span>
             </div>
-            <div class="d-flex align-items-center">
+            <div class="barcode-and-buttons d-flex flex-column align-items-center">
               ${barcodeContainer}
-              <div class="ml-3">
-                <button class="btn btn-warning btn-sm mr-2" onclick="editProduct('${product.key}', '${product.name}', '${product.price}', '${product.barcode || ''}')">
+              <div class="product-buttons">
+                <button class="btn btn-warning btn-sm mr-2" onclick="editProduct('${product.key}', '${product.name}', '${product.price}', '${product.purchasePrice || ''}', '${product.stockQuantity || ''}', '${product.barcode || ''}')">
                   <i class="fas fa-edit"></i>
                 </button>
                 <button class="btn btn-danger btn-sm" onclick="deleteProduct('${product.key}')">
@@ -325,12 +494,12 @@
         if (product.barcode) {
           setTimeout(() => {
             JsBarcode(`#${barcodeCanvasId}`, product.barcode, {
-            format: "CODE128",
-            lineColor: "#000",
-            width: 2,
-            height: 50,
-            displayValue: false
-          });
+              format: "CODE128",
+              lineColor: "#000",
+              width: 2,
+              height: 50,
+              displayValue: false
+            });
           }, 100);
         }
       });
@@ -345,9 +514,11 @@
       displayProducts(filteredProducts);
     }
 
-    function editProduct(key, name, price, barcode) {
+    function editProduct(key, name, price, purchasePrice, stockQuantity, barcode) {
       document.getElementById("productName").value = name;
       document.getElementById("productPrice").value = price;
+      document.getElementById("purchasePrice").value = purchasePrice;
+      document.getElementById("stockQuantity").value = stockQuantity;
       document.getElementById("productBarcode").value = barcode;
       editingProductKey = key;
       document.getElementById("addProductBtn").innerHTML = '<i class="fas fa-save"></i> Save';
@@ -423,66 +594,81 @@
           generateBarcode(name, price);
         }
       });
+      
+      // Calculate profit when purchase price changes
+      document.getElementById("purchasePrice").addEventListener('input', function() {
+        const sellingPrice = parseFloat(document.getElementById("productPrice").value) || 0;
+        const purchasePrice = parseFloat(this.value) || 0;
+        const profit = sellingPrice - purchasePrice;
+        // You can display this somewhere if you want
+      });
     });
 
     async function exportToExcel() {
-  // Show loading message
-  const loadingMessage = document.createElement('div');
-  loadingMessage.innerHTML = '<div class="text-center p-3"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div><p class="mt-2">Generating Excel file...</p></div>';
-  document.body.appendChild(loadingMessage);
+      // Show loading message
+      const loadingMessage = document.createElement('div');
+      loadingMessage.innerHTML = '<div class="text-center p-3"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div><p class="mt-2">Generating Excel file...</p></div>';
+      document.body.appendChild(loadingMessage);
 
-  try {
-    // Create a new workbook
-    const wb = XLSX.utils.book_new();
-    
-    // Prepare the data with barcode visualization
-    const excelData = allProducts.map(product => ({
-      'Product Name': product.name,
-      'Price': `₹${product.price}`,
-      'Barcode': product.barcode || '',
-      'Barcode Visualization': generateTextBarcode(product.barcode)
-    }));
-    
-    // Convert to worksheet
-    const ws = XLSX.utils.json_to_sheet(excelData);
-    
-    // Set column widths
-    ws['!cols'] = [
-      {wch: 20}, // Product Name
-      {wch: 10}, // Price
-      {wch: 15}, // Barcode
-      {wch: 30}  // Barcode Visualization
-    ];
-    
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Products");
-    
-    // Generate Excel file
-    const fileName = `products_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    XLSX.writeFile(wb, fileName);
-  } catch (error) {
-    console.error("Error generating Excel:", error);
-    alert("Error generating Excel. Please try again.");
-  } finally {
-    // Remove loading message
-    document.body.removeChild(loadingMessage);
-  }
-}
+      try {
+        // Create a new workbook
+        const wb = XLSX.utils.book_new();
+        
+        // Prepare the data with barcode visualization
+        const excelData = allProducts.map(product => ({
+          'Product Name': product.name,
+          'Selling Price': `₹${product.price}`,
+          'Purchase Price': `₹${product.purchasePrice || 0}`,
+          'Profit': `₹${product.profit || (product.price - (product.purchasePrice || 0)).toFixed(2)}`,
+          'Stock Quantity': product.stockQuantity || 0,
+          'Barcode': product.barcode || '',
+          'Barcode Visualization': generateTextBarcode(product.barcode)
+        }));
+        
+        // Convert to worksheet
+        const ws = XLSX.utils.json_to_sheet(excelData);
+        
+        // Set column widths
+        ws['!cols'] = [
+          {wch: 20}, // Product Name
+          {wch: 12}, // Selling Price
+          {wch: 12}, // Purchase Price
+          {wch: 12}, // Profit
+          {wch: 12}, // Stock Quantity
+          {wch: 15}, // Barcode
+          {wch: 30}  // Barcode Visualization
+        ];
+        
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, "Products");
+        
+        // Generate Excel file
+        const fileName = `products_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+      } catch (error) {
+        console.error("Error generating Excel:", error);
+        alert("Error generating Excel. Please try again.");
+      } finally {
+        // Remove loading message
+        document.body.removeChild(loadingMessage);
+      }
+    }
 
-// Helper function to create text-based barcode representation
-function generateTextBarcode(barcode) {
-  if (!barcode) return '';
-  
-  // Create a simple text representation of the barcode
-  const segments = [];
-  for (let i = 0; i < barcode.length; i++) {
-    segments.push('|'); // Vertical bars to represent lines
-    segments.push(barcode[i]); // The character
-  }
-  segments.push('|'); // Closing bar
-  
-  return segments.join(' ');
-}
+    // Helper function to create text-based barcode representation
+    function generateTextBarcode(barcode) {
+      if (!barcode) return '';
+      
+      // Create a simple text representation of the barcode
+      const segments = [];
+      for (let i = 0; i < barcode.length; i++) {
+        segments.push('|'); // Vertical bars to represent lines
+        segments.push(barcode[i]); // The character
+      }
+      segments.push('|'); // Closing bar
+      
+      return segments.join(' ');
+    }
+
     function showPdfOptions() {
       const modal = document.createElement('div');
       modal.className = 'modal-overlay';
@@ -501,198 +687,359 @@ function generateTextBarcode(barcode) {
     }
 
     async function exportToPDF(barcodeOnly = false) {
-  const modal = document.querySelector('.modal-overlay');
-  if (modal) modal.remove();
-  
-  const loadingMessage = document.createElement('div');
-  loadingMessage.innerHTML = `<div class="text-center p-3"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div><p class="mt-2">Generating PDF ${barcodeOnly ? 'with barcodes only' : 'with all information'}...</p></div>`;
-  loadingMessage.style.position = 'fixed';
-  loadingMessage.style.top = '50%';
-  loadingMessage.style.left = '50%';
-  loadingMessage.style.transform = 'translate(-50%, -50%)';
-  loadingMessage.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-  loadingMessage.style.padding = '20px';
-  loadingMessage.style.borderRadius = '10px';
-  loadingMessage.style.zIndex = '1000';
-  loadingMessage.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
-  document.body.appendChild(loadingMessage);
-
-  try {
-    // Get the currently displayed products (sorted/filtered)
-    const displayedProducts = getDisplayedProducts();
-    
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 15;
-    const columns = barcodeOnly ? 4 : 3;
-    const columnWidth = (pageWidth - margin * 2) / columns;
-    
-    // Calculate available height per page
-    const pageHeight = doc.internal.pageSize.getHeight();
-    let yPosition = 35; // Start below header
-    const itemHeight = barcodeOnly ? 40 : 60;
-    const maxItemsPerPage = Math.floor((pageHeight - yPosition) / itemHeight) * columns;
-    
-    // Add title
-    doc.setFontSize(18);
-    doc.text(`Product ${barcodeOnly ? 'Barcodes' : 'Catalog'}`, pageWidth / 2, 15, { align: 'center' });
-    doc.setFontSize(12);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, 25, { align: 'center' });
-    
-    let currentItem = 0;
-    
-    // Process products in batches that fit perfectly on each page
-    while (currentItem < displayedProducts.length) {
-      // Calculate how many items can fit on current page
-      const itemsRemaining = displayedProducts.length - currentItem;
-      const itemsThisPage = Math.min(maxItemsPerPage, itemsRemaining);
+      const modal = document.querySelector('.modal-overlay');
+      if (modal) modal.remove();
       
-      // Process items for this page
-      for (let i = 0; i < itemsThisPage; i++) {
-        const product = displayedProducts[currentItem + i];
-        const column = i % columns;
-        const row = Math.floor(i / columns);
+      const loadingMessage = document.createElement('div');
+      loadingMessage.innerHTML = `<div class="text-center p-3"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div><p class="mt-2">Generating PDF ${barcodeOnly ? 'with barcodes only' : 'with all information'}...</p></div>`;
+      loadingMessage.style.position = 'fixed';
+      loadingMessage.style.top = '50%';
+      loadingMessage.style.left = '50%';
+      loadingMessage.style.transform = 'translate(-50%, -50%)';
+      loadingMessage.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+      loadingMessage.style.padding = '20px';
+      loadingMessage.style.borderRadius = '10px';
+      loadingMessage.style.zIndex = '1000';
+      loadingMessage.style.boxShadow = '0 0 20px rgba(0,0,0,0.2)';
+      document.body.appendChild(loadingMessage);
+
+      try {
+        // Get the currently displayed products (sorted/filtered)
+        const displayedProducts = getDisplayedProducts();
         
-        const xPosition = margin + column * columnWidth;
-        const currentY = yPosition + row * itemHeight;
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 15;
+        const columns = barcodeOnly ? 4 : 2;
+        const columnWidth = (pageWidth - margin * 2) / columns;
         
-        if (!barcodeOnly) {
-          doc.setFontSize(10);
-          doc.text(product.name, xPosition + 5, currentY);
-          doc.text(`Price: ₹${product.price}`, xPosition + 5, currentY + 5);
-        }
+        // Calculate available height per page
+        const pageHeight = doc.internal.pageSize.getHeight();
+        let yPosition = 35; // Start below header
+        const itemHeight = barcodeOnly ? 40 : 80;
+        const maxItemsPerPage = Math.floor((pageHeight - yPosition) / itemHeight) * columns;
         
-        if (product.barcode) {
-          const canvas = document.querySelector(`#barcode-${product.key}`);
-          if (canvas) {
-            const canvasImage = await html2canvas(canvas);
-            const imgData = canvasImage.toDataURL('image/png');
+        // Add title
+        doc.setFontSize(18);
+        doc.text(`Product ${barcodeOnly ? 'Barcodes' : 'Catalog'}`, pageWidth / 2, 15, { align: 'center' });
+        doc.setFontSize(12);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, 25, { align: 'center' });
+        
+        let currentItem = 0;
+        
+        // Process products in batches that fit perfectly on each page
+        while (currentItem < displayedProducts.length) {
+          // Calculate how many items can fit on current page
+          const itemsRemaining = displayedProducts.length - currentItem;
+          const itemsThisPage = Math.min(maxItemsPerPage, itemsRemaining);
+          
+          // Process items for this page
+          for (let i = 0; i < itemsThisPage; i++) {
+            const product = displayedProducts[currentItem + i];
+            const column = i % columns;
+            const row = Math.floor(i / columns);
             
-            const imgWidth = barcodeOnly ? columnWidth - 10 : columnWidth - 10;
-            const imgHeight = barcodeOnly ? 20 : 20;
-            const imgY = barcodeOnly ? currentY : currentY + 10;
+            const xPosition = margin + column * columnWidth;
+            const currentY = yPosition + row * itemHeight;
             
-            doc.addImage(imgData, 'PNG', xPosition, imgY, imgWidth, imgHeight);
+            if (!barcodeOnly) {
+              doc.setFontSize(10);
+              doc.text(product.name, xPosition + 5, currentY);
+              doc.text(`Price: ₹${product.price}`, xPosition + 5, currentY + 5);
+              doc.text(`Purchase: ₹${product.purchasePrice || 0}`, xPosition + 5, currentY + 10);
+              doc.text(`Profit: ₹${product.profit || (product.price - (product.purchasePrice || 0)).toFixed(2)}`, xPosition + 5, currentY + 15);
+              doc.text(`Stock: ${product.stockQuantity || 0}`, xPosition + 5, currentY + 20);
+            }
             
-            doc.setFontSize(8);
-            const textY = barcodeOnly ? currentY + 25 : currentY + 35;
-            doc.text(product.barcode, xPosition + imgWidth / 2, textY, { align: 'center' });
+            if (product.barcode) {
+              const canvas = document.querySelector(`#barcode-${product.key}`);
+              if (canvas) {
+                const canvasImage = await html2canvas(canvas);
+                const imgData = canvasImage.toDataURL('image/png');
+                
+                const imgWidth = barcodeOnly ? columnWidth - 10 : columnWidth - 10;
+                const imgHeight = barcodeOnly ? 20 : 20;
+                const imgY = barcodeOnly ? currentY : currentY + 25;
+                
+                doc.addImage(imgData, 'PNG', xPosition, imgY, imgWidth, imgHeight);
+                
+                doc.setFontSize(8);
+                const textY = barcodeOnly ? currentY + 25 : currentY + 50;
+                doc.text(product.barcode, xPosition + imgWidth / 2, textY, { align: 'center' });
+              }
+            }
+          }
+          
+          currentItem += itemsThisPage;
+          
+          // Add new page if there are more products
+          if (currentItem < displayedProducts.length) {
+            doc.addPage();
+            yPosition = 20; // Reset Y position for new page
+            
+            // Add header to new page
+            doc.setFontSize(18);
+            doc.text(`Product ${barcodeOnly ? 'Barcodes' : 'Catalog'} (cont.)`, pageWidth / 2, 15, { align: 'center' });
           }
         }
-      }
-      
-      currentItem += itemsThisPage;
-      
-      // Add new page if there are more products
-      if (currentItem < displayedProducts.length) {
-        doc.addPage();
-        yPosition = 20; // Reset Y position for new page
         
-        // Add header to new page
-        doc.setFontSize(18);
-        doc.text(`Product ${barcodeOnly ? 'Barcodes' : 'Catalog'} (cont.)`, pageWidth / 2, 15, { align: 'center' });
+        // Save the PDF
+        const fileName = barcodeOnly 
+          ? `product_barcodes_${new Date().toISOString().slice(0, 10)}.pdf`
+          : `product_catalog_${new Date().toISOString().slice(0, 10)}.pdf`;
+        doc.save(fileName);
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("Error generating PDF. Please try again.");
+      } finally {
+        document.body.removeChild(loadingMessage);
       }
     }
+
+    // Add this function to get the currently displayed products
+    function getDisplayedProducts() {
+      const searchValue = document.getElementById("searchProduct").value.toLowerCase();
+      
+      // If there's a search term, return filtered products
+      if (searchValue) {
+        return allProducts.filter(product => 
+          product.name.toLowerCase().includes(searchValue) || 
+          (product.barcode && product.barcode.toLowerCase().includes(searchValue))
+        );
+      }
+      
+      // Otherwise return sorted products
+      return sortProducts([...allProducts]);
+    }
+
+    function generateAllBarcodes() {
+  if (!confirm("This will generate barcodes for products WITHOUT barcodes. Continue?")) {
+    return;
+  }
+
+  // Show loading spinner
+  document.querySelector(".spinner").style.display = "block";
+
+  // Get all products from Firebase
+  database.ref("products").once('value').then(snapshot => {
+    const updates = {};
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let count = 0;
     
-    // Save the PDF
-    const fileName = barcodeOnly 
-      ? `product_barcodes_${new Date().toISOString().slice(0, 10)}.pdf`
-      : `product_catalog_${new Date().toISOString().slice(0, 10)}.pdf`;
-    doc.save(fileName);
-  } catch (error) {
-    console.error("Error generating PDF:", error);
-    alert("Error generating PDF. Please try again.");
-  } finally {
-    document.body.removeChild(loadingMessage);
-  }
+    snapshot.forEach(childSnapshot => {
+      const product = childSnapshot.val();
+      const key = childSnapshot.key;
+      
+      // Skip if product already has a barcode
+      if (product.barcode && product.barcode.trim() !== '') {
+        return;
+      }
+      
+      // Generate new barcode using the new logic
+      const firstLetter = product.name.trim().charAt(0).toUpperCase();
+      const formattedPrice = product.price.toString().replace(/\D/g, '');
+      
+      // Generate 3 random unique letters
+      let randomLetters = '';
+      const usedIndices = new Set();
+      while (randomLetters.length < 3) {
+        const randomIndex = Math.floor(Math.random() * letters.length);
+        if (!usedIndices.has(randomIndex)) {
+          usedIndices.add(randomIndex);
+          randomLetters += letters.charAt(randomIndex);
+        }
+      }
+      
+      const newBarcode = firstLetter + formattedPrice + randomLetters;
+      updates[`products/${key}/barcode`] = newBarcode;
+      count++;
+    });
+
+    if (count === 0) {
+      showSuccessMessage("All products already have barcodes. No updates needed.");
+      document.getElementById("generateAllBarcodesBtn").style.display = "none";
+      return Promise.resolve();
+    }
+
+    // Update products in a single operation
+    return database.ref().update(updates);
+  })
+  .then(() => {
+    showSuccessMessage("Barcodes generated successfully for products without barcodes!");
+    // Hide the button after generation
+    document.getElementById("generateAllBarcodesBtn").style.display = "none";
+  })
+  .catch(error => {
+    console.error("Error generating barcodes:", error);
+    alert("Error generating barcodes. Please try again.");
+  })
+  .finally(() => {
+    // Hide loading spinner
+    document.querySelector(".spinner").style.display = "none";
+  });
+}
+    
+    // Update your existing showSuccessMessage to optionally accept a custom message
+    function showSuccessMessage(customMessage) {
+      const message = document.getElementById("productMessage");
+      if (customMessage) {
+        message.querySelector('p').innerHTML = `<i class="fa-solid fa-circle-check"></i> ${customMessage}`;
+      }
+      message.style.display = "block";
+      message.style.opacity = 1;
+      
+      setTimeout(() => {
+        message.style.opacity = 0;
+        setTimeout(() => {
+          message.style.display = "none";
+        }, 500);
+      }, 3000);
+    }
+
+
+
+    function downloadDemoFormat() {
+  // Create a new workbook
+  const wb = XLSX.utils.book_new();
+  
+  // Sample data for the demo format
+  const demoData = [
+    ['Product Name', 'Selling Price', 'Purchase Price', 'Stock Quantity'],
+    ['Example Product 1', 100, 80, 10],
+    ['Example Product 2', 200, 150, 5],
+    ['Example Product 3', 50, 40, 20]
+  ];
+  
+  // Convert to worksheet
+  const ws = XLSX.utils.aoa_to_sheet(demoData);
+  
+  // Set column widths
+  ws['!cols'] = [
+    {wch: 20}, // Product Name
+    {wch: 15}, // Selling Price
+    {wch: 15}, // Purchase Price
+    {wch: 15}  // Stock Quantity
+  ];
+  
+  // Add worksheet to workbook
+  XLSX.utils.book_append_sheet(wb, ws, "Products");
+  
+  // Generate Excel file
+  XLSX.writeFile(wb, "product_import_demo_format.xlsx");
 }
 
-// Add this function to get the currently displayed products
-function getDisplayedProducts() {
-  const searchValue = document.getElementById("searchProduct").value.toLowerCase();
-  
-  // If there's a search term, return filtered products
-  if (searchValue) {
-    return allProducts.filter(product => 
-      product.name.toLowerCase().includes(searchValue) || 
-      (product.barcode && product.barcode.toLowerCase().includes(searchValue))
-    );
-  }
-  
-  // Otherwise return sorted products
-  return sortProducts([...allProducts]);
-}
-  </script>
+async function importFromExcel(event) {
+  const file = event.target.files[0];
+  if (!file) return;
 
-<script>
-  function generateAllBarcodes() {
-    if (!confirm("This will update barcodes for ALL products. Continue?")) {
+  // Show loading spinner
+  document.querySelector(".spinner").style.display = "block";
+  
+  try {
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data);
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+    
+    // Remove empty rows and header if exists
+    const rows = jsonData.filter(row => row.length > 0 && !row.every(cell => cell === null || cell === ""));
+    
+    // Check if first row is header (contains expected column names)
+    const isFirstRowHeader = rows.length > 0 && 
+      (rows[0].some(cell => typeof cell === 'string' && cell.toLowerCase().includes('name')) ||
+       rows[0].some(cell => typeof cell === 'string' && cell.toLowerCase().includes('price')));
+    
+    const dataRows = isFirstRowHeader ? rows.slice(1) : rows;
+    
+    if (dataRows.length === 0) {
+      alert("No valid data found in the Excel file.");
       return;
     }
-  
-    // Show loading spinner
-    document.querySelector(".spinner").style.display = "block";
-  
-    // Get all products from Firebase
-    database.ref("products").once('value').then(snapshot => {
-      const updates = {};
-      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      
-      snapshot.forEach(childSnapshot => {
-        const product = childSnapshot.val();
-        const key = childSnapshot.key;
+    
+    // Process each row
+    let successCount = 0;
+    let errorCount = 0;
+    const errors = [];
+    
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      try {
+        // Try to map columns automatically
+        let name, price, purchasePrice, stockQuantity;
         
-        // Generate new barcode using the new logic
-        const firstLetter = product.name.trim().charAt(0).toUpperCase();
-        const formattedPrice = product.price.toString().replace(/\D/g, '');
-        
-        // Generate 3 random unique letters
-        let randomLetters = '';
-        const usedIndices = new Set();
-        while (randomLetters.length < 3) {
-          const randomIndex = Math.floor(Math.random() * letters.length);
-          if (!usedIndices.has(randomIndex)) {
-            usedIndices.add(randomIndex);
-            randomLetters += letters.charAt(randomIndex);
-          }
+        // Attempt to find columns by content
+        if (row.length >= 4) {
+          // Assume standard order: name, price, purchasePrice, stock
+          name = String(row[0]).trim();
+          price = parseFloat(row[1]);
+          purchasePrice = parseFloat(row[2]);
+          stockQuantity = parseInt(row[3]);
+        } else if (row.length >= 3) {
+          // Assume name, price, purchasePrice (stock optional)
+          name = String(row[0]).trim();
+          price = parseFloat(row[1]);
+          purchasePrice = parseFloat(row[2]);
+          stockQuantity = row.length > 3 ? parseInt(row[3]) : 0;
+        } else if (row.length >= 2) {
+          // Assume name and price (minimum required)
+          name = String(row[0]).trim();
+          price = parseFloat(row[1]);
+          purchasePrice = 0;
+          stockQuantity = 0;
+        } else {
+          throw new Error("Insufficient data in row");
         }
         
-        const newBarcode = firstLetter + formattedPrice + randomLetters;
-        updates[`products/${key}/barcode`] = newBarcode;
-      });
-  
-      // Update all products in a single operation
-      return database.ref().update(updates);
-    })
-    .then(() => {
-      showSuccessMessage("All barcodes updated successfully!");
-    })
-    .catch(error => {
-      console.error("Error updating barcodes:", error);
-      alert("Error updating barcodes. Please try again.");
-    })
-    .finally(() => {
-      // Hide loading spinner
-      document.querySelector(".spinner").style.display = "none";
-    });
-  }
-  
-  // Update your existing showSuccessMessage to optionally accept a custom message
-  function showSuccessMessage(customMessage) {
-    const message = document.getElementById("productMessage");
-    if (customMessage) {
-      message.querySelector('p').innerHTML = `<i class="fa-solid fa-circle-check"></i> ${customMessage}`;
+        // Validate required fields
+        if (!name || isNaN(price)) {
+          throw new Error("Missing required fields (name and price)");
+        }
+        
+        // Set defaults if not provided
+        if (isNaN(purchasePrice)) purchasePrice = 0;
+        if (isNaN(stockQuantity)) stockQuantity = 0;
+        
+        // Calculate profit
+        const profit = price - purchasePrice;
+        
+        // Create product in database (barcode will be auto-generated)
+        await database.ref("products").push().set({
+          name,
+          price,
+          purchasePrice,
+          stockQuantity,
+          profit,
+          barcode: "" // Will be auto-generated later
+        });
+        
+        successCount++;
+      } catch (error) {
+        errorCount++;
+        errors.push(`Row ${i + (isFirstRowHeader ? 2 : 1)}: ${error.message}`);
+      }
     }
-    message.style.display = "block";
-    message.style.opacity = 1;
     
-    setTimeout(() => {
-      message.style.opacity = 0;
-      setTimeout(() => {
-        message.style.display = "none";
-      }, 500);
-    }, 3000);
+    // Show results
+    let resultMessage = `Import completed: ${successCount} products added successfully.`;
+    if (errorCount > 0) {
+      resultMessage += ` ${errorCount} rows had errors.`;
+      console.error("Import errors:", errors.join("\n"));
+    }
+    
+    showSuccessMessage(resultMessage);
+    sortAndDisplayProducts();
+    
+    // Clear file input
+    event.target.value = '';
+    
+  } catch (error) {
+    console.error("Error importing Excel:", error);
+    alert("Error importing Excel file. Please check the format and try again.");
+  } finally {
+    // Hide loading spinner
+    document.querySelector(".spinner").style.display = "none";
   }
+}
   </script>
 </body>
 </html>
