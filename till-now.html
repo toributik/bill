@@ -83,13 +83,13 @@
       position: fixed;
       top: 0;
       right: -400px;
-      width: 400px;
+      width: 350px;
       height: 100%;
       background-color: white;
       box-shadow: -2px 0 10px rgba(0,0,0,0.1);
       z-index: 1050;
       transition: right 0.3s ease;
-      padding: 20px;
+      padding: 15px;
       overflow-y: auto;
     }
     
@@ -113,125 +113,182 @@
     }
     
     .filter-section {
-      margin-bottom: 20px;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 15px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: white;
+      border-radius: 5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     
     .filter-section h5 {
-      margin-bottom: 15px;
-      color: #333;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1d1e1f;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .filter-section h5 .toggle-section {
+      font-size: 20px;
+      color: #1f1f1f;
+      cursor: pointer;
+      background-color: #8ef0ff;
+      padding: 5px;
+      border-radius: 20px;
+    }
+    
+    .filter-row {
+      margin-bottom: 10px;
     }
     
     .filter-actions {
       display: flex;
-      justify-content: space-between;
-      margin-top: 20px;
+      gap: 10px;
+      margin-top: 15px;
     }
     
+    .filter-actions .btn {
+      flex: 1;
+    }
+    
+    /* Improved input styling */
+    .filter-section input,
+    .filter-section select {
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 4px;
+    }
+    
+    /* Tag style for active filters */
+    .active-filter-tag {
+      display: inline-flex;
+      align-items: center;
+      background-color: #e9ecef;
+      border-radius: 15px;
+      padding: 3px 8px;
+      margin-right: 5px;
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
+    
+    .active-filter-tag .remove-tag {
+      margin-left: 5px;
+      cursor: pointer;
+      color: #6c757d;
+    }
+    
+    .active-filters-container {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      padding: 5px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+    }
+    
+    /* Responsive adjustments */
     @media (max-width: 576px) {
       .filter-panel {
-        width: 300px;
+        width: 280px;
+      }
+      
+      .filter-actions {
+        flex-direction: column;
       }
     }
     
-    .filter-row {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    
-    .filter-row select {
-      flex: 1;
-      margin-right: 10px;
-    }
-    
-    .filter-row input {
-      flex: 1;
-    }
-    
-    .filter-row .btn {
-      margin-left: 10px;
-    }
-
     .input-group-append select {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  border-left: none;
-}
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-left: none;
+    }
 
-.input-group input {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-right: none;
-}
+    .input-group input {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      border-right: none;
+    }
 
-.autocomplete {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-}
+    .autocomplete {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
 
-.autocomplete-items {
-  position: absolute;
-  border: 1px solid #d4d4d4;
-  border-bottom: none;
-  border-top: none;
-  z-index: 99;
-  top: 100%;
-  left: 0;
-  right: 0;
-  max-height: 200px;
-  overflow-y: auto;
-}
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid #d4d4d4;
+      border-bottom: none;
+      border-top: none;
+      z-index: 99;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
 
-.autocomplete-items div {
-  padding: 10px;
-  cursor: pointer;
-  background-color: #fff;
-  border-bottom: 1px solid #d4d4d4;
-}
+    .autocomplete-items div {
+      padding: 10px;
+      cursor: pointer;
+      background-color: #fff;
+      border-bottom: 1px solid #d4d4d4;
+    }
 
-.autocomplete-items div:hover {
-  background-color: #e9e9e9;
-}
+    .autocomplete-items div:hover {
+      background-color: #e9e9e9;
+    }
 
-/* 1. Ensure the glass container doesn't clip dropdowns */
-/* Ensure dropdown parent is positioned correctly */
-.dropdown {
-  position: relative; /* Required for z-index to work */
-}
+    /* Ensure dropdowns appear above cards */
+    .dropdown {
+      position: relative;
+    }
 
-/* Make sure dropdown appears above ALL cards */
-.dropdown-menu {
-  z-index: 9999 !important; /* Extremely high to ensure it's on top */
-  position: absolute;
-  inset: auto auto 0px 0px; /* Adjust positioning if needed */
-  transform: translate(0px, 0px); /* Fixes Bootstrap positioning */
-}
+    .dropdown-menu {
+      z-index: 9999 !important;
+      position: absolute;
+      inset: auto auto 0px 0px;
+      transform: translate(0px, 0px);
+    }
 
-/* Prevent .glass from creating a new stacking context */
-.glass {
-  position: relative;
-  overflow: visible !important; /* Allow dropdown to escape */
-  z-index: auto; /* Reset to default */
-}
+    .glass {
+      position: relative;
+      overflow: visible !important;
+      z-index: auto;
+    }
 
-/* Force dropdown to break out of container */
-.dropdown-menu.show {
-  position: fixed !important;  /* Override Bootstrap's absolute */
-  top: 100%;                   /* Ensure it's placed below the toggle button */
-  right: 0;                    /* Align it to the right side of the viewport */
-  left: auto !important;       /* Override any left setting */
-  margin-top: 0;               /* Remove any unwanted spacing */
-  transform: none !important;  /* Disable Bootstrap transforms */
-  z-index: 1050;               /* Optional: make sure it appears above other elements */
-}
+    .dropdown-menu.show {
+      position: fixed !important;
+      top: 100%;
+      right: 0;
+      left: auto !important;
+      margin-top: 0;
+      transform: none !important;
+      z-index: 1050;
+    }
 
-.dropdown-item{
-  max-height: 23px;
-  font-size: 12px;
-}
+    .dropdown-item{
+      max-height: 23px;
+      font-size: 12px;
+    }
+    
+    #productMessage {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1100;
+      display: none;
+    }
+    
+    .indi {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body class="body-text">
@@ -242,7 +299,7 @@
     <div class="wave"></div>
   </div>
   
-  <!-- Image and text -->
+  <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow">
     <div class="container d-flex justify-content-between align-items-center">
       
@@ -254,16 +311,15 @@
         <button class="btn btn-outline-light btn-sm mr-2" onclick="downloadExcel()" title="Download Excel">
           <i class="fas fa-file-excel"></i> Excel
         </button>
-      <!-- Filter Button -->
-      <button class="btn btn-outline-light btn-sm mr-2" onclick="toggleFilterPanel()" title="Filter">
-        <i class="fas fa-filter"></i> Filter
-      </button>
-  
-      <!-- Logout Button -->
-      <button class="btn btn-outline-light btn-sm" onclick="logout()" title="Logout">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </button>
-    </div>
+        <!-- Filter Button -->
+        <button class="btn btn-outline-light btn-sm mr-2" onclick="toggleFilterPanel()" title="Filter">
+          <i class="fas fa-filter"></i> Filter
+        </button>
+        <!-- Logout Button -->
+        <button class="btn btn-outline-light btn-sm" onclick="logout()" title="Logout">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
     </div>
   </nav>
   
@@ -272,92 +328,144 @@
   
   <!-- Filter Panel -->
   <div class="filter-panel" id="filterPanel">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h4>Advanced Filters</h4>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="mb-0">Advanced Filters</h4>
       <button type="button" class="close" onclick="toggleFilterPanel()">
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
     
+    <!-- Active Filters Display -->
+    <div class="active-filters-container" id="activeFilters">
+      <!-- Active filters will appear here -->
+    </div>
+    
     <div class="filter-section">
-      <h5>Date Range</h5>
-      <div class="form-group">
-        <label>From Date</label>
-        <input type="date" id="filterFromDate" class="form-control">
-      </div>
-      <div class="form-group">
-        <label>To Date</label>
-        <input type="date" id="filterToDate" class="form-control">
+      <h5>
+        Date Range
+        <span class="toggle-section" onclick="toggleSection('dateSection')">+</span>
+      </h5>
+      <div id="dateSection">
+        <div class="form-group mb-2">
+          <label class="small">From Date</label>
+          <input type="date" id="filterFromDate" class="form-control form-control-sm">
+        </div>
+        <div class="form-group">
+          <label class="small">To Date</label>
+          <input type="date" id="filterToDate" class="form-control form-control-sm">
+        </div>
       </div>
     </div>
     
     <div class="filter-section">
-      <h5>Customer</h5>
-      <div class="form-group">
-        <label>Name</label>
-        <div class="autocomplete">
-          <div class="input-group">
-            <input type="text" id="filterCustomerName" class="form-control" placeholder="Customer name" autocomplete="off">
-            <div class="input-group-append">
-              <select id="filterNameCondition" class="form-control">
-                <option value="contains">Contains</option>
-                <option value="startsWith">Starts with</option>
-                <option value="endsWith">Ends with</option>
-                <option value="exact">Exact match</option>
-              </select>
+      <h5>
+        Customer
+        <span class="toggle-section" onclick="toggleSection('customerSection')">+</span>
+      </h5>
+      <div id="customerSection">
+        <div class="form-group mb-2">
+          <label class="small">Name</label>
+          <div class="autocomplete">
+            <div class="input-group input-group-sm">
+              <input type="text" id="filterCustomerName" class="form-control" placeholder="Customer name" autocomplete="off">
+              <div class="input-group-append">
+                <select id="filterNameCondition" class="form-control">
+                  <option value="contains">Contains</option>
+                  <option value="startsWith">Starts with</option>
+                  <option value="endsWith">Ends with</option>
+                  <option value="exact">Exact match</option>
+                </select>
+              </div>
             </div>
+            <div id="customerNameSuggestions" class="autocomplete-items"></div>
           </div>
-          <div id="customerNameSuggestions" class="autocomplete-items"></div>
         </div>
-      </div>
-      <div class="form-group">
-        <label>Mobile Number</label>
-        <input type="text" id="filterCustomerMobile" class="form-control" placeholder="Mobile number">
+        <div class="form-group">
+          <label class="small">Mobile Number</label>
+          <input type="text" id="filterCustomerMobile" class="form-control form-control-sm" placeholder="Mobile number">
+        </div>
       </div>
     </div>
 
     <div class="filter-section">
-      <h5>Remarks</h5>
-      <div class="form-group">
-        <label>Remarks Text</label>
-        <input type="text" id="filterRemarks" class="form-control" placeholder="Search in remarks">
+      <h5>
+        Bill Details
+        <span class="toggle-section" onclick="toggleSection('billDetailsSection')">+</span>
+      </h5>
+      <div id="billDetailsSection">
+        <div class="form-group mb-2">
+          <label class="small">Bill ID</label>
+          <input type="text" id="filterBillId" class="form-control form-control-sm" placeholder="Bill ID">
+        </div>
+        <div class="form-group">
+          <label class="small">Remarks</label>
+          <input type="text" id="filterRemarks" class="form-control form-control-sm" placeholder="Search in remarks">
+        </div>
       </div>
     </div>
     
     <div class="filter-section">
-      <h5>Bill Amount</h5>
-      <div class="filter-row">
-        <select id="filterAmountCondition" class="form-control">
-          <option value="greater">Greater than</option>
-          <option value="less">Less than</option>
-          <option value="equal">Equal to</option>
-          <option value="between">Between</option>
-        </select>
-        <input type="number" id="filterAmountValue1" class="form-control" placeholder="Amount">
-      </div>
-      <div class="filter-row" id="filterAmountValue2Row" style="display: none;">
-        <span>and</span>
-        <input type="number" id="filterAmountValue2" class="form-control" placeholder="Amount">
+      <h5>
+        Amount
+        <span class="toggle-section" onclick="toggleSection('amountSection')">+</span>
+      </h5>
+      <div id="amountSection">
+        <div class="form-group mb-2">
+          <div class="filter-row">
+            <select id="filterAmountCondition" class="form-control form-control-sm">
+              <option value="greater">Greater than</option>
+              <option value="less">Less than</option>
+              <option value="equal">Equal to</option>
+              <option value="between">Between</option>
+            </select>
+          </div>
+          <div class="input-group input-group-sm mt-2">
+            <div class="input-group-prepend">
+              <span class="input-group-text">₹</span>
+            </div>
+            <input type="number" id="filterAmountValue1" class="form-control" placeholder="Amount" >
+          </div>
+        </div>
+        <div class="form-group" id="filterAmountValue2Row" style="display: none;">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text">and ₹</span>
+            </div>
+            <input type="number" id="filterAmountValue2" class="form-control" placeholder="Amount">
+          </div>
+        </div>
       </div>
     </div>
     
     <div class="filter-section">
-      <h5>Items Count</h5>
-      <div class="filter-row">
-        <select id="filterItemsCondition" class="form-control">
-          <option value="greater">Greater than</option>
-          <option value="less">Less than</option>
-          <option value="equal">Equal to</option>
-        </select>
-        <input type="number" id="filterItemsValue" class="form-control" placeholder="Count">
+      <h5>
+        Items
+        <span class="toggle-section" onclick="toggleSection('itemsSection')">+</span>
+      </h5>
+      <div id="itemsSection">
+        <div class="form-group">
+          <div class="filter-row">
+            <select id="filterItemsCondition" class="form-control form-control-sm">
+              <option value="greater">Greater than</option>
+              <option value="less">Less than</option>
+              <option value="equal">Equal to</option>
+            </select>
+          </div>
+          <div class="input-group input-group-sm mt-2">
+            <input type="number" id="filterItemsValue" class="form-control" placeholder="Count">
+            <div class="input-group-append">
+              <span class="input-group-text">items</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     
     <div class="filter-actions">
-      <button class="btn btn-secondary" onclick="resetFilters()">
+      <button class="btn btn-sm btn-outline-secondary" onclick="resetFilters()">
         <i class="fas fa-undo btn-icon"></i> Reset
       </button>
-      <button class="btn btn-primary" onclick="applyFilters()">
+      <button class="btn btn-sm btn-primary" onclick="applyFilters()">
         <i class="fas fa-check btn-icon"></i> Apply
       </button>
     </div>
@@ -369,16 +477,6 @@
   
   <div class="container mt-5" style="padding-top: 2px;">
     <div id="contentContainer" class="container mt-4">
-      <!-- <div class="glass">
-        <div class="row">
-          <div class="col-md-4">
-            <p><strong>Total Amount:</strong> ₹<span id="totalAmount">0</span></p>
-          </div>
-          <div class="col-md-4">
-            <p><strong>Date Range:</strong> <span id="dateRange">All</span></p>
-          </div>
-        </div>
-      </div> -->
       <p class="d-none"><strong>Date Range:</strong> <span id="dateRange">All</span></p>
       <div class="search-container">
         <div class="row align-items-center">
@@ -392,7 +490,6 @@
         </div>
       </div>
       
-      
       <div id="loadingSpinner" class="text-center mb-3" style="display: none;">
         <div class="loading-spinner"></div> Loading bills...
       </div>
@@ -403,7 +500,7 @@
     </div>
   </div>
 
-  <!-- Edit Bill Modal (unchanged from your original code) -->
+  <!-- Edit Bill Modal -->
   <div class="modal fade" id="editBillModal" tabindex="-1" role="dialog" aria-labelledby="editBillModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
@@ -429,11 +526,15 @@
   </div>
 
   <script>
+
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const auth = firebase.auth();
 
     let allBills = []; // Store all bills for filtering
+    let activeFilters = {}; // Track active filters
+    let currentlyEditingBillId = null; // Track which bill is being edited
+    let customerNames = []; // Store customer names for autocomplete
 
     // Check auth state
     auth.onAuthStateChanged(user => {
@@ -443,16 +544,11 @@
         showLoading(true);
         loadAllBills();
 
-        // Check if user is toributik33@gmail.com
+        // Check if user is admin (example email)
         if (user.email === "toributik33@gmail.com") {
           // Show admin buttons
           document.querySelectorAll('.admin-only').forEach(el => {
             el.classList.remove('admin-only');
-          });
-        } else {
-          // Hide admin buttons
-          document.querySelectorAll('.admin-only').forEach(el => {
-            el.classList.add('admin-only');
           });
         }
       }
@@ -497,161 +593,6 @@
       displayBills(filteredBills.reverse());
     }
 
-    function applyFilters() {
-  // Get filter values from the UI
-  const fromDate = document.getElementById('filterFromDate').value;
-  const toDate = document.getElementById('filterToDate').value;
-  const customerName = document.getElementById('filterCustomerName').value.toLowerCase();
-  const nameCondition = document.getElementById('filterNameCondition').value;
-  const customerMobile = document.getElementById('filterCustomerMobile').value;
-  
-  // Amount filters
-  const amountCondition = document.getElementById('filterAmountCondition').value;
-  const amountValue1 = parseFloat(document.getElementById('filterAmountValue1').value) || 0;
-  const amountValue2 = parseFloat(document.getElementById('filterAmountValue2').value) || 0;
-  
-  // Items count filters
-  const itemsCondition = document.getElementById('filterItemsCondition').value;
-  const itemsValue = parseInt(document.getElementById('filterItemsValue').value) || 0;
-
-  // Remarks filter
-  const remarksFilter = document.getElementById('filterRemarks').value.toLowerCase();
-
-  // Apply all filters to the bills
-  const filteredBills = allBills.filter(bill => {
-    // Date filter
-    const billDate = new Date(bill.date).toISOString().split('T')[0];
-    const matchesFromDate = fromDate ? billDate >= fromDate : true;
-    const matchesToDate = toDate ? billDate <= toDate : true;
-    
-    // Customer name filter with different conditions
-    let matchesCustomerName = true;
-    if (customerName) {
-      const billName = bill.customer.name ? bill.customer.name.toLowerCase() : '';
-      
-      switch(nameCondition) {
-        case 'contains':
-          matchesCustomerName = billName.includes(customerName);
-          break;
-        case 'startsWith':
-          matchesCustomerName = billName.startsWith(customerName);
-          break;
-        case 'endsWith':
-          matchesCustomerName = billName.endsWith(customerName);
-          break;
-        case 'exact':
-          matchesCustomerName = billName === customerName;
-          break;
-        default:
-          matchesCustomerName = billName.includes(customerName);
-      }
-    }
-    
-    // Customer mobile filter
-    const matchesCustomerMobile = customerMobile ? 
-      (bill.customer.mobile && bill.customer.mobile.includes(customerMobile)) : true;
-    
-    // Amount filter
-    const billAmount = parseFloat(bill.grandTotal) || 0;
-    let matchesAmount = true;
-    
-    switch(amountCondition) {
-      case 'greater':
-        matchesAmount = billAmount > amountValue1;
-        break;
-      case 'less':
-        matchesAmount = billAmount < amountValue1;
-        break;
-      case 'equal':
-        matchesAmount = billAmount === amountValue1;
-        break;
-      case 'between':
-        matchesAmount = billAmount >= amountValue1 && billAmount <= amountValue2;
-        break;
-    }
-    
-    // Items count filter
-    const totalItems = bill.items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
-    let matchesItems = true;
-    
-    switch(itemsCondition) {
-      case 'greater':
-        matchesItems = totalItems > itemsValue;
-        break;
-      case 'less':
-        matchesItems = totalItems < itemsValue;
-        break;
-      case 'equal':
-        matchesItems = totalItems === itemsValue;
-        break;
-    }
-    
-    // Remarks filter
-    const matchesRemarks = remarksFilter ? 
-      (bill.remarks && bill.remarks.toLowerCase().includes(remarksFilter)) : true;
-    
-    // All conditions must be true for the bill to be included
-    return matchesFromDate && matchesToDate && 
-           matchesCustomerName && matchesCustomerMobile && 
-           matchesAmount && matchesItems && matchesRemarks;
-  });
-  
-  // Update the UI with filtered results
-  updateSummary(filteredBills);
-  displayBills(filteredBills.reverse());
-  toggleFilterPanel(); // Close the filter panel after applying
-  
-  // Show message if no results found
-  if (filteredBills.length === 0) {
-    showToastMessage('No bills found matching your filters', 'info');
-  }
-}
-
-// Helper function to show toast messages (add this if you don't have it)
-function showToastMessage(message, type = 'success') {
-  const toast = document.createElement('div');
-  toast.className = `toast show align-items-center text-white bg-${type} border-0`;
-  toast.style.position = 'fixed';
-  toast.style.bottom = '20px';
-  toast.style.right = '20px';
-  toast.style.zIndex = '1100';
-  
-  toast.innerHTML = `
-    <div class="d-flex">
-      <div class="toast-body">
-        ${message}
-      </div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-  `;
-  
-  document.body.appendChild(toast);
-  
-  setTimeout(() => {
-    toast.remove();
-  }, 3000);
-}
-
-    function resetFilters() {
-      // Reset all filter inputs
-      document.getElementById('filterFromDate').value = '';
-      document.getElementById('filterToDate').value = '';
-      document.getElementById('filterCustomerName').value = '';
-      document.getElementById('filterCustomerMobile').value = '';
-      document.getElementById('filterAmountCondition').value = 'greater';
-      document.getElementById('filterAmountValue1').value = '';
-      document.getElementById('filterAmountValue2').value = '';
-      document.getElementById('filterItemsCondition').value = 'greater';
-      document.getElementById('filterItemsValue').value = '';
-      
-      // Reset the main search
-      document.getElementById('searchInput').value = '';
-      
-      // Show all bills
-      updateSummary(allBills);
-      displayBills(allBills.reverse());
-    }
-
     function toggleFilterPanel() {
       const panel = document.getElementById('filterPanel');
       const overlay = document.getElementById('filterOverlay');
@@ -660,11 +601,304 @@ function showToastMessage(message, type = 'success') {
       overlay.classList.toggle('show');
     }
 
-    // Update amount filter UI when condition changes
-    document.getElementById('filterAmountCondition').addEventListener('change', function() {
-      const betweenRow = document.getElementById('filterAmountValue2Row');
-      betweenRow.style.display = this.value === 'between' ? 'flex' : 'none';
-    });
+    function toggleSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      const toggle = section.parentElement.querySelector('.toggle-section');
+      
+      if (section.style.display === 'none') {
+        section.style.display = 'block';
+        toggle.textContent = '−';
+      } else {
+        section.style.display = 'none';
+        toggle.textContent = '+';
+      }
+    }
+
+    function updateActiveFiltersDisplay() {
+      const container = document.getElementById('activeFilters');
+      container.innerHTML = '';
+      
+      // Add a clear all button if there are any filters
+      if (Object.keys(activeFilters).length > 0) {
+        const clearAllBtn = document.createElement('span');
+        clearAllBtn.className = 'active-filter-tag text-primary';
+        clearAllBtn.innerHTML = '<i class="fas fa-times"></i> Clear all';
+        clearAllBtn.style.cursor = 'pointer';
+        clearAllBtn.onclick = resetFilters;
+        container.appendChild(clearAllBtn);
+      }
+      
+      // Add each active filter as a tag
+      for (const [key, filter] of Object.entries(activeFilters)) {
+        const tag = document.createElement('span');
+        tag.className = 'active-filter-tag';
+        
+        let displayText = '';
+        switch(key) {
+          case 'date':
+            displayText = `Date: ${filter.from} to ${filter.to}`;
+            break;
+          case 'customerName':
+            displayText = `Name: ${filter.value} (${filter.condition})`;
+            break;
+          case 'customerMobile':
+            displayText = `Mobile: ${filter.value}`;
+            break;
+          case 'billId':
+            displayText = `Bill ID: ${filter.value}`;
+            break;
+          case 'remarks':
+            displayText = `Remarks: ${filter.value}`;
+            break;
+          case 'amount':
+            if (filter.condition === 'between') {
+              displayText = `Amount: ₹${filter.value1} to ₹${filter.value2}`;
+            } else {
+              displayText = `Amount: ${filter.condition} ₹${filter.value1}`;
+            }
+            break;
+          case 'items':
+            displayText = `Items: ${filter.condition} ${filter.value}`;
+            break;
+        }
+        
+        tag.innerHTML = `${displayText} <span class="remove-tag" onclick="removeFilter('${key}')">&times;</span>`;
+        container.appendChild(tag);
+      }
+    }
+
+    function removeFilter(filterKey) {
+      // Reset the corresponding filter input
+      switch(filterKey) {
+        case 'date':
+          document.getElementById('filterFromDate').value = '';
+          document.getElementById('filterToDate').value = '';
+          break;
+        case 'customerName':
+          document.getElementById('filterCustomerName').value = '';
+          break;
+        case 'customerMobile':
+          document.getElementById('filterCustomerMobile').value = '';
+          break;
+        case 'billId':
+          document.getElementById('filterBillId').value = '';
+          break;
+        case 'remarks':
+          document.getElementById('filterRemarks').value = '';
+          break;
+        case 'amount':
+          document.getElementById('filterAmountValue1').value = '';
+          document.getElementById('filterAmountValue2').value = '';
+          document.getElementById('filterAmountCondition').value = 'greater';
+          document.getElementById('filterAmountValue2Row').style.display = 'none';
+          break;
+        case 'items':
+          document.getElementById('filterItemsValue').value = '';
+          break;
+      }
+      
+      // Remove from active filters
+      delete activeFilters[filterKey];
+      updateActiveFiltersDisplay();
+      applyFilters();
+    }
+
+    function resetFilters() {
+      // Reset all inputs
+      document.getElementById('filterFromDate').value = '';
+      document.getElementById('filterToDate').value = '';
+      document.getElementById('filterCustomerName').value = '';
+      document.getElementById('filterCustomerMobile').value = '';
+      document.getElementById('filterBillId').value = '';
+      document.getElementById('filterRemarks').value = '';
+      document.getElementById('filterAmountCondition').value = 'greater';
+      document.getElementById('filterAmountValue1').value = '';
+      document.getElementById('filterAmountValue2').value = '';
+      document.getElementById('filterAmountValue2Row').style.display = 'none';
+      document.getElementById('filterItemsCondition').value = 'greater';
+      document.getElementById('filterItemsValue').value = '';
+      document.getElementById('searchInput').value = '';
+      
+      // Reset active filters
+      activeFilters = {};
+      updateActiveFiltersDisplay();
+      
+      // Show all bills
+      updateSummary(allBills);
+      displayBills(allBills.reverse());
+    }
+
+    function applyFilters() {
+      // Get all filter values
+      const fromDate = document.getElementById('filterFromDate').value;
+      const toDate = document.getElementById('filterToDate').value;
+      const customerName = document.getElementById('filterCustomerName').value.trim().toLowerCase();
+      const nameCondition = document.getElementById('filterNameCondition').value;
+      const customerMobile = document.getElementById('filterCustomerMobile').value.trim();
+      const billId = document.getElementById('filterBillId').value.trim().toLowerCase();
+      const remarks = document.getElementById('filterRemarks').value.trim().toLowerCase();
+      
+      // Amount filters
+      const amountCondition = document.getElementById('filterAmountCondition').value;
+      const amountValue1 = parseFloat(document.getElementById('filterAmountValue1').value) || 0;
+      const amountValue2 = parseFloat(document.getElementById('filterAmountValue2').value) || 0;
+      
+      // Items count filters
+      const itemsCondition = document.getElementById('filterItemsCondition').value;
+      const itemsValue = parseInt(document.getElementById('filterItemsValue').value) || 0;
+
+      // Update active filters object
+      activeFilters = {};
+      
+      if (fromDate || toDate) {
+        activeFilters.date = {
+          from: fromDate || 'Start',
+          to: toDate || 'End'
+        };
+      }
+      
+      if (customerName) {
+        activeFilters.customerName = {
+          value: customerName,
+          condition: nameCondition
+        };
+      }
+      
+      if (customerMobile) {
+        activeFilters.customerMobile = {
+          value: customerMobile
+        };
+      }
+      
+      if (billId) {
+        activeFilters.billId = {
+          value: billId
+        };
+      }
+      
+      if (remarks) {
+        activeFilters.remarks = {
+          value: remarks
+        };
+      }
+      
+      if (amountValue1 > 0) {
+        activeFilters.amount = {
+          condition: amountCondition,
+          value1: amountValue1
+        };
+        
+        if (amountCondition === 'between' && amountValue2 > 0) {
+          activeFilters.amount.value2 = amountValue2;
+        }
+      }
+      
+      if (itemsValue > 0) {
+        activeFilters.items = {
+          condition: itemsCondition,
+          value: itemsValue
+        };
+      }
+      
+      // Update the active filters display
+      updateActiveFiltersDisplay();
+      
+      // Apply the filters to the bills
+      const filteredBills = allBills.filter(bill => {
+        // Date filter
+        const billDate = new Date(bill.date).toISOString().split('T')[0];
+        const matchesFromDate = fromDate ? billDate >= fromDate : true;
+        const matchesToDate = toDate ? billDate <= toDate : true;
+        
+        // Customer name filter
+        let matchesCustomerName = true;
+        if (customerName) {
+          const billName = bill.customer.name ? bill.customer.name.toLowerCase() : '';
+          
+          switch(nameCondition) {
+            case 'contains':
+              matchesCustomerName = billName.includes(customerName);
+              break;
+            case 'startsWith':
+              matchesCustomerName = billName.startsWith(customerName);
+              break;
+            case 'endsWith':
+              matchesCustomerName = billName.endsWith(customerName);
+              break;
+            case 'exact':
+              matchesCustomerName = billName === customerName;
+              break;
+          }
+        }
+        
+        // Customer mobile filter
+        const matchesCustomerMobile = customerMobile ? 
+          (bill.customer.mobile && bill.customer.mobile.includes(customerMobile)) : true;
+        
+        // Bill ID filter
+        const matchesBillId = billId ? 
+          (bill.billId && bill.billId.toLowerCase().includes(billId)) : true;
+        
+        // Amount filter
+        const billAmount = parseFloat(bill.grandTotal) || 0;
+        let matchesAmount = true;
+        
+        if (amountValue1 > 0) {
+          switch(amountCondition) {
+            case 'greater':
+              matchesAmount = billAmount > amountValue1;
+              break;
+            case 'less':
+              matchesAmount = billAmount < amountValue1;
+              break;
+            case 'equal':
+              matchesAmount = billAmount === amountValue1;
+              break;
+            case 'between':
+              matchesAmount = billAmount >= amountValue1 && 
+                            (amountValue2 > 0 ? billAmount <= amountValue2 : true);
+              break;
+          }
+        }
+        
+        // Items count filter
+        const totalItems = bill.items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
+        let matchesItems = true;
+        
+        if (itemsValue > 0) {
+          switch(itemsCondition) {
+            case 'greater':
+              matchesItems = totalItems > itemsValue;
+              break;
+            case 'less':
+              matchesItems = totalItems < itemsValue;
+              break;
+            case 'equal':
+              matchesItems = totalItems === itemsValue;
+              break;
+          }
+        }
+        
+        // Remarks filter
+        const matchesRemarks = remarks ? 
+          (bill.remarks && bill.remarks.toLowerCase().includes(remarks)) : true;
+        
+        // All conditions must be true
+        return matchesFromDate && matchesToDate && 
+              matchesCustomerName && matchesCustomerMobile && 
+              matchesBillId && matchesAmount && 
+              matchesItems && matchesRemarks;
+      });
+      
+      // Update the UI with filtered results
+      updateSummary(filteredBills);
+      displayBills(filteredBills.reverse());
+      
+      // Show message if no results found
+      if (filteredBills.length === 0) {
+        showToastMessage('No bills found matching your filters', 'info');
+      }
+    }
 
     function updateSummary(bills) {
       const totalRecords = bills.length;
@@ -685,62 +919,61 @@ function showToastMessage(message, type = 'success') {
     }
 
     function displayBills(bills) {
-  const container = document.getElementById('allBillsContainer');
-  
-  if (bills.length === 0) {
-    container.innerHTML = '<div class="alert alert-info">No bills found matching your criteria</div>';
-    return;
-  }
+      const container = document.getElementById('allBillsContainer');
+      
+      if (bills.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">No bills found matching your criteria</div>';
+        return;
+      }
 
-  container.innerHTML = '';
-  bills.forEach(bill => {
-    const billCard = document.createElement('div');
-    billCard.className = 'glass';
+      container.innerHTML = '';
+      bills.forEach(bill => {
+        const billCard = document.createElement('div');
+        billCard.className = 'glass';
 
-    const billDate = new Date(bill.date);
-    const formattedDate = billDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-    const formattedTime = billDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const billDate = new Date(bill.date);
+        const formattedDate = billDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+        const formattedTime = billDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-    const totalItems = bill.items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
+        const totalItems = bill.items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
 
-    billCard.innerHTML = `
-  <div class="position-relative" style="z-index: 10;">
-    <div class="dropdown" style="position: absolute; top: 0.25rem; right: 0.25rem;">
-      <button class="btn btn-sm btn-light" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <i class="fas fa-ellipsis-v"></i>
-      </button>
-      <div class="dropdown-menu dropdown-menu-right">
-        <a class="dropdown-item d-none " href="#" onclick="viewBill('${bill.id}')"><i class="fas fa-eye"></i> View</a>
-        <a class="dropdown-item btn-sm flex-fill" href="#" onclick="viewSlip('${bill.id}')"><i class="fas fa-receipt"></i> Bill</a>
-        <a class="dropdown-item btn-sm flex-fill" href="#" onclick="editBill('${bill.id}')"><i class="fas fa-edit"></i> Edit</a>
-        <a class="dropdown-item btn-sm flex-fill" href="details.html?name=${encodeURIComponent(bill.customer.name)}&mobile=${bill.customer.mobile || ''}">
-          <i class="fas fa-user"></i> Details
-        </a>
-        <a class="dropdown-item text-danger btn-sm flex-fill" href="#" onclick="deleteBill('${bill.id}')"><i class="fas fa-trash"></i> Delete</a>
-      </div>
-    </div>
+        billCard.innerHTML = `
+          <div class="position-relative" style="z-index: 10;">
+            <div class="dropdown" style="position: absolute; top: 0.25rem; right: 0.25rem;">
+              <button class="btn btn-sm btn-light" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <div class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item d-none" href="#" onclick="viewBill('${bill.id}')"><i class="fas fa-eye"></i> View</a>
+                <a class="dropdown-item btn-sm flex-fill" href="#" onclick="viewSlip('${bill.id}')"><i class="fas fa-receipt"></i> Bill</a>
+                <a class="dropdown-item btn-sm flex-fill" href="#" onclick="editBill('${bill.id}')"><i class="fas fa-edit"></i> Edit</a>
+                <a class="dropdown-item btn-sm flex-fill" href="details.html?name=${encodeURIComponent(bill.customer.name)}&mobile=${bill.customer.mobile || ''}">
+                  <i class="fas fa-user"></i> Details
+                </a>
+                <a class="dropdown-item text-danger btn-sm flex-fill" href="#" onclick="deleteBill('${bill.id}')"><i class="fas fa-trash"></i> Delete</a>
+              </div>
+            </div>
 
-    <div class="d-flex justify-content-between align-items-start">
-      <p style="display: none;">Bill #${bill.id.substring(0, 8)}</p>
-      <small class="text-muted">${formattedDate}, ${formattedTime} | ${bill.billId}</small>  
-    </div>
+            <div class="d-flex justify-content-between align-items-start">
+              <p style="display: none;">Bill #${bill.id.substring(0, 8)}</p>
+              <small class="text-muted bg-light p-1 rounded"><b>${bill.billId}</b> | ${formattedDate}, ${formattedTime}  </small>  
+            </div>
 
-    <div class="d-flex justify-content-between">
-      <p>
-        <span><strong><i class="fas fa-user"></i> ${bill.customer.name}</strong></span>
-        <span>${bill.customer.mobile || 'No mobile'}</span><br>
-        <span><strong>Items:</strong> ${totalItems} | <strong>Total:</strong> ₹${bill.grandTotal}</span>
-         ${bill.remarks ? `<br><strong>Remarks:</strong> ${bill.remarks}` : ''}
-      </p>
-    </div>
-  </div>
-`;
+            <div class="d-flex justify-content-between">
+              <p>
+                <span><strong><i class="fas fa-user"></i> ${bill.customer.name}</strong></span>
+                <span>${bill.customer.mobile || 'No mobile'}</span><br>
+                <span><strong>Items:</strong> ${totalItems} | <strong>Total:</strong> ₹${bill.grandTotal}</span>
+                ${bill.remarks ? `<br><strong>Remarks:</strong> ${bill.remarks}` : ''}
+              </p>
+            </div>
+          </div>
+        `;
 
-    container.appendChild(billCard);
-  });
-}
+        container.appendChild(billCard);
+      });
+    }
 
-    // The rest of your existing functions (viewBill, editBill, saveEditedBill, etc.) remain unchanged
     function viewBill(billId) {
       showLoading(true);
       database.ref('bills/' + billId).once('value').then(snapshot => {
@@ -777,87 +1010,85 @@ function showToastMessage(message, type = 'success') {
       });
     }
 
-    let currentlyEditingBillId = null;
-
     function editBill(billId) {
-      showLoading(true);
-      currentlyEditingBillId = billId;
+  showLoading(true);
+  currentlyEditingBillId = billId;
+  
+  database.ref('bills/' + billId).once('value').then(snapshot => {
+    const billData = snapshot.val();
+    if (billData) {
+      const billDate = new Date(billData.date);
+      const dateStr = billDate.toISOString().split('T')[0];
+      const timeStr = billDate.toTimeString().substring(0, 5);
       
-      database.ref('bills/' + billId).once('value').then(snapshot => {
-        const billData = snapshot.val();
-        if (billData) {
-          const billDate = new Date(billData.date);
-          const dateStr = billDate.toISOString().split('T')[0];
-          const timeStr = billDate.toTimeString().substring(0, 5);
-          
-          const modalBody = document.getElementById('editBillModalBody');
-          modalBody.innerHTML = `
-            <div class="form-group">
-              <label>Customer Name</label>
-              <div class="read-only-field">${billData.customer.name || ''}</div>
-            </div>
-            <div class="form-group">
-              <label>Mobile Number</label>
-              <div class="read-only-field">${billData.customer.mobile || 'No mobile'}</div>
-            </div>
-            <div class="form-group">
-              <label for="editRemarks">Remarks</label>
-              <input type="text" class="form-control" id="editRemarks" value="${billData.remarks || ''}">
-            </div>
-            <div class="form-row">
-              <div class="form-group col-md-6">
-                <label for="editBillDate">Date</label>
-                <input type="date" class="form-control" id="editBillDate" value="${dateStr}">
-              </div>
-              <div class="form-group col-md-6">
-                <label for="editBillTime">Time</label>
-                <input type="time" class="form-control" id="editBillTime" value="${timeStr}">
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Bill Items</label>
-              <table class="table table-bordered">
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody id="editBillItems">
-                  ${billData.items.map((item, index) => `
-                    <tr>
-                      <td><input type="text" class="form-control item-name" value="${item.name || ''}" data-index="${index}"></td>
-                      <td><input type="number" class="form-control item-quantity" value="${item.quantity || ''}" data-index="${index}" min="1"></td>
-                      <td><input type="number" class="form-control item-price" value="${item.price || ''}" data-index="${index}" step="0.01" min="0"></td>
-                      <td class="item-total">₹${(item.quantity * item.price).toFixed(2)}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-            <div class="form-group">
-              <label for="editGrandTotal">Grand Total</label>
-              <input type="number" class="form-control" id="editGrandTotal" value="${billData.grandTotal || ''}" step="0.01" min="0">
-            </div>
-          `;
-          
-          document.querySelectorAll('.item-quantity, .item-price').forEach(input => {
-            input.addEventListener('input', calculateItemTotal);
-          });
-          
-          $('#editBillModal').modal('show');
-        } else {
-          alert('Bill data not found!');
-        }
-        showLoading(false);
-      }).catch(error => {
-        console.error("Error loading bill for edit:", error);
-        alert('Error loading bill: ' + error.message);
-        showLoading(false);
+      const modalBody = document.getElementById('editBillModalBody');
+      modalBody.innerHTML = `
+        <div class="form-group">
+          <label>Customer Name</label>
+          <input type="text" class="form-control" id="editCustomerName" value="${billData.customer.name || ''}">
+        </div>
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <input type="text" class="form-control" id="editCustomerMobile" value="${billData.customer.mobile || ''}">
+        </div>
+        <div class="form-group">
+          <label for="editRemarks">Remarks</label>
+          <input type="text" class="form-control" id="editRemarks" value="${billData.remarks || ''}">
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="editBillDate">Date</label>
+            <input type="date" class="form-control" id="editBillDate" value="${dateStr}">
+          </div>
+          <div class="form-group col-md-6">
+            <label for="editBillTime">Time</label>
+            <input type="time" class="form-control" id="editBillTime" value="${timeStr}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Bill Items</label>
+          <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Quantity</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="editBillItems">
+            ${billData.items.map((item, index) => `
+              <tr>
+                <td><input type="text" class="form-control item-name" value="${item.name || ''}" data-index="${index}" readonly></td>
+                <td><input type="number" class="form-control item-quantity" value="${item.quantity || ''}" data-index="${index}" min="1" readonly></td>
+                <td><input type="number" class="form-control item-price" value="${item.price || ''}" data-index="${index}" step="0.01" min="0" readonly></td>
+                <td class="item-total">₹${(item.quantity * item.price).toFixed(2)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        </div>
+        <div class="form-group">
+          <label for="editGrandTotal">Grand Total</label>
+          <input type="number" class="form-control" id="editGrandTotal" value="${billData.grandTotal || ''}" step="0.01" min="0" readonly>
+        </div>
+      `;
+      
+      document.querySelectorAll('.item-quantity, .item-price').forEach(input => {
+        input.addEventListener('input', calculateItemTotal);
       });
+      
+      $('#editBillModal').modal('show');
+    } else {
+      alert('Bill data not found!');
     }
+    showLoading(false);
+  }).catch(error => {
+    console.error("Error loading bill for edit:", error);
+    alert('Error loading bill: ' + error.message);
+    showLoading(false);
+  });
+}
 
     function calculateItemTotal(e) {
       const index = e.target.getAttribute('data-index');
@@ -879,41 +1110,39 @@ function showToastMessage(message, type = 'success') {
     }
 
     function saveEditedBill() {
-      if (!currentlyEditingBillId) return;
-      
-      showLoading(true);
-      
-      const billDate = document.getElementById('editBillDate').value;
-      const billTime = document.getElementById('editBillTime').value;
-      const remarks = document.getElementById('editRemarks').value;
-      const newDate = new Date(`${billDate}T${billTime}:00`);
-      const timestamp = newDate.getTime();
-      
-      const itemRows = document.querySelectorAll('#editBillItems tr');
-      const items = Array.from(itemRows).map(row => {
-        return {
-          name: row.querySelector('.item-name').value,
-          quantity: parseInt(row.querySelector('.item-quantity').value),
-          price: parseFloat(row.querySelector('.item-price').value)
-        };
-      });
-      
-      const grandTotal = parseFloat(document.getElementById('editGrandTotal').value);
-      
-      database.ref('bills/' + currentlyEditingBillId).update({
-        date: timestamp,
-        items: items,
-        grandTotal: grandTotal,
-        remarks: remarks
-      }).then(() => {
-        showSuccessMessage('Bill updated successfully');
-        $('#editBillModal').modal('hide');
-        loadAllBills();
-      }).catch(error => {
-        alert('Error updating bill: ' + error.message);
-        showLoading(false);
-      });
+  if (!currentlyEditingBillId) return;
+  
+  showLoading(true);
+  
+  const billDate = document.getElementById('editBillDate').value;
+  const billTime = document.getElementById('editBillTime').value;
+  const remarks = document.getElementById('editRemarks').value;
+  const customerName = document.getElementById('editCustomerName').value;
+  const customerMobile = document.getElementById('editCustomerMobile').value;
+  const newDate = new Date(`${billDate}T${billTime}:00`);
+  const timestamp = newDate.getTime();
+  
+  // Don't collect items data since they shouldn't be editable
+  // Keep the grandTotal if you still want to display it (but it should match the items)
+  const grandTotal = parseFloat(document.getElementById('editGrandTotal').value);
+  
+  database.ref('bills/' + currentlyEditingBillId).update({
+    date: timestamp,
+    grandTotal: grandTotal,  // This should be calculated from original items
+    remarks: remarks,
+    customer: {
+      name: customerName,
+      mobile: customerMobile
     }
+  }).then(() => {
+    showSuccessMessage('Bill updated successfully');
+    $('#editBillModal').modal('hide');
+    loadAllBills();
+  }).catch(error => {
+    alert('Error updating bill: ' + error.message);
+    showLoading(false);
+  });
+}
 
     function showSuccessMessage(message = "Success") {
       const messageDiv = document.getElementById("productMessage");
@@ -925,12 +1154,36 @@ function showToastMessage(message, type = 'success') {
       }, 3000);
     }
 
+    function showToastMessage(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast show align-items-center text-white bg-${type} border-0`;
+      toast.style.position = 'fixed';
+      toast.style.bottom = '20px';
+      toast.style.right = '20px';
+      toast.style.zIndex = '1100';
+      
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">
+            ${message}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      `;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
     function deleteBill(billId) {
       if (confirm('Are you sure you want to delete this bill?')) {
         showLoading(true);
         database.ref('bills/' + billId).remove()
           .then(() => {
-            showSuccessMessage();
+            showSuccessMessage('Bill deleted successfully');
             loadAllBills();
           })
           .catch(error => {
@@ -946,57 +1199,43 @@ function showToastMessage(message, type = 'success') {
       });
     }
 
-    // Initialize date inputs to current month
-    document.addEventListener('DOMContentLoaded', function() {
-      const today = new Date();
-      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    function initAutocomplete() {
+      // Get all unique customer names
+      customerNames = [...new Set(allBills.map(bill => bill.customer.name))];
       
-      document.getElementById('filterFromDate').valueAsDate = firstDay;
-      document.getElementById('filterToDate').valueAsDate = today;
-    });
-
-
-    // Customer name autocomplete
-let customerNames = [];
-
-function initAutocomplete() {
-  // Get all unique customer names
-  customerNames = [...new Set(allBills.map(bill => bill.customer.name))];
-  
-  const nameInput = document.getElementById('filterCustomerName');
-  const suggestionsContainer = document.getElementById('customerNameSuggestions');
-  
-  nameInput.addEventListener('input', function() {
-    const input = this.value.toLowerCase();
-    suggestionsContainer.innerHTML = '';
-    
-    if (!input) return;
-    
-    const matches = customerNames.filter(name => 
-      name.toLowerCase().includes(input)
-    ).slice(0, 5); // Show max 5 suggestions
-    
-    matches.forEach(match => {
-      const div = document.createElement('div');
-      div.innerHTML = match;
-      div.addEventListener('click', function() {
-        nameInput.value = match;
+      const nameInput = document.getElementById('filterCustomerName');
+      const suggestionsContainer = document.getElementById('customerNameSuggestions');
+      
+      nameInput.addEventListener('input', function() {
+        const input = this.value.toLowerCase();
         suggestionsContainer.innerHTML = '';
+        
+        if (!input) return;
+        
+        const matches = customerNames.filter(name => 
+          name && name.toLowerCase().includes(input)
+        ).slice(0, 5); // Show max 5 suggestions
+        
+        matches.forEach(match => {
+          const div = document.createElement('div');
+          div.innerHTML = match;
+          div.addEventListener('click', function() {
+            nameInput.value = match;
+            suggestionsContainer.innerHTML = '';
+          });
+          suggestionsContainer.appendChild(div);
+        });
       });
-      suggestionsContainer.appendChild(div);
-    });
-  });
-  
-  // Close suggestions when clicking elsewhere
-  document.addEventListener('click', function(e) {
-    if (e.target !== nameInput) {
-      suggestionsContainer.innerHTML = '';
+      
+      // Close suggestions when clicking elsewhere
+      document.addEventListener('click', function(e) {
+        if (e.target !== nameInput) {
+          suggestionsContainer.innerHTML = '';
+        }
+      });
     }
-  });
-}
 
-// Excel download function
-function downloadExcel() {
+    function downloadExcel() {
   // Get currently filtered bills (or all if no filters)
   let billsToExport = allBills;
   const container = document.getElementById('allBillsContainer');
@@ -1010,26 +1249,33 @@ function downloadExcel() {
   // If there are filtered bills, use those
   const billCards = container.querySelectorAll('.glass');
   if (billCards.length > 0 && billCards.length < allBills.length) {
-    const visibleBillIds = Array.from(billCards).map(card => 
-      card.querySelector('button[onclick^="viewBill"]').getAttribute('onclick').match(/'([^']+)'/)[1]
-    );
-    billsToExport = allBills.filter(bill => visibleBillIds.includes(bill.id));
+    const visibleBillIds = Array.from(billCards).map(card => {
+      // Get the bill ID from the data attribute or other element
+      const billIdElement = card.querySelector('small b');
+      return billIdElement ? billIdElement.textContent : null;
+    }).filter(id => id !== null);
+    
+    billsToExport = allBills.filter(bill => visibleBillIds.includes(bill.billId));
   }
-  
 
-// Prepare CSV content
-let csvContent = "Bill ID,Date,Customer Name,Mobile,Items,Total,Remarks\n";
+  // Prepare CSV content with separate Date and Time columns
+  let csvContent = "Bill ID,Date,Time,Customer Name,Mobile,Items,Total,Remarks\n";
 
-billsToExport.forEach(bill => {
-  const date = new Date(bill.date).toLocaleString();
-  const customerName = bill.customer.name || '';
-  const mobile = bill.customer.mobile || '';
-  const items = bill.items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
-  const total = bill.grandTotal;
-  const remarks = bill.remarks || '';
-  
-  csvContent += `"${bill.billId}","${date}","${customerName}","${mobile}","${items}","${total}","${remarks}"\n`;
-});
+  billsToExport.forEach(bill => {
+    const billDate = new Date(bill.date);
+    const dateStr = billDate.toLocaleDateString('en-GB');
+    const timeStr = billDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const customerName = bill.customer.name || '';
+    const mobile = bill.customer.mobile || '';
+    const items = bill.items.reduce((sum, item) => sum + parseInt(item.quantity), 0);
+    const total = bill.grandTotal;
+    const remarks = bill.remarks || '';
+    
+    // Escape quotes in text fields
+    const escapeQuotes = (text) => text.replace(/"/g, '""');
+    
+    csvContent += `"${bill.billId}","${dateStr}","${timeStr}","${escapeQuotes(customerName)}","${mobile}","${items}","${total}","${escapeQuotes(remarks)}"\n`;
+  });
   
   // Create download link
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1042,6 +1288,24 @@ billsToExport.forEach(bill => {
   link.click();
   document.body.removeChild(link);
 }
+
+    // Initialize the filter panel
+    document.addEventListener('DOMContentLoaded', function() {
+      // Collapse all sections by default
+      document.querySelectorAll('.filter-section > div').forEach(section => {
+        section.style.display = 'none';
+      });
+      
+      // Set today as default to date
+      const today = new Date();
+      document.getElementById('filterToDate').valueAsDate = today;
+      
+      // Show amount range field when between is selected
+      document.getElementById('filterAmountCondition').addEventListener('change', function() {
+        document.getElementById('filterAmountValue2Row').style.display = 
+          this.value === 'between' ? 'block' : 'none';
+      });
+    });
   </script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
