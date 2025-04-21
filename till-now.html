@@ -219,11 +219,15 @@
 
 /* Force dropdown to break out of container */
 .dropdown-menu.show {
-  position: fixed !important; /* Override Bootstrap's absolute */
-  margin-top: 0; /* Remove any unwanted spacing */
-  transform: none !important; /* Disable Bootstrap transforms */
- display: flex;
+  position: fixed !important;  /* Override Bootstrap's absolute */
+  top: 100%;                   /* Ensure it's placed below the toggle button */
+  right: 0;                    /* Align it to the right side of the viewport */
+  left: auto !important;       /* Override any left setting */
+  margin-top: 0;               /* Remove any unwanted spacing */
+  transform: none !important;  /* Disable Bootstrap transforms */
+  z-index: 1050;               /* Optional: make sure it appears above other elements */
 }
+
 .dropdown-item{
   max-height: 23px;
   font-size: 12px;
@@ -365,7 +369,7 @@
   
   <div class="container mt-5" style="padding-top: 2px;">
     <div id="contentContainer" class="container mt-4">
-      <div class="glass">
+      <!-- <div class="glass">
         <div class="row">
           <div class="col-md-4">
             <p><strong>Total Amount:</strong> ₹<span id="totalAmount">0</span></p>
@@ -374,14 +378,15 @@
             <p><strong>Date Range:</strong> <span id="dateRange">All</span></p>
           </div>
         </div>
-      </div>
-      
+      </div> -->
+      <p class="d-none"><strong>Date Range:</strong> <span id="dateRange">All</span></p>
       <div class="search-container">
         <div class="row align-items-center">
           <div class="col-md-12">
             <div class="input-group">
               <input type="text" id="searchInput" class="form-control" placeholder="Search by customer name, mobile, bill ID..." oninput="filterBills()">
-              <span class="input-group-text bg-light border-start-0">Total: <span id="totalRecords" class="ms-1">0</span></span>
+              <span class="input-group-text bg-light border-start-0"><span id="totalRecords" class="ms-1">0</span></span>
+              <span class="input-group-text bg-light border-start-0">₹<span id="totalAmount">0</span></span>
             </div>
           </div>
         </div>
