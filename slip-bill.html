@@ -70,7 +70,7 @@
     .header {
       text-align: center;
       margin-bottom: 10px;
-      border-bottom: 1px dashed #ccc;
+      border-bottom: 1px dashed #070707;
       padding-bottom: 10px;
     }
     .shop-name {
@@ -89,6 +89,7 @@
     border-radius: 10px;
     padding: 5px;
     background-color: #c3c3c327;
+    border-right: 2px solid black;
     }
     .bill-info {
       display: flex;
@@ -110,7 +111,8 @@
       font-size: 12px;
     }
     .items-table th {
-      border-bottom: 1px dashed #ccc;
+      border-bottom: 1px dashed #000000;
+      border-top: 1px dashed #000000;
       text-align: left;
       padding: 3px 3px;
     }
@@ -118,7 +120,7 @@
       padding: 3px 3px;
     }
     .total-section {
-      border-top: 1px dashed #ccc;
+      border-top: 1px dashed #000000;
       margin-top: 10px;
       padding-top: 10px;
       font-size: 12px;
@@ -133,7 +135,7 @@
       margin-top: 15px;
       font-size: 18px;
       color: #555;
-      border-top: 1px dashed #ccc;
+      border-top: 1px dashed #000000;
       padding-top: 10px;
     }
     .btn-print {
@@ -143,7 +145,8 @@
     .ndHead{
      background-color: #dedede4b;
      border-radius: 10px;
-     border: 1px dashed #000;
+     border-bottom: 2px solid black;
+     border-top: 2px solid black;
     }
     .dashed-line {
     border: none;
@@ -153,6 +156,7 @@
     thead{
       background-color: #bebebe83;
     }
+    
   </style>
 </head>
 <body>
@@ -183,8 +187,8 @@
           <div><i class="bi bi-telephone"></i> <span id="customerMobile">Not provided</span></div>
         </div>
         <div style="display: flex; flex-direction: column; align-items: center;">
-          <div id="qrcode" style="width: 40px; height: 40px; margin-right: 20px;"></div><br>
-          <span class="shop-address fonts1" style="font-size: 8px; margin-top: 2px; margin-right: 10px;">Visit Online</span>
+          <div id="qrcode" style="width: 40px; height: 40px; margin-right: 30px;"></div><br>
+          <span class="shop-address fonts1" style="font-size: 8px; margin-top: 2px; margin-right: 5px;">Visit Online</span>
         </div>
       </div>
 
@@ -226,26 +230,30 @@
       
       <!-- Footer -->
       <div class="footer">
-        <div class="note"><b>Note:</b> For any product issues, such as size problems or defects, the Bill or Bill Number is required for changes or replacements.</div>
+        <div class="note"><b>Note:</b> For any product issues, such as size problems or defects, the Bill or Bill Number is required for changes or replacements.
+          Requests must be made within 5 days of purchase.</div>
         <div class="shop-address "> <i class="bi bi-envelope"></i> toributik33@gmail.com</div>
         <div class="fonts2"><b>Thank you for shopping with us! <br>Please visit again</b></div>
         <!-- <div class="fonts2">Please visit again</div>       -->
       </div>
       <hr class="dashed-line">
-      <div  style="display: flex; justify-content: center; align-items: center;"  id="qrcode"></div>
+      
       
     </div>
 
     <!-- Print button (hidden when printing) -->
      <div class="text-center mt-5">
     <button class="btn btn-primary btn2 no-print" onclick="window.print()">
-      <i class="fas fa-print"></i> Print Bill
+      <i class="fas fa-print"></i>
+    </button>
+    <button class="btn btn-info btn2 no-print" onclick="downloadBillImage()">
+      <i class="fas fa-download"></i>
     </button>
     <button class="btn btn-success btn2 no-print" onclick="shareBill()">
-      <i class="fas fa-share-alt"></i> Share Bill
+      <i class="fas fa-share-alt"></i>
     </button>
     <button class="btn btn-secondary btn2 no-print" onclick="window.history.back()">
-      <i class="fas fa-times"></i> Back
+      <i class="fas fa-arrow-left"></i>
     </button>
     </div>
   </div>
@@ -315,6 +323,31 @@
       document.getElementById('grandTotal').textContent = `₹${parseFloat(billData.grandTotal).toFixed(2)}`;
     });
 
+    // Function to download bill as image
+    async function downloadBillImage() {
+      try {
+        const slipContainer = document.querySelector('.slip-container');
+        
+        // Capture the bill as an image
+        const canvas = await html2canvas(slipContainer, {
+          scale: 2, // Higher quality
+          logging: false,
+          useCORS: true,
+          allowTaint: true
+        });
+        
+        // Convert canvas to image and download
+        const link = document.createElement('a');
+        link.download = 'ToriButik_' + document.getElementById('billNo').textContent + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+      } catch (error) {
+        console.error('Error generating image:', error);
+        alert('Failed to generate bill image. Please try printing instead.');
+      }
+    }
+
 
     // Add this new function for sharing the bill
     async function shareBill() {
@@ -363,11 +396,14 @@
 <script>
 
 
-  new QRCode(document.getElementById("qrcode"), {
-    text: "https://toributik.github.io/tori/",
-    width: 50,
-    height: 50
-  });
+new QRCode(document.getElementById("qrcode"), {
+  text: "https://toributik.github.io/tori/",
+  width: 70,
+  height: 55,
+  colorDark: "#000000",  // Ensure good contrast
+  colorLight: "#ffffff",
+  correctLevel: QRCode.CorrectLevel.H  // Higher error correction
+});
 </script>
 </body>
 </html>
