@@ -85,11 +85,19 @@
             <a class="btn btn1 btn-sm mr-2 mb-1" href="till-now.html">View All Bills</a>
           </li>
           
-          <div id="main-content" class="hide-auth">
-            <li class="nav-item">
-              <a class="btn btn1 btn-sm mr-2 mb-1" href="product.html">Products Management</a>
-            </li>
-        </div>
+          <span id="main-content" class="hide-auth">
+            <div class="dropdown">
+              <button class="btn btn1 mr-2 dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Dropdown
+              </button>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="product.html">Products Management</a>
+                <a class="dropdown-item" href="expense.html">Add Expense</a>
+                <a class="dropdown-item" href="report.html">Report</a>
+              </div>
+            </div>
+          
+          </span>
           <li class="nav-item">
             <button class="btn btn-danger btn-sm mb-1" onclick="logout()" title="Logout">
               <i class="fas fa-sign-out-alt"></i> LogOut
@@ -118,7 +126,7 @@
           <!-- <div class="input-group-prepend">
             <span class="form-control  form-control from-input-sm mb-1">Bill ID</span>
           </div> -->
-          <input type="text" id="billId" class="form-control from-input form-control from-input-sm mb-1" readonly>
+          <input type="text" id="billId" class="form-control from-input form-control from-input-sm mb-1">
         </div>
       </div>
       <!-- Add this after the customerMobile input field -->
@@ -432,47 +440,65 @@ function removeItem(button, itemTotal) {
 
 async function getNextBillId() {
   try {
-    // Get current date components
+    // 1. Get current date components
     const now = new Date();
-    const currentYear = now.getFullYear().toString().slice(-2);
-    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 
-                        'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-    const currentMonth = monthNames[now.getMonth()];
-    
-    // Format: B25APRTB1 (Year + Month, sequence continues in same month)
+    const currentYear = now.getFullYear().toString().slice(-2); // e.g., "25"
+    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const currentMonth = monthNames[now.getMonth()]; // e.g., "APR"
+
+    // 2. Format: B25APRTB[number]
     const prefix = `B${currentYear}${currentMonth}TB`;
-    
+
+    // 3. Query the last bill of the current month
     const snapshot = await database.ref("bills")
       .orderByChild("billId")
       .startAt(prefix)
       .endAt(prefix + "\uf8ff")
-      .limitToLast(1)
+      .limitToLast(50) // More for safety
       .once("value");
-    
-    let lastNumber = 0; // Default starting point if no bills exist this month
-    
+
+    let lastNumber = 0;
+
     if (snapshot.exists()) {
-      const lastBill = Object.values(snapshot.val())[0];
-      if (lastBill.billId && lastBill.billId.startsWith(prefix)) {
-        // Extract the number part after the prefix
-        const numberPart = lastBill.billId.replace(prefix, "");
-        lastNumber = parseInt(numberPart) || 0;
+      const bills = Object.values(snapshot.val());
+
+      for (const bill of bills) {
+        if (bill.billId && bill.billId.startsWith(prefix)) {
+          const num = parseInt(bill.billId.replace(prefix, ''), 10);
+          if (!isNaN(num) && num > lastNumber) {
+            lastNumber = num;
+          }
+        }
       }
+
+     // console.log("Last Bill Number:", lastNumber);
     }
-    
-    return `${prefix}${lastNumber + 1}`;
+
+    // 4. Create next bill ID
+    const nextNumber = lastNumber + 1;
+
+    if (nextNumber > 99999) {
+      throw new Error("Maximum 99999 bills per month exceeded.");
+    }
+
+    const paddedNumber = nextNumber.toString().padStart(5, '0'); // e.g., TB00001
+    const newBillId = `${prefix}${paddedNumber}`;
+
+    // console.log("New Bill ID:", newBillId);
+    return newBillId;
+
   } catch (error) {
-    console.error("Error fetching last bill ID:", error);
-    // Fallback with sequence 1 if there's an error
+    console.error("Error generating bill ID:", error);
     const now = new Date();
     const currentYear = now.getFullYear().toString().slice(-2);
-    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 
-                        'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
     const currentMonth = monthNames[now.getMonth()];
-    
-    return `B${currentYear}${currentMonth}TB1`;
+    return `B${currentYear}${currentMonth}TB00001`;
   }
 }
+
+
+
 
 // Modify your generateBill function to include the billId
 async function generateBill() {

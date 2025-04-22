@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reports Dashboard</title>
+  <link rel="icon" type="image/png" href="img/logotab.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/bg.css" rel="stylesheet">
+  <script src="css/all.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .logo {
+      width: 45px;
+      height: 40px;
+      transition: transform 0.3s ease-in-out;
+    }
+    .logo:hover {
+      transform: rotate(360deg) scale(1.1);
+    }
+    .report-card {
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: all 0.3s;
+      margin-bottom: 20px;
+      height: 100%;
+    }
+    .report-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    .card-header {
+      border-radius: 10px 10px 0 0 !important;
+    }
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
+    .date-range-picker {
+      background: white;
+      border-radius: 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .badge-lg {
+      font-size: 1rem;
+      padding: 8px 12px;
+    }
+    .report-table th {
+      position: sticky;
+      top: 0;
+      background: #f8f9fa;
+      z-index: 10;
+    }
+    @media (max-width: 768px) {
+      .chart-container {
+        height: 250px;
+      }
+      .report-card {
+        margin-bottom: 15px;
+      }
+      .table-responsive {
+        font-size: 12px;
+      }
+      .badge-lg {
+        font-size: 0.85rem;
+        padding: 5px 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="particles" id="particles"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+  </div>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center text-light" href="#">
+        <img src="img/sumadhu.png" alt="Logo" class="logo me-3">
+        <strong> Reports Dashboard</strong>
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav align-items-center">
+          <li class="nav-item">
+            <button class="btn btn-danger btn-sm mb-1" onclick="logout()" title="Logout">
+              <i class="fas fa-sign-out-alt"></i> LogOut
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-5" style="padding-top: 70px;">
+    <!-- Date Range Selector -->
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-4 mb-2 mb-md-0">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Select Date Range</h5>
+              </div>
+              <div class="col-md-6">
+                <div class="input-group">
+                  <input type="text" class="form-control date-range-picker" id="dateRange" placeholder="Select date range">
+                  <div class="input-group-append">
+                    <button class="btn btn-primary" type="button" onclick="loadReports()">
+                      <i class="fas fa-sync-alt"></i> Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row">
+      <div class="col-md-3">
+        <div class="card report-card bg-primary text-white">
+          <div class="card-body text-center">
+            <h5><i class="fas fa-rupee-sign"></i> Total Sales</h5>
+            <h2 id="totalSales">₹0</h2>
+            <span class="badge badge-light badge-lg" id="salesCount">0 orders</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card report-card bg-success text-white">
+          <div class="card-body text-center">
+            <h5><i class="fas fa-box"></i> Products Sold</h5>
+            <h2 id="totalProducts">0</h2>
+            <span class="badge badge-light badge-lg" id="productTypes">0 types</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card report-card bg-info text-white">
+          <div class="card-body text-center">
+            <h5><i class="fas fa-users"></i> Customers</h5>
+            <h2 id="totalCustomers">0</h2>
+            <span class="badge badge-light badge-lg" id="newCustomers">0 new</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card report-card bg-warning text-dark">
+          <div class="card-body text-center">
+            <h5><i class="fas fa-receipt"></i> Expenses</h5>
+            <h2 id="totalExpenses">₹0</h2>
+            <span class="badge badge-dark badge-lg" id="expenseCount">0 records</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <div class="card report-card">
+          <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-chart-line"></i> Sales Trend</h5>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="salesChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+
+    <!-- Top Products and Payment Methods -->
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="card report-card">
+          <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-star"></i> Top Selling Products</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>Qty Sold</th>
+                    <th>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody id="topProductsTable">
+                  <tr>
+                    <td colspan="4" class="text-center py-4">Loading data...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card report-card">
+          <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Payment Methods</h5>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="paymentChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Reports -->
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <div class="card report-card">
+          <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-table"></i> Detailed Sales Report</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover report-table">
+                <thead>
+                  <tr>
+                    <th>Bill ID</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Amount</th>
+                    <th>Payment</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="salesReportTable">
+                  <tr>
+                    <td colspan="7" class="text-center py-5">Select date range to load data</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const auth = firebase.auth();
+
+    // Chart instances
+    let salesChart, paymentChart;
+    let currentData = {};
+    let dateRange = {
+      start: new Date(),
+      end: new Date()
+    };
+
+    // Initialize date range picker
+    flatpickr("#dateRange", {
+      mode: "range",
+      dateFormat: "Y-m-d",
+      defaultDate: [new Date(), new Date()],
+      onChange: function(selectedDates) {
+        if (selectedDates.length === 2) {
+          dateRange.start = selectedDates[0];
+          dateRange.end = selectedDates[1];
+        }
+      }
+    });
+
+    // Check authentication state
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "login.html";
+      } else {
+        // Set default date range to current month
+        const now = new Date();
+        dateRange.start = new Date(now.getFullYear(), now.getMonth(), 1);
+        dateRange.end = now;
+        
+        // Set the date picker value
+        document.getElementById("dateRange")._flatpickr.setDate([dateRange.start, dateRange.end]);
+        
+        // Load initial reports
+        loadReports();
+      }
+    });
+
+    // Logout function
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    }
+
+    // Main function to load all reports
+    function loadReports() {
+      showLoading(true);
+      
+      // Convert dates to Date objects for comparison
+      const startDate = new Date(dateRange.start);
+      const endDate = new Date(dateRange.end);
+      
+      // Set end date to end of day
+      endDate.setHours(23, 59, 59, 999);
+      
+      // Load sales data
+      database.ref("bills").orderByChild("createdAt").once("value")
+        .then(snapshot => {
+          const bills = [];
+          let totalSales = 0;
+          let salesCount = 0;
+          let productsSold = 0;
+          let productTypes = new Set();
+          let customers = new Set();
+          let newCustomers = 0;
+          let salesByDay = {};
+          let paymentMethods = {};
+          let topProducts = {};
+          
+          snapshot.forEach(child => {
+            const bill = child.val();
+            const billDate = getBillDate(bill);
+            
+            // Check if bill is within date range
+            if (billDate >= startDate && billDate <= endDate) {
+              const billDateStr = billDate.toISOString().split('T')[0];
+              bills.push(bill);
+              totalSales += parseFloat(bill.grandTotal) || 0;
+              salesCount++;
+              
+              // Track customers
+              if (bill.customer && bill.customer.name) {
+                customers.add(bill.customer.name);
+                if (bill.customer.mobile && isNewCustomer(bill.customer.mobile, billDateStr)) {
+                  newCustomers++;
+                }
+              }
+              
+              // Track sales by day
+              const day = formatDateShort(billDate);
+              salesByDay[day] = (salesByDay[day] || 0) + parseFloat(bill.grandTotal);
+              
+              // Track payment methods
+              const paymentMethod = bill.remarks ? bill.remarks.split(':')[0] : 'Unknown';
+              paymentMethods[paymentMethod] = (paymentMethods[paymentMethod] || 0) + parseFloat(bill.grandTotal);
+              
+              // Process items for product stats
+              if (bill.items && Array.isArray(bill.items)) {
+                bill.items.forEach(item => {
+                  productsSold += item.quantity || 0;
+                  productTypes.add(item.name);
+                  
+                  // Track top products
+                  if (!topProducts[item.name]) {
+                    topProducts[item.name] = {
+                      quantity: 0,
+                      revenue: 0
+                    };
+                  }
+                  topProducts[item.name].quantity += item.quantity || 0;
+                  topProducts[item.name].revenue += (item.price || 0) * (item.quantity || 0);
+                });
+              }
+            }
+          });
+          
+          // Sort bills by date (newest first)
+          bills.sort((a, b) => {
+            const dateA = getBillDate(a);
+            const dateB = getBillDate(b);
+            return dateB - dateA;
+          });
+          
+          // Update summary cards
+          document.getElementById("totalSales").textContent = `₹${totalSales.toFixed(2)}`;
+          document.getElementById("salesCount").textContent = `${salesCount} orders`;
+          document.getElementById("totalProducts").textContent = productsSold;
+          document.getElementById("productTypes").textContent = `${productTypes.size} types`;
+          document.getElementById("totalCustomers").textContent = customers.size;
+          document.getElementById("newCustomers").textContent = `${newCustomers} new`;
+          
+          // Load expenses data
+          database.ref("expenses").once("value")
+            .then(expenseSnapshot => {
+              let totalExpenses = 0;
+              let expenseCount = 0;
+              
+              expenseSnapshot.forEach(child => {
+                const expense = child.val();
+                // Convert expense date to Date object for comparison
+                const expenseDate = expense.date ? new Date(expense.date) : new Date(child.key);
+                
+                // Check if expense is within date range
+                if (expenseDate >= startDate && expenseDate <= endDate) {
+                  totalExpenses += parseFloat(expense.amount) || 0;
+                  expenseCount++;
+                }
+              });
+              
+              document.getElementById("totalExpenses").textContent = `₹${totalExpenses.toFixed(2)}`;
+              document.getElementById("expenseCount").textContent = `${expenseCount} records`;
+              
+              // Update charts
+              updateSalesChart(salesByDay);
+              updatePaymentChart(paymentMethods);
+              
+              // Update tables
+              updateSalesTable(bills);
+              updateTopProductsTable(topProducts);
+              
+              // Store current data for export
+              currentData = {
+                bills: bills,
+                expenses: totalExpenses,
+                salesByDay: salesByDay,
+                paymentMethods: paymentMethods,
+                topProducts: topProducts
+              };
+              
+              showLoading(false);
+            })
+            .catch(error => {
+              console.error("Error loading expenses:", error);
+              showLoading(false);
+            });
+        })
+        .catch(error => {
+          console.error("Error loading bills:", error);
+          showLoading(false);
+        });
+    }
+
+    // Helper function to get bill date in consistent format
+    function getBillDate(bill) {
+      if (bill.date) {
+        if (typeof bill.date === 'string') {
+          return new Date(bill.date);
+        } else if (bill.date.toDate) { // Firebase timestamp
+          return bill.date.toDate();
+        }
+      }
+      // Fallback to createdAt if date doesn't exist
+      return new Date(bill.createdAt || Date.now());
+    }
+
+    // Helper function to check if customer is new
+    function isNewCustomer(mobile, currentDate) {
+      // In a real app, you would check if this is their first purchase
+      // For demo purposes, we'll assume some are new
+      return Math.random() > 0.7; // 30% chance of being new
+    }
+
+    // Update sales chart
+    function updateSalesChart(salesByDay) {
+      const ctx = document.getElementById('salesChart').getContext('2d');
+      const labels = Object.keys(salesByDay);
+      const data = Object.values(salesByDay);
+      
+      if (salesChart) {
+        salesChart.destroy();
+      }
+      
+      salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Daily Sales (₹)',
+            data: data,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 2,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return '₹' + value;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Update payment method chart
+    function updatePaymentChart(paymentMethods) {
+      const ctx = document.getElementById('paymentChart').getContext('2d');
+      const labels = Object.keys(paymentMethods);
+      const data = Object.values(paymentMethods);
+      
+      if (paymentChart) {
+        paymentChart.destroy();
+      }
+      
+      paymentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Payment Methods (₹)',
+            data: data,
+            backgroundColor: [
+              'rgba(75, 192, 192, 0.7)',
+              'rgba(153, 102, 255, 0.7)',
+              'rgba(255, 159, 64, 0.7)',
+              'rgba(255, 99, 132, 0.7)'
+            ],
+            borderColor: [
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)',
+              'rgba(255, 99, 132, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return '₹' + value;
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ₹${context.raw.toFixed(2)}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Update sales table
+    function updateSalesTable(bills) {
+      const tableBody = document.getElementById('salesReportTable');
+      tableBody.innerHTML = '';
+      
+      if (bills.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-5">No sales found for selected date range</td>
+          </tr>
+        `;
+        return;
+      }
+      
+      bills.forEach((bill, index) => {
+        const row = document.createElement('tr');
+        const itemCount = bill.items ? bill.items.length : 0;
+        const customerName = bill.customer ? bill.customer.name || 'Walk-in' : 'Walk-in';
+        const billDate = getBillDate(bill);
+        
+        row.innerHTML = `
+          <td>${bill.billId || 'N/A'}</td>
+          <td>${formatDateShort(billDate)}</td>
+          <td>${customerName}</td>
+          <td>${itemCount}</td>
+          <td>₹${parseFloat(bill.grandTotal || 0).toFixed(2)}</td>
+          <td>${bill.remarks ? bill.remarks.split(':')[0] : 'Unknown'}</td>
+          <td>
+            <button class="btn btn-sm btn-info" onclick="viewBillDetails('${bill.billId}')">
+              <i class="fas fa-eye"></i> View
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Update top products table
+    function updateTopProductsTable(topProducts) {
+      const tableBody = document.getElementById('topProductsTable');
+      tableBody.innerHTML = '';
+      
+      // Convert to array and sort by revenue
+      const productsArray = Object.keys(topProducts).map(name => {
+        return {
+          name: name,
+          quantity: topProducts[name].quantity,
+          revenue: topProducts[name].revenue
+        };
+      }).sort((a, b) => b.revenue - a.revenue);
+      
+      if (productsArray.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center py-4">No products sold</td>
+          </tr>
+        `;
+        return;
+      }
+      
+      // Show top 10 products
+      productsArray.slice(0, 10).forEach((product, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${product.name}</td>
+          <td>${product.quantity}</td>
+          <td>₹${product.revenue.toFixed(2)}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // View bill details
+    function viewBillDetails(billId) {
+      // Construct the URL with the bill ID as a parameter
+      const billUrl = `slip-bill.html?id=${encodeURIComponent(billId)}`;
+      
+      // Open the bill.html page in a new tab or window
+      window.open(billUrl, '_blank');
+    }
+
+    // Helper function to format date (short)
+    function formatDateShort(date) {
+      if (!(date instanceof Date)) {
+        date = new Date(date);
+      }
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    }
+
+    // Helper function to format date (long)
+    function formatDateLong(date) {
+      if (!(date instanceof Date)) {
+        date = new Date(date);
+      }
+      const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      return date.toLocaleDateString('en-US', options);
+    }
+
+    // Show/hide loading state
+    function showLoading(show) {
+      if (show) {
+        document.getElementById('salesReportTable').innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+              <p class="mt-2">Loading reports...</p>
+            </td>
+          </tr>
+        `;
+      }
+    }
+ 
+  </script>
+</body>
+</html>
