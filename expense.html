@@ -81,6 +81,13 @@
       .summary-card h3 {
         font-size: 24px;
       }
+      .text-big{
+        font-size: 14px;
+      }
+      .text-Expense{
+        font-size: 18px;
+      }
+     
     }
   </style>
 </head>
@@ -98,6 +105,9 @@
       <!-- Back Button -->
       <a class="navbar-brand d-flex align-items-center" href="index.html" style="padding: 8px 12px; border-radius: 50%; background-color: #17a2b8;">
         <i class="fas fa-arrow-left text-white"></i>
+      </a>
+      <a class="navbar-brand d-flex align-items-center text-light" href="#">
+        <strong> Expense</strong>
       </a>
       <div class="justify-content-end">
         <span id="main-content" class="hide-auth">
@@ -178,9 +188,9 @@
     <!-- Expenses History -->
     <div class="card shadow-sm">
         <input type="text" id="searchInput" class="form-control mb-1 p-2" placeholder="Search by title...">
-      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="fas fa-history"></i> Expense History</h5>
-        <div class="d-flex">
+      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center text-Expense">
+        <h5 class="mb-0"><i class="fas fa-history"></i> Expense</h5>
+        <div class="d-flex ">
           <span class="badge badge-light mr-2" id="visibleRecords">0</span>
           <span class="badge badge-light" id="visibleAmount">₹0</span>
         </div>
@@ -339,7 +349,7 @@
         
         if (expenses.length === 0) {
           historyContainer.innerHTML = `
-            <div class="text-center py-5">
+            <div class="text-center py-5 ">
               <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
               <p class="text-muted">No expenses found</p>
             </div>
@@ -351,11 +361,11 @@
             const card = document.createElement("div");
             card.className = "expense-card card mb-3";
             card.innerHTML = `
-              <div class="card-body">
+              <div class="card-body ">
                 <div class="row">
-                  <div class="col-md-8">
+                  <div class="col-md-8 text-big">
                     <div class="mobile-expense-header">Expense #${index + 1}</div>
-                    <div class="text-truncate">${expense.title} | ${formatDate(expense.date)} | ₹${expense.amount.toFixed(2)}</div>
+                    <div class="text-truncate">${expense.title} | ${formatDate(expense.date)} <br> ₹${expense.amount.toFixed(2)}</div>
                      
                   </div>
                   <button class="btn btn-sm btn-warning mr-2" onclick="openEditModal('${expense.id}', '${expense.title}', '${expense.date}', ${expense.amount})">

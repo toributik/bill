@@ -15,6 +15,13 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    .bg-purple {
+  background-color: #6f42c1 !important;
+}
+    /* Add to your existing CSS */
+.bg-danger {
+  background-color: #dc3545 !important;
+}
     .logo {
       width: 45px;
       height: 40px;
@@ -85,8 +92,10 @@
 
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
     <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="index.html" style="padding: 8px 12px; border-radius: 50%; background-color: #17a2b8;">
+        <i class="fas fa-arrow-left text-white"></i>
+      </a>
       <a class="navbar-brand d-flex align-items-center text-light" href="#">
-        <img src="img/sumadhu.png" alt="Logo" class="logo me-3">
         <strong> Reports Dashboard</strong>
       </a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -105,7 +114,7 @@
     </div>
   </nav>
 
-  <div class="container mt-5" style="padding-top: 70px;">
+  <div class="container mt-5" style="padding-top: 30px;">
     <!-- Date Range Selector -->
     <div class="row mb-4">
       <div class="col-md-12">
@@ -117,10 +126,13 @@
               </div>
               <div class="col-md-6">
                 <div class="input-group">
-                  <input type="text" class="form-control date-range-picker" id="dateRange" placeholder="Select date range">
+                  <input type="text" class="form-control date-range-picker mr-2" id="dateRange" placeholder="Select date range">
                   <div class="input-group-append">
-                    <button class="btn btn-primary" type="button" onclick="loadReports()">
+                    <button class="btn btn1 mr-2" type="button" onclick="loadReports()">
                       <i class="fas fa-sync-alt"></i> Apply
+                    </button>
+                    <button class="btn btn1 mr-2" type="button" onclick="resetDateFilter()" title="Reset to current month">
+                      <i class="fas fa-undo"></i> Reset
                     </button>
                   </div>
                 </div>
@@ -133,7 +145,7 @@
 
     <!-- Summary Cards -->
     <div class="row">
-      <div class="col-md-3">
+      <div class="col-md-3 mb-2">
         <div class="card report-card bg-primary text-white">
           <div class="card-body text-center">
             <h5><i class="fas fa-rupee-sign"></i> Total Sales</h5>
@@ -142,25 +154,25 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card report-card bg-success text-white">
+      <div class="col-md-3 mb-2">
+        <div class="card report-card bg-danger text-white">
           <div class="card-body text-center">
-            <h5><i class="fas fa-box"></i> Products Sold</h5>
-            <h2 id="totalProducts">0</h2>
-            <span class="badge badge-light badge-lg" id="productTypes">0 types</span>
+            <h5><i class="fas fa-money-bill-wave"></i> Total Profit</h5>
+            <h2 id="totalProfit">₹0</h2>
+            <span class="badge badge-light badge-lg" id="profitMargin">0% margin</span>
           </div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card report-card bg-info text-white">
+      <div class="col-md-3 mb-2">
+        <div class="card report-card bg-purple text-white">
           <div class="card-body text-center">
-            <h5><i class="fas fa-users"></i> Customers</h5>
-            <h2 id="totalCustomers">0</h2>
-            <span class="badge badge-light badge-lg" id="newCustomers">0 new</span>
+            <h5><i class="fas fa-calculator"></i> Actual Profit</h5>
+            <h2 id="actualProfit">₹0</h2>
+            <span class="badge badge-light badge-lg" id="actualProfitMargin">0% margin</span>
           </div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-3 mb-2">
         <div class="card report-card bg-warning text-dark">
           <div class="card-body text-center">
             <h5><i class="fas fa-receipt"></i> Expenses</h5>
@@ -169,6 +181,25 @@
           </div>
         </div>
       </div>
+      <div class="col-md-3 mb-2">
+        <div class="card report-card bg-success text-white">
+          <div class="card-body text-center">
+            <h5><i class="fas fa-box"></i> Products Sold</h5>
+            <h2 id="totalProducts">0</h2>
+            <span class="badge badge-light badge-lg" id="productTypes">0 types</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 mb-2">
+        <div class="card report-card bg-info text-white">
+          <div class="card-body text-center">
+            <h5><i class="fas fa-users"></i> Customers</h5>
+            <h2 id="totalCustomers">0</h2>
+            <span class="badge badge-light badge-lg" id="newCustomers">0 new</span>
+          </div>
+        </div>
+      </div>
+      
     </div>
 
     <!-- Charts Row -->
@@ -199,14 +230,7 @@
           <div class="card-body">
             <div class="table-responsive">
               <table class="table table-sm">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Product</th>
-                    <th>Qty Sold</th>
-                    <th>Revenue</th>
-                  </tr>
-                </thead>
+               
                 <tbody id="topProductsTable">
                   <tr>
                     <td colspan="4" class="text-center py-4">Loading data...</td>
@@ -324,20 +348,26 @@
 
     // Main function to load all reports
     function loadReports() {
-      showLoading(true);
+  showLoading(true);
+  
+  // Convert dates to Date objects for comparison
+  const startDate = new Date(dateRange.start);
+  const endDate = new Date(dateRange.end);
+  
+  // Set end date to end of day
+  endDate.setHours(23, 59, 59, 999);
+  
+  // Load all products first for profit calculation
+  database.ref("products").once("value")
+    .then(productSnapshot => {
+      const allProducts = productSnapshot.val() || {};
       
-      // Convert dates to Date objects for comparison
-      const startDate = new Date(dateRange.start);
-      const endDate = new Date(dateRange.end);
-      
-      // Set end date to end of day
-      endDate.setHours(23, 59, 59, 999);
-      
-      // Load sales data
-      database.ref("bills").orderByChild("createdAt").once("value")
-        .then(snapshot => {
+      // Then load sales data
+      return database.ref("bills").orderByChild("createdAt").once("value")
+        .then(billSnapshot => {
           const bills = [];
           let totalSales = 0;
+          let totalProfit = 0;
           let salesCount = 0;
           let productsSold = 0;
           let productTypes = new Set();
@@ -347,7 +377,7 @@
           let paymentMethods = {};
           let topProducts = {};
           
-          snapshot.forEach(child => {
+          billSnapshot.forEach(child => {
             const bill = child.val();
             const billDate = getBillDate(bill);
             
@@ -374,21 +404,38 @@
               const paymentMethod = bill.remarks ? bill.remarks.split(':')[0] : 'Unknown';
               paymentMethods[paymentMethod] = (paymentMethods[paymentMethod] || 0) + parseFloat(bill.grandTotal);
               
-              // Process items for product stats
+              // Process items for product stats and profit calculation
               if (bill.items && Array.isArray(bill.items)) {
                 bill.items.forEach(item => {
                   productsSold += item.quantity || 0;
                   productTypes.add(item.name);
                   
-                  // Track top products
+                  // Find matching product in our inventory
+                  const productKey = Object.keys(allProducts).find(key => 
+                    allProducts[key].name === item.name || 
+                    allProducts[key].barcode === item.barcode
+                  );
+                  
+                  const product = productKey ? allProducts[productKey] : null;
+                  const purchasePrice = product ? parseFloat(product.purchasePrice) || 0 : 0;
+                  const salePrice = parseFloat(item.price) || 0;
+                  const quantity = item.quantity || 0;
+                  
+                  // Calculate profit for this item
+                  const itemProfit = (salePrice - purchasePrice) * quantity;
+                  totalProfit += itemProfit;
+                  
+                  // Track top products with profit data
                   if (!topProducts[item.name]) {
                     topProducts[item.name] = {
                       quantity: 0,
-                      revenue: 0
+                      revenue: 0,
+                      profit: 0
                     };
                   }
-                  topProducts[item.name].quantity += item.quantity || 0;
-                  topProducts[item.name].revenue += (item.price || 0) * (item.quantity || 0);
+                  topProducts[item.name].quantity += quantity;
+                  topProducts[item.name].revenue += salePrice * quantity;
+                  topProducts[item.name].profit += itemProfit;
                 });
               }
             }
@@ -401,26 +448,27 @@
             return dateB - dateA;
           });
           
-          // Update summary cards
+          // Update summary cards including profit
           document.getElementById("totalSales").textContent = `₹${totalSales.toFixed(2)}`;
           document.getElementById("salesCount").textContent = `${salesCount} orders`;
           document.getElementById("totalProducts").textContent = productsSold;
           document.getElementById("productTypes").textContent = `${productTypes.size} types`;
           document.getElementById("totalCustomers").textContent = customers.size;
           document.getElementById("newCustomers").textContent = `${newCustomers} new`;
+          document.getElementById("totalProfit").textContent = `₹${totalProfit.toFixed(2)}`;
+          const profitMargin = totalSales > 0 ? (totalProfit / totalSales * 100) : 0;
+          document.getElementById("profitMargin").textContent = `${profitMargin.toFixed(1)}% margin`;
           
           // Load expenses data
-          database.ref("expenses").once("value")
+          return database.ref("expenses").once("value")
             .then(expenseSnapshot => {
               let totalExpenses = 0;
               let expenseCount = 0;
               
               expenseSnapshot.forEach(child => {
                 const expense = child.val();
-                // Convert expense date to Date object for comparison
                 const expenseDate = expense.date ? new Date(expense.date) : new Date(child.key);
                 
-                // Check if expense is within date range
                 if (expenseDate >= startDate && expenseDate <= endDate) {
                   totalExpenses += parseFloat(expense.amount) || 0;
                   expenseCount++;
@@ -430,11 +478,15 @@
               document.getElementById("totalExpenses").textContent = `₹${totalExpenses.toFixed(2)}`;
               document.getElementById("expenseCount").textContent = `${expenseCount} records`;
               
-              // Update charts
+              // Calculate Actual Profit (Total Profit - Expenses)
+              const actualProfit = totalProfit - totalExpenses;
+              document.getElementById("actualProfit").textContent = `₹${actualProfit.toFixed(2)}`;
+              const actualProfitMargin = totalSales > 0 ? (actualProfit / totalSales * 100) : 0;
+              document.getElementById("actualProfitMargin").textContent = `${actualProfitMargin.toFixed(1)}% margin`;
+              
+              // Update charts and tables with the collected data
               updateSalesChart(salesByDay);
               updatePaymentChart(paymentMethods);
-              
-              // Update tables
               updateSalesTable(bills);
               updateTopProductsTable(topProducts);
               
@@ -444,21 +496,20 @@
                 expenses: totalExpenses,
                 salesByDay: salesByDay,
                 paymentMethods: paymentMethods,
-                topProducts: topProducts
+                topProducts: topProducts,
+                totalProfit: totalProfit,
+                actualProfit: actualProfit
               };
               
               showLoading(false);
-            })
-            .catch(error => {
-              console.error("Error loading expenses:", error);
-              showLoading(false);
             });
-        })
-        .catch(error => {
-          console.error("Error loading bills:", error);
-          showLoading(false);
         });
-    }
+    })
+    .catch(error => {
+      console.error("Error loading data:", error);
+      showLoading(false);
+    });
+}
 
     // Helper function to get bill date in consistent format
     function getBillDate(bill) {
@@ -617,39 +668,52 @@
 
     // Update top products table
     function updateTopProductsTable(topProducts) {
-      const tableBody = document.getElementById('topProductsTable');
-      tableBody.innerHTML = '';
-      
-      // Convert to array and sort by revenue
-      const productsArray = Object.keys(topProducts).map(name => {
-        return {
-          name: name,
-          quantity: topProducts[name].quantity,
-          revenue: topProducts[name].revenue
-        };
-      }).sort((a, b) => b.revenue - a.revenue);
-      
-      if (productsArray.length === 0) {
-        tableBody.innerHTML = `
-          <tr>
-            <td colspan="4" class="text-center py-4">No products sold</td>
-          </tr>
-        `;
-        return;
-      }
-      
-      // Show top 10 products
-      productsArray.slice(0, 10).forEach((product, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${product.name}</td>
-          <td>${product.quantity}</td>
-          <td>₹${product.revenue.toFixed(2)}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-    }
+  const tableBody = document.getElementById('topProductsTable');
+  tableBody.innerHTML = '';
+  
+  // Convert to array and sort by revenue
+  const productsArray = Object.keys(topProducts).map(name => {
+    return {
+      name: name,
+      quantity: topProducts[name].quantity,
+      revenue: topProducts[name].revenue,
+      profit: topProducts[name].profit || 0
+    };
+  }).sort((a, b) => b.revenue - a.revenue);
+  
+  if (productsArray.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center py-4">No products sold</td>
+      </tr>
+    `;
+    return;
+  }
+  
+  // Update table header
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = `
+    <th>#</th>
+    <th>Product</th>
+    <th>Qty Sold</th>
+    <th>Revenue</th>
+    <th>Profit</th>
+  `;
+  tableBody.appendChild(headerRow);
+  
+  // Show top 10 products
+  productsArray.slice(0, 10).forEach((product, index) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${product.name}</td>
+      <td>${product.quantity}</td>
+      <td>₹${product.revenue.toFixed(2)}</td>
+      <td>₹${product.profit.toFixed(2)}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
 
     // View bill details
     function viewBillDetails(billId) {
@@ -700,6 +764,22 @@
       }
     }
  
+    function resetDateFilter() {
+  // Set default date range to current month
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  
+  // Update the date range picker
+  const picker = document.getElementById("dateRange")._flatpickr;
+  picker.setDate([firstDay, now]);
+  
+  // Update our date range variables
+  dateRange.start = firstDay;
+  dateRange.end = now;
+  
+  // Reload reports with the new date range
+  loadReports();
+}
   </script>
 </body>
 </html>
