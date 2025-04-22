@@ -13,6 +13,9 @@
   <!-- Add JsBarcode library -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <!-- Add jsPDF and html2canvas libraries -->
+   <!-- Add JSZip library for zip file creation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -204,10 +207,39 @@
         <strong> Products</strong>
       </a>
   
-      <!-- Logout Button -->
-      <button class="btn btn-outline-light btn-sm" onclick="logout()" title="Logout">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </button>
+      <!-- Dropdown Menu -->
+      <div class="dropdown">
+        <button class="btn btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-cog"></i> Menu
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+          <button id="exportBarcodeImagesBtn" class="btn  " onclick="downloadBarcodeImages()">
+            <i class="fas fa-file-archive"></i> Barcode Images
+          </button>
+          
+          <button id="downloadDemoBtn" class="btn" onclick="downloadDemoFormat()">
+            <i class="fas fa-file-download"></i> Import Format
+          </button>
+          <button id="importExcelBtn" class="btn" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-file-import"></i> Import
+          </button>
+          <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;" onchange="importFromExcel(event)">
+          <button id="exportExcelBtn" class="btn" onclick="exportToExcel()">
+            <i class="fas fa-file-excel"></i> Excel
+          </button>
+          <button id="exportPdfBtn" class="btn" onclick="showPdfOptions()">
+            <i class="fas fa-file-pdf"></i> PDF
+          </button>
+          <div class="dropdown-divider"></div>
+          <button id="generateAllBarcodesBtn" class="btn" onclick="generateAllBarcodes()">
+            <i class="fas fa-barcode"></i> Generate All
+          </button>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#" onclick="logout()">
+            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+          </a>
+        </div>
+      </div>
     </div>
   </nav>
   <div class="container mt-5" style="padding-top: 20px;">
@@ -215,25 +247,28 @@
       <p class="indi"> <i class="fa-solid fa-circle-check"></i> Success</p>
     </div>
     <div class="row mb-1">
-      <div class="col-md-4 col-12">
-        <input type="text" id="searchProduct" class="form-control mb-1" placeholder="Search Products" onkeyup="searchProducts()">
+      <div class="col-md-12 mb-1 ">
+        <input type="text" id="searchProduct" class="form-control from-input mb-1" placeholder="Search Products" onkeyup="searchProducts()">
+        <span class="bg-info p-1 py-2 rounded border d-inline-block">Total Products: <span id="productCount">0</span>
+        <span id="sortButton" class="sort-btn" title="Sort by name" onclick="toggleSort()">
+          <i class="fas fa-sort-alpha-down"></i>
+        </span>
+      </span>
       </div>
       <div class="col-md-2 col-6">
-        <input type="text" id="productName" class="form-control mb-1" placeholder="Product Name" autocomplete="off">
+        <input type="text" id="productName" class="form-control from-input mb-1" placeholder="Product Name" autocomplete="off">
       </div>
       <div class="col-md-2 col-6">
-        <input type="number" id="productPrice" class="form-control mb-1" placeholder="Selling Price" autocomplete="off">
+        <input type="number" id="productPrice" class="form-control from-input mb-1" placeholder="Selling Price" autocomplete="off">
       </div>
       <div class="col-md-2 col-6">
-        <input type="number" id="purchasePrice" class="form-control mb-1" placeholder="Purchase Price" autocomplete="off">
+        <input type="number" id="purchasePrice" class="form-control from-input mb-1" placeholder="Purchase Price" autocomplete="off">
       </div>
       <div class="col-md-2 col-6">
-        <input type="number" id="stockQuantity" class="form-control mb-1" placeholder="Stock Quantity" autocomplete="off">
+        <input type="number" id="stockQuantity" class="form-control from-input mb-1" placeholder="Stock Quantity" autocomplete="off">
       </div>
-    </div>
-    <div class="row mb-1">
-      <div class="col-md-4 col-6">
-        <input type="text" id="productBarcode" class="form-control mb-1" placeholder="Barcode (auto)" autocomplete="off">
+      <div class="col-md-2 col-6">
+        <input type="text" id="productBarcode" class="form-control from-input mb-1" placeholder="Barcode (auto)" autocomplete="off" readonly>
       </div>
       <div class="col-md-2 col-6">
         <button id="addProductBtn" class="btn btn2 text-light mb-1 w-100" onclick="addOrUpdateProduct()"> <i class="fas fa-plus-circle"></i> Add</button>
@@ -242,28 +277,13 @@
     <!-- Product Count & Export Button -->
     <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap">
       <div>
-        <p class="bg-light p-2 rounded border d-inline-block">Total Products: <span id="productCount">0</span></p>
-        <span id="sortButton" class="sort-btn" title="Sort by name" onclick="toggleSort()">
-          <i class="fas fa-sort-alpha-down"></i>
-        </span>
+        
       </div>
-      <div class="export-buttons">    
-        <button id="generateAllBarcodesBtn" class="btn btn1 text-light" onclick="generateAllBarcodes()">
-          <i class="fas fa-barcode"></i> Generate All
-        </button>
-        <button id="downloadDemoBtn" class="btn btn1 text-light" onclick="downloadDemoFormat()">
-          <i class="fas fa-file-download"></i> Import Format
-        </button>
-        <button id="importExcelBtn" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-          <i class="fas fa-file-import"></i> Import
-        </button>
-        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;" onchange="importFromExcel(event)">
-        <button id="exportExcelBtn" class="btn btn-success" onclick="exportToExcel()">
-          <i class="fas fa-file-excel"></i> Excel
-        </button>
-        <button id="exportPdfBtn" class="btn btn-danger" onclick="showPdfOptions()">
-          <i class="fas fa-file-pdf"></i> PDF
-        </button>
+      <div class="export-buttons"> 
+           
+        
+        
+       
       </div>
     </div>
 
@@ -277,7 +297,9 @@
     <!-- Product List -->
     <ul id="productList" class="list-group"></ul>
   </div>
-
+<!-- Add this before Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     const { jsPDF } = window.jspdf;
     firebase.initializeApp(firebaseConfig);
@@ -485,6 +507,12 @@ function checkProductsWithoutBarcodes() {
                 <button class="btn btn-warning btn-sm mr-2" onclick="editProduct('${product.key}', '${product.name}', '${product.price}', '${product.purchasePrice || ''}', '${product.stockQuantity || ''}', '${product.barcode || ''}')">
                   <i class="fas fa-edit"></i>
                 </button>
+                 <button class="btn btn-info btn-sm mr-2" onclick="downloadSingleBarcode('${product.key}', '${product.name}', '${product.price}', '${product.barcode}')">
+                  <i class="fas fa-download"></i>
+                  </button>
+                   <button class="btn btn-primary btn-sm mr-2" onclick="printSingleBarcode('${product.key}', '${product.name}', '${product.price}', '${product.barcode}')">
+                    <i class="fas fa-print"></i>
+                  </button>
                 <button class="btn btn-danger btn-sm" onclick="deleteProduct('${product.key}')">
                   <i class="fas fa-trash"></i>
                 </button>
@@ -748,10 +776,10 @@ function checkProductsWithoutBarcodes() {
             if (!barcodeOnly) {
               doc.setFontSize(10);
               doc.text(product.name, xPosition + 5, currentY);
-              doc.text(`Price: ₹${product.price}`, xPosition + 5, currentY + 5);
-              doc.text(`Purchase: ₹${product.purchasePrice || 0}`, xPosition + 5, currentY + 10);
-              doc.text(`Profit: ₹${product.profit || (product.price - (product.purchasePrice || 0)).toFixed(2)}`, xPosition + 5, currentY + 15);
-              doc.text(`Stock: ${product.stockQuantity || 0}`, xPosition + 5, currentY + 20);
+              doc.text(`Price: ₹${product.price}`, xPosition + 5, currentY + 7);
+              //doc.text(`Purchase: ₹${product.purchasePrice || 0}`, xPosition + 5, currentY + 10);
+              //doc.text(`Profit: ₹${product.profit || (product.price - (product.purchasePrice || 0)).toFixed(2)}`, xPosition + 5, currentY + 15);
+              //doc.text(`Stock: ${product.stockQuantity || 0}`, xPosition + 5, currentY + 20);
             }
             
             if (product.barcode) {
@@ -762,12 +790,12 @@ function checkProductsWithoutBarcodes() {
                 
                 const imgWidth = barcodeOnly ? columnWidth - 10 : columnWidth - 10;
                 const imgHeight = barcodeOnly ? 20 : 20;
-                const imgY = barcodeOnly ? currentY : currentY + 25;
+                const imgY = barcodeOnly ? currentY : currentY + 8;
                 
                 doc.addImage(imgData, 'PNG', xPosition, imgY, imgWidth, imgHeight);
                 
                 doc.setFontSize(8);
-                const textY = barcodeOnly ? currentY + 25 : currentY + 50;
+                const textY = barcodeOnly ? currentY + 25 : currentY + 30;
                 doc.text(product.barcode, xPosition + imgWidth / 2, textY, { align: 'center' });
               }
             }
@@ -1043,6 +1071,258 @@ async function importFromExcel(event) {
     document.querySelector(".spinner").style.display = "none";
   }
 }
+
+async function downloadBarcodeImages() {
+  // Show loading spinner
+  document.querySelector(".spinner").style.display = "block";
+  
+  try {
+    const zip = new JSZip();
+    const barcodeFolder = zip.folder("product_barcodes");
+    const displayedProducts = getDisplayedProducts();
+    
+    // Process each product
+    for (const product of displayedProducts) {
+      if (!product.barcode) continue;
+      
+      // Create a canvas for the complete label
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Set canvas dimensions (width: 3 inches, height: 1.5 inches at 150 DPI)
+      canvas.width = 450;  // 3 inches * 150 DPI
+      canvas.height = 200; // 1.5 inches * 150 DPI
+      
+      // Draw white background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw border
+      ctx.strokeStyle = '#ddd';
+      ctx.strokeRect(0, 0, canvas.width, canvas.height);
+      
+      // Product Information
+      ctx.fillStyle = 'black';
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(product.name, canvas.width / 2, 30);
+
+      ctx.font = 'bold 20px Arial';
+      ctx.fillText(`Price: ₹${product.price}`, canvas.width / 2, 60);
+
+      // Barcode Section
+      const barcodeCanvas = document.createElement('canvas');
+      barcodeCanvas.width = canvas.width * 0.8;
+      barcodeCanvas.height = 100;
+
+      // Generate barcode
+      JsBarcode(barcodeCanvas, product.barcode, {
+        format: "CODE128",
+        lineColor: "#000",
+        width: 2,
+        height: 60,
+        displayValue: true,
+        fontSize: 16,
+        margin: 5
+      });
+
+      // Position barcode
+      const barcodeX = (canvas.width - barcodeCanvas.width) / 2;
+      const barcodeY = 80;
+      ctx.drawImage(barcodeCanvas, barcodeX, barcodeY);
+      
+      // Convert canvas to image data
+      const imageData = canvas.toDataURL('image/png').split(',')[1];
+      
+      // Create filename with product details
+      const cleanName = product.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const filename = `${cleanName}_₹${product.price}_${product.barcode}.png`;
+      
+      // Add to zip
+      barcodeFolder.file(filename, imageData, {base64: true});
+    }
+    
+    // Generate zip file
+    const content = await zip.generateAsync({type: 'blob'});
+    saveAs(content, `product_labels_${new Date().toISOString().slice(0, 10)}.zip`);
+    
+  } catch (error) {
+    console.error("Error generating barcode images:", error);
+    alert("Error generating barcode images. Please try again.");
+  } finally {
+    // Hide loading spinner
+    document.querySelector(".spinner").style.display = "none";
+  }
+}
+
+function downloadSingleBarcode(key, name, price, barcode) {
+  if (!barcode) {
+    alert("This product doesn't have a barcode yet!");
+    return;
+  }
+
+  // Create a canvas for the label
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Set canvas dimensions
+  canvas.width = 450;
+  canvas.height = 200;
+  
+  // Draw white background
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw border
+  ctx.strokeStyle = '#ddd';
+  ctx.strokeRect(0, 0, canvas.width, canvas.height);
+  
+  // Product Information
+  ctx.fillStyle = 'black';
+  ctx.font = 'bold 24px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(name, canvas.width / 2, 30);
+
+  ctx.font = 'bold 20px Arial';
+  ctx.fillText(`Price: ₹${price}`, canvas.width / 2, 60);
+
+  // Barcode Section
+  const barcodeCanvas = document.createElement('canvas');
+  barcodeCanvas.width = canvas.width * 0.8;
+  barcodeCanvas.height = 100;
+
+  // Generate barcode
+  JsBarcode(barcodeCanvas, barcode, {
+    format: "CODE128",
+    lineColor: "#000",
+    width: 2,
+    height: 60,
+    displayValue: true,
+    fontSize: 16,
+    margin: 5
+  });
+
+  // Position barcode
+  const barcodeX = (canvas.width - barcodeCanvas.width) / 2;
+  const barcodeY = 80;
+  ctx.drawImage(barcodeCanvas, barcodeX, barcodeY);
+
+  // Convert to image and download
+  const imageData = canvas.toDataURL('image/png');
+  const link = document.createElement('a');
+  link.href = imageData;
+  link.download = `${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_₹${price}_${barcode}.png`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function printSingleBarcode(key, name, price, barcode) {
+  if (!barcode) {
+    alert("This product doesn't have a barcode yet!");
+    return;
+  }
+
+  // Create a printable container
+  const printContainer = document.createElement('div');
+  printContainer.style.position = 'fixed';
+  printContainer.style.top = '0';
+  printContainer.style.left = '0';
+  printContainer.style.width = '100%';
+  printContainer.style.height = '100%';
+  printContainer.style.backgroundColor = 'white';
+  printContainer.style.zIndex = '9999';
+  printContainer.style.padding = '20px';
+  printContainer.style.textAlign = 'center';
+  
+  // Create the barcode label
+  const canvas = document.createElement('canvas');
+  canvas.width = 450;
+  canvas.height = 200;
+  
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Product Information
+  ctx.fillStyle = 'black';
+  ctx.font = 'bold 24px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(name, canvas.width / 2, 30);
+
+  ctx.font = 'bold 20px Arial';
+  ctx.fillText(`Price: ₹${price}`, canvas.width / 2, 60);
+
+  // Barcode Section
+  const barcodeCanvas = document.createElement('canvas');
+  barcodeCanvas.width = canvas.width * 0.8;
+  barcodeCanvas.height = 100;
+
+  JsBarcode(barcodeCanvas, barcode, {
+    format: "CODE128",
+    lineColor: "#000",
+    width: 2,
+    height: 60,
+    displayValue: true,
+    fontSize: 16,
+    margin: 5
+  });
+
+  const barcodeX = (canvas.width - barcodeCanvas.width) / 2;
+  const barcodeY = 80;
+  ctx.drawImage(barcodeCanvas, barcodeX, barcodeY);
+
+  // Add to printable container
+  printContainer.appendChild(canvas);
+  
+  // Add print button
+  const printBtn = document.createElement('button');
+  printBtn.innerHTML = '<i class="fas fa-print"></i> Print Now';
+  printBtn.className = 'btn btn-primary mt-3';
+  printBtn.onclick = function() {
+    window.print();
+    document.body.removeChild(printContainer);
+  };
+  printContainer.appendChild(printBtn);
+  
+  // Add close button
+  const closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '<i class="fas fa-times"></i> Close';
+  closeBtn.className = 'btn btn-danger mt-3 ml-2';
+  closeBtn.onclick = function() {
+    document.body.removeChild(printContainer);
+  };
+  printContainer.appendChild(closeBtn);
+
+  // Add to document
+  document.body.appendChild(printContainer);
+  
+  // CSS for printing
+  const style = document.createElement('style');
+  style.innerHTML = `
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-container, #print-container * {
+        visibility: visible;
+      }
+      #print-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+      }
+      button {
+        display: none !important;
+      }
+    }
+  `;
+  printContainer.id = 'print-container';
+  printContainer.appendChild(style);
+}
   </script>
+  
 </body>
 </html>

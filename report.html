@@ -67,7 +67,7 @@
     }
     @media (max-width: 768px) {
       .chart-container {
-        height: 250px;
+        height: 200px;
       }
       .report-card {
         margin-bottom: 15px;
@@ -124,10 +124,13 @@
               <div class="col-md-4 mb-2 mb-md-0">
                 <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Select Date Range</h5>
               </div>
-              <div class="col-md-6">
+              
                 <div class="input-group">
+                  <div class="col-md-8 mb-2">
                   <input type="text" class="form-control date-range-picker mr-2" id="dateRange" placeholder="Select date range">
-                  <div class="input-group-append">
+                  </div>
+                  <div class="col-md-4">
+                  <div class="input-group-append ">
                     <button class="btn btn1 mr-2" type="button" onclick="loadReports()">
                       <i class="fas fa-sync-alt"></i> Apply
                     </button>
@@ -135,8 +138,9 @@
                       <i class="fas fa-undo"></i> Reset
                     </button>
                   </div>
+                  </div>
                 </div>
-              </div>
+              
             </div>
           </div>
         </div>
@@ -203,8 +207,8 @@
     </div>
 
     <!-- Charts Row -->
-    <div class="row mt-4">
-      <div class="col-md-12">
+    <div class="row mt-4 ">
+      <div class="col-md-12 mb-2">
         <div class="card report-card">
           <div class="card-header bg-dark text-white">
             <h5 class="mb-0"><i class="fas fa-chart-line"></i> Sales Trend</h5>
@@ -216,6 +220,20 @@
           </div>
         </div>
       </div>
+      <!-- Stock Quantity Chart -->
+  <div class="col-md-12">
+    <div class="card report-card">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="fas fa-boxes"></i> Product Stock Levels</h5>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="stockChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
     </div>
 
     
@@ -321,23 +339,47 @@
       }
     });
 
+    // // Check authentication state
+    // auth.onAuthStateChanged(user => {
+    //   if (!user) {
+    //     window.location.href = "login.html";
+    //   } else {
+    //     // Set default date range to current month
+    //     const now = new Date();
+    //     dateRange.start = new Date(now.getFullYear(), now.getMonth(), 1);
+    //     dateRange.end = now;
+        
+    //     // Set the date picker value
+    //     document.getElementById("dateRange")._flatpickr.setDate([dateRange.start, dateRange.end]);
+        
+    //     // Load initial reports
+    //     loadReports();
+    //   }
+    // });
+
     // Check authentication state
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        window.location.href = "login.html";
-      } else {
-        // Set default date range to current month
-        const now = new Date();
-        dateRange.start = new Date(now.getFullYear(), now.getMonth(), 1);
-        dateRange.end = now;
-        
-        // Set the date picker value
-        document.getElementById("dateRange")._flatpickr.setDate([dateRange.start, dateRange.end]);
-        
-        // Load initial reports
-        loadReports();
-      }
-    });
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.href = "login.html";
+  } else {
+    // Check if user's email is toributik33@gmail.com
+    if (user.email !== "toributik33@gmail.com") {
+      window.location.href = "index.html";
+      return; // Exit the function early
+    }
+    
+    // Set default date range to current month
+    const now = new Date();
+    dateRange.start = new Date(now.getFullYear(), now.getMonth(), 1);
+    dateRange.end = now;
+    
+    // Set the date picker value
+    document.getElementById("dateRange")._flatpickr.setDate([dateRange.start, dateRange.end]);
+    
+    // Load initial reports
+    loadReports();
+  }
+});
 
     // Logout function
     function logout() {
@@ -502,6 +544,7 @@
               };
               
               showLoading(false);
+              loadStockData();
             });
         });
     })
@@ -779,6 +822,110 @@
   
   // Reload reports with the new date range
   loadReports();
+}
+
+
+// Add this to your existing JavaScript code
+let stockChart;
+
+function loadStockData() {
+  database.ref("products").once("value")
+    .then(snapshot => {
+      const products = [];
+      snapshot.forEach(child => {
+        const product = child.val();
+        product.id = child.key;
+        products.push(product);
+      });
+
+      // Sort by stock quantity (highest first)
+      products.sort((a, b) => {
+        return (parseInt(b.stockQuantity) || 0) - (parseInt(a.stockQuantity) || 0);
+      });
+
+      updateStockChart(products);
+    })
+    .catch(error => {
+      console.error("Error loading stock data:", error);
+    });
+}
+
+function updateStockChart(products) {
+  const ctx = document.getElementById('stockChart').getContext('2d');
+  const labels = products.map(p => p.name);
+  const data = products.map(p => parseInt(p.stockQuantity) || 0);
+  const backgroundColors = products.map((_, i) => {
+    return i % 2 ? 'rgba(54, 162, 235, 0.7)' : 'rgba(255, 99, 132, 0.7)';
+  });
+
+  if (stockChart) {
+    stockChart.destroy();
+  }
+
+  stockChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Stock Quantity',
+        data: data,
+        backgroundColor: backgroundColors,
+        borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Quantity in Stock'
+          }
+        },
+        x: {
+          ticks: {
+            maxRotation: 90,  // Rotate labels 90 degrees
+            minRotation: 90,  // Ensure all labels are rotated
+            autoSkip: false,   // Show all labels
+            font: {
+              size: 8        // Smaller font for vertical labels
+            }
+          },
+          // title: {
+          //   display: true,
+          //   text: 'Product Name'
+          // }
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `Stock: ${context.raw}`;
+            }
+          }
+        },
+        legend: {
+          display: false
+        }
+      },
+      // Adjust layout to prevent label cutoff
+      layout: {
+        padding: {
+          left: 10,
+          right: 10,
+          top: 10,
+          bottom: 50  // Extra space for vertical labels
+        }
+      },
+      // Reduce bar thickness when many products
+      barPercentage: 0.8,
+      categoryPercentage: 0.9
+    }
+  });
 }
   </script>
 </body>
