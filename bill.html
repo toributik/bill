@@ -110,7 +110,7 @@ body {
       <button class="btn btn-sm btn-success" onclick="shareTextOnWhatsApp()"><i class="bi bi-chat-text"></i></button>
       <button class="btn btn-sm btn-info" onclick="copyBillText(event)"><i class="bi bi-clipboard"></i></button>
       <button class="btn btn-sm btn-success" onclick="shareImageOnWhatsApp()"><i class="bi bi-image"></i></button>
-      <a class="btn btn-primary" href="index.html"><i class="bi bi-arrow-left"></i></a>
+      <button class="btn btn-primary" onclick="goBack()"><i class="bi bi-arrow-left"></i></button>
     </div>
   </div>
 </body>
@@ -525,6 +525,16 @@ function whatsappImageFallback(canvas, message) {
       height: 100
     });
   </script>
+
+<script>
+  function goBack() {
+    if (document.referrer && window.history.length > 1) {
+      history.back();
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+</script>
   
 </body>
 </html>
