@@ -111,10 +111,7 @@
         margin-bottom: 5px !important;
       }
       
-      .col-md-2, .col-md-4 {
-        padding-left: 5px;
-        padding-right: 5px;
-      }
+     
       
       #productList {
         padding-left: 0;
@@ -186,6 +183,47 @@
     #generateAllBarcodesBtn {
   display: none;
 }
+
+.missing-info {
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.368), inset 0 0 40px rgba(247, 2, 43, 0.659);
+    border-left: 5px solid #ff032d;
+    position: relative;
+  }
+
+  .missing-info:hover {
+    color: #f70202;
+    box-shadow: inset 0 0 40px rgba(247, 2, 186, 0.659);
+  }
+  
+  .missing-info::after {
+    content: 'Please update: ' attr(data-missing-fields);
+    position: absolute;
+    bottom: 3px;
+    font-size: 12px;
+    color: #0703ff;
+    padding: 2px 5px;
+    border-radius: 3px;
+    align-items: center;
+  }
+
+  .from-input-p {
+  box-shadow: inset 0 0 8px rgba(0, 119, 119, 0.3);
+  border-radius: 12px;
+  border: 1.5px solid rgba(0, 119, 119, 0.4);
+  padding: 10px 14px;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  background-color: #f9ffff;
+}
+
+.from-input-p:focus {
+  border: 2px solid rgb(1, 78, 1);
+  box-shadow: 0 0 8px rgba(1, 78, 1, 0.6);
+  outline: none;
+  background-color: #ffffff;
+}
+
+
   </style>
 </head>
 <body>
@@ -202,9 +240,6 @@
       <!-- Back Button -->
       <a class="navbar-brand d-flex align-items-center" href="index.html" style="padding: 8px 12px; border-radius: 50%; background-color: #17a2b8;">
         <i class="fas fa-arrow-left text-white"></i>
-      </a>
-      <a class="navbar-brand d-flex align-items-center text-light" href="#">
-        <strong> Products</strong>
       </a>
   
       <!-- Dropdown Menu -->
@@ -246,46 +281,36 @@
     <div id="productMessage">
       <p class="indi"> <i class="fa-solid fa-circle-check"></i> Success</p>
     </div>
-    <div class="row mb-1">
-      <div class="col-md-12 mb-1 ">
-        <input type="text" id="searchProduct" class="form-control from-input mb-1" placeholder="Search Products" onkeyup="searchProducts()">
-        <span class="bg-info p-1 py-2 rounded border d-inline-block">Total Products: <span id="productCount">0</span>
-        <span id="sortButton" class="sort-btn" title="Sort by name" onclick="toggleSort()">
-          <i class="fas fa-sort-alpha-down"></i>
-        </span>
+
+    <div class="d-flex align-items-center mb-3 gap-2">
+      <input type="text" id="searchProduct" class="form-control from-input-p" placeholder="Search Products" onkeyup="searchProducts()">
+      <span class="bg-info text-white px-3 py-2 rounded border d-inline-block nowrap" id="productCount">0</span>
+      <span id="sortButton" class="btn btn-outline-secondary py-2 px-3" title="Sort by name" onclick="toggleSort()">
+        <i class="fas fa-sort-alpha-down"></i>
       </span>
+    </div>
+    <div class="row mb-1">
+      <div class="col-md-2 col-6">
+        <input type="text" id="productName" class="form-control from-input-p mb-1" placeholder="Product Name" autocomplete="off">
       </div>
       <div class="col-md-2 col-6">
-        <input type="text" id="productName" class="form-control from-input mb-1" placeholder="Product Name" autocomplete="off">
+        <input type="number" id="productPrice" class="form-control from-input-p mb-1" placeholder="Selling Price" autocomplete="off">
       </div>
       <div class="col-md-2 col-6">
-        <input type="number" id="productPrice" class="form-control from-input mb-1" placeholder="Selling Price" autocomplete="off">
+        <input type="number" id="purchasePrice" class="form-control from-input-p mb-1" placeholder="Purchase Price" autocomplete="off">
       </div>
       <div class="col-md-2 col-6">
-        <input type="number" id="purchasePrice" class="form-control from-input mb-1" placeholder="Purchase Price" autocomplete="off">
+        <input type="number" id="stockQuantity" class="form-control from-input-p mb-1" placeholder="Stock Quantity" autocomplete="off">
       </div>
-      <div class="col-md-2 col-6">
-        <input type="number" id="stockQuantity" class="form-control from-input mb-1" placeholder="Stock Quantity" autocomplete="off">
+      <div class="col-md-2 col-6 d-none">
+        <input type="text" id="productBarcode" class="form-control from-input-p mb-1" placeholder="Barcode (auto)" autocomplete="off" readonly>
       </div>
-      <div class="col-md-2 col-6">
-        <input type="text" id="productBarcode" class="form-control from-input mb-1" placeholder="Barcode (auto)" autocomplete="off" readonly>
-      </div>
-      <div class="col-md-2 col-6">
+      <div class="col-md-4 ">
         <button id="addProductBtn" class="btn btn2 text-light mb-1 w-100" onclick="addOrUpdateProduct()"> <i class="fas fa-plus-circle"></i> Add</button>
       </div>
     </div>
-    <!-- Product Count & Export Button -->
-    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap">
-      <div>
-        
-      </div>
-      <div class="export-buttons"> 
-           
-        
-        
-       
-      </div>
-    </div>
+  
+ 
 
     <!-- Loading Spinner -->
     <div class="spinner">
@@ -479,62 +504,87 @@ function checkProductsWithoutBarcodes() {
   });
 }
 
-    function displayProducts(products) {
-      let productList = document.getElementById("productList");
-      productList.innerHTML = "";
-      document.getElementById("productCount").innerText = products.length;
+function displayProducts(products) {
+    let productList = document.getElementById("productList");
+    productList.innerHTML = "";
+    document.getElementById("productCount").innerText = products.length;
+    
+    products.forEach(product => {
+      let barcodeCanvasId = `barcode-${product.key}`;
+      let barcodeContainer = `
+        <div class="product-barcode text-center mb-2">
+          <canvas id="${barcodeCanvasId}" class="barcode"></canvas>
+          <div class="barcode-label text-muted small">${product.barcode || 'No barcode'}</div>
+        </div>
+      `;
       
-      products.forEach(product => {
-        let barcodeCanvasId = `barcode-${product.key}`;
-        let barcodeContainer = `
-          <div class="product-barcode">
-            <canvas id="${barcodeCanvasId}" class="barcode"></canvas>
-            <div class="barcode-label">${product.barcode || 'No barcode'}</div>
-          </div>
-        `;
-        
-        let productItem = `
-          <li class="glass mb-2 d-flex justify-content-between align-items-center flex-column flex-md-row">
-            <div class="product-info">
-              <strong>${product.name}</strong> |
-              <span>Price: ₹${product.price}</span><br>
-              <span class="profit-display">Profit: ₹${product.profit || (product.price - (product.purchasePrice || 0)).toFixed(2)}</span>
-              <span class="stock-display">Stock: ${product.stockQuantity || 0}</span>
+      // Check for missing fields
+      let missingFields = [];
+      if (!product.purchasePrice || product.purchasePrice === 0) missingFields.push('purchase price');
+      if (!product.stockQuantity || product.stockQuantity === 0) missingFields.push('stock quantity');
+      
+      // Add missing info class if needed
+      let missingClass = missingFields.length > 0 ? 'missing-info' : '';
+      let missingFieldsAttr = missingFields.length > 0 ? `data-missing-fields="${missingFields.join(', ')}"` : '';
+      
+      let productItem = `
+        <li class="glass p-3 mb-3 w-100 ${missingClass}" ${missingFieldsAttr}>
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <div class="product-info mb-3 mb-md-0 w-100">
+              <h5 class="mb-1 text-primary">
+                <i class="fas fa-box-open mr-2"></i>${product.name}
+              </h5>
+              <p class="mb-1 text-dark">
+                <i class="fas fa-tag"></i> Price: <strong>₹${product.price}</strong>
+              </p>
+              ${product.purchasePrice ? `
+                <p class="mb-1 text-success">
+                  <i class="fas fa-coins"></i> Profit: ₹${product.profit || (product.price - product.purchasePrice).toFixed(2)}
+                </p>
+              ` : ''}
+              ${product.stockQuantity ? `
+                <p class="mb-1 text-info">
+                  <i class="fas fa-boxes"></i> Stock: ${product.stockQuantity}
+                </p>
+              ` : ''}
             </div>
-            <div class="barcode-and-buttons d-flex flex-column align-items-center">
+
+            <div class="barcode-and-buttons d-flex flex-column align-items-center w-100 w-md-auto">
               ${barcodeContainer}
-              <div class="product-buttons">
-                <button class="btn btn-warning btn-sm mr-2" onclick="editProduct('${product.key}', '${product.name}', '${product.price}', '${product.purchasePrice || ''}', '${product.stockQuantity || ''}', '${product.barcode || ''}')">
+
+              <div class="product-buttons d-flex flex-wrap justify-content-center gap-2 mt-1 mb-2">
+                <button class="btn btn-warning btn-sm mr-2" title="Edit" onclick="editProduct('${product.key}', '${product.name}', '${product.price}', '${product.purchasePrice || ''}', '${product.stockQuantity || ''}', '${product.barcode || ''}')">
                   <i class="fas fa-edit"></i>
                 </button>
-                 <button class="btn btn-info btn-sm mr-2" onclick="downloadSingleBarcode('${product.key}', '${product.name}', '${product.price}', '${product.barcode}')">
+                <button class="btn btn-info btn-sm mr-2" title="Download" onclick="downloadSingleBarcode('${product.key}', '${product.name}', '${product.price}', '${product.barcode}')">
                   <i class="fas fa-download"></i>
-                  </button>
-                   <button class="btn btn-primary btn-sm mr-2" onclick="printSingleBarcode('${product.key}', '${product.name}', '${product.price}', '${product.barcode}')">
-                    <i class="fas fa-print"></i>
-                  </button>
-                <button class="btn btn-danger btn-sm" onclick="deleteProduct('${product.key}')">
+                </button>
+                <button class="btn btn-primary btn-sm mr-2" title="Print" onclick="printSingleBarcode('${product.key}', '${product.name}', '${product.price}', '${product.barcode}')">
+                  <i class="fas fa-print"></i>
+                </button>
+                <button class="btn btn-danger btn-sm mr-2" title="Delete" onclick="deleteProduct('${product.key}')">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
             </div>
-          </li>
-        `;
-        productList.innerHTML += productItem;
-        
-        if (product.barcode) {
-          setTimeout(() => {
-            JsBarcode(`#${barcodeCanvasId}`, product.barcode, {
-              format: "CODE128",
-              lineColor: "#000",
-              width: 2,
-              height: 50,
-              displayValue: false
-            });
-          }, 100);
-        }
-      });
-    }
+          </div>
+        </li>
+      `;
+      productList.innerHTML += productItem;
+      
+      if (product.barcode) {
+        setTimeout(() => {
+          JsBarcode(`#${barcodeCanvasId}`, product.barcode, {
+            format: "CODE128",
+            lineColor: "#000",
+            width: 2,
+            height: 50,
+            displayValue: false
+          });
+        }, 100);
+      }
+    });
+  }
 
     function searchProducts() {
       let searchValue = document.getElementById("searchProduct").value.toLowerCase();
