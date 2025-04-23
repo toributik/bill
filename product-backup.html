@@ -223,63 +223,7 @@
   background-color: #ffffff;
 }
 
-.setting-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 15px 0;
-}
 
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;  /* Reduced from 60px to better match the height */
-  height: 20px; /* Changed from 34px to 20px */
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;  /* Reduced from 26px */
-  width: 16px;   /* Reduced from 26px */
-  left: 2px;     /* Adjusted from 4px */
-  bottom: 2px;   /* Adjusted from 4px */
-  background-color: white;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: #2196F3;
-}
-
-input:checked + .slider:before {
-  transform: translateX(20px); /* Adjusted from 26px */
-}
-
-.slider.round {
-  border-radius: 20px; /* Changed from 34px to match height */
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
   </style>
 </head>
 <body>
@@ -297,7 +241,6 @@ input:checked + .slider:before {
       <a class="navbar-brand d-flex align-items-center" href="index.html" style="padding: 8px 12px; border-radius: 50%; background-color: #17a2b8;">
         <i class="fas fa-arrow-left text-white"></i>
       </a>
-       
   
       <!-- Dropdown Menu -->
       <div class="dropdown">
@@ -330,7 +273,6 @@ input:checked + .slider:before {
           <a class="dropdown-item" href="#" onclick="logout()">
             <i class="fas fa-sign-out-alt mr-2"></i>Logout
           </a>
-          
         </div>
       </div>
     </div>
@@ -341,16 +283,10 @@ input:checked + .slider:before {
     </div>
 
     <div class="d-flex align-items-center mb-3 gap-2">
-      <input type="text" id="searchProduct" class="form-control from-input-p mr-1" placeholder="Search Products" onkeyup="searchProducts()">
-      <span class="bg-info text-white px-3 py-2 rounded border d-inline-block nowrap mr-1" id="productCount">0</span>
+      <input type="text" id="searchProduct" class="form-control from-input-p" placeholder="Search Products" onkeyup="searchProducts()">
+      <span class="bg-info text-white px-3 py-2 rounded border d-inline-block nowrap" id="productCount">0</span>
       <span id="sortButton" class="btn btn-outline-secondary py-2 px-3" title="Sort by name" onclick="toggleSort()">
         <i class="fas fa-sort-alpha-down"></i>
-      </span>
-      <span class="btn   px-3" title="Calculate Average Purchase Price">
-        <label class="switch">
-          <input type="checkbox" id="averagePriceToggle" >
-          <span class="slider round"></span>
-        </label> 
       </span>
     </div>
     <div class="row mb-1">
@@ -374,10 +310,7 @@ input:checked + .slider:before {
       </div>
     </div>
   
-    <div class="setting-toggle">
-      
-      
-    </div>
+ 
 
     <!-- Loading Spinner -->
     <div class="spinner">
@@ -462,147 +395,59 @@ input:checked + .slider:before {
       document.getElementById("productBarcode").value = formattedBarcode;
     }
 
-    // function addOrUpdateProduct() {
-    //   let name = document.getElementById("productName").value;
-    //   let price = document.getElementById("productPrice").value;
-    //   let purchasePrice = document.getElementById("purchasePrice").value;
-    //   let stockQuantity = document.getElementById("stockQuantity").value;
-    //   let barcode = document.getElementById("productBarcode").value;
-      
-    //   if (name && price && purchasePrice && stockQuantity) {
-    //     if (!barcode) {
-    //       generateBarcode(name, price);
-    //       barcode = document.getElementById("productBarcode").value;
-    //     }
-        
-    //     // Calculate profit
-    //     let profit = parseFloat(price) - parseFloat(purchasePrice);
-        
-    //     if (editingProductKey) {
-    //       database.ref("products/" + editingProductKey).update({ 
-    //         name, 
-    //         price, 
-    //         purchasePrice,
-    //         stockQuantity,
-    //         profit,
-    //         barcode 
-    //       })
-    //         .then(() => {
-    //           showSuccessMessage();
-    //           editingProductKey = null;
-    //           document.getElementById("addProductBtn").innerHTML = '<i class="fas fa-plus-circle"></i> Add';
-    //         });
-    //     } else {
-    //       let newProduct = database.ref("products").push();
-    //       newProduct.set({ 
-    //         name, 
-    //         price, 
-    //         purchasePrice,
-    //         stockQuantity,
-    //         profit,
-    //         barcode 
-    //       })
-    //         .then(() => {
-    //           showSuccessMessage();
-    //         });
-    //     }
-    //     document.getElementById("productName").value = "";
-    //     document.getElementById("productPrice").value = "";
-    //     document.getElementById("purchasePrice").value = "";
-    //     document.getElementById("stockQuantity").value = "";
-    //     document.getElementById("productBarcode").value = "";
-    //   } else {
-    //     alert("Please fill all required fields!");
-    //   }
-    // }
-
     function addOrUpdateProduct() {
-  let name = document.getElementById("productName").value;
-  let price = document.getElementById("productPrice").value;
-  let newPurchasePrice = parseFloat(document.getElementById("purchasePrice").value);
-  let newStockQuantity = parseInt(document.getElementById("stockQuantity").value);
-  let barcode = document.getElementById("productBarcode").value;
-  
-  if (name && price && !isNaN(newPurchasePrice) && !isNaN(newStockQuantity)) {
-    if (!barcode) {
-      generateBarcode(name, price);
-      barcode = document.getElementById("productBarcode").value;
-    }
-    
-    // Get the calculation setting first
-    database.ref("CalculateAverageForPurchasePrice").once('value')
-      .then((settingSnapshot) => {
-        const shouldCalculateAverage = settingSnapshot.val() === true;
+      let name = document.getElementById("productName").value;
+      let price = document.getElementById("productPrice").value;
+      let purchasePrice = document.getElementById("purchasePrice").value;
+      let stockQuantity = document.getElementById("stockQuantity").value;
+      let barcode = document.getElementById("productBarcode").value;
+      
+      if (name && price && purchasePrice && stockQuantity) {
+        if (!barcode) {
+          generateBarcode(name, price);
+          barcode = document.getElementById("productBarcode").value;
+        }
         
-        // Calculate profit (temporary using newPurchasePrice, will be updated later if editing)
-        let profit = parseFloat(price) - newPurchasePrice;
+        // Calculate profit
+        let profit = parseFloat(price) - parseFloat(purchasePrice);
         
         if (editingProductKey) {
-          // First get the current product data
-          return database.ref("products/" + editingProductKey).once('value')
-            .then((productSnapshot) => {
-              const productData = productSnapshot.val();
-              const currentStock = parseInt(productData.stockQuantity) || 0;
-              const currentPurchasePrice = parseFloat(productData.purchasePrice) || 0;
-              const totalStock = currentStock + newStockQuantity;
-              
-              let finalPurchasePrice;
-              
-              if (shouldCalculateAverage && currentPurchasePrice !== newPurchasePrice) {
-                // Calculate weighted average purchase price and round to nearest integer
-                finalPurchasePrice = Math.round(
-                  ((currentPurchasePrice * currentStock) + (newPurchasePrice * newStockQuantity)) / totalStock
-                );
-              } else {
-                // Use the new purchase price directly
-                finalPurchasePrice = Math.round(newPurchasePrice);
-              }
-              
-              // Update with the summed stock quantity and final purchase price
-              return database.ref("products/" + editingProductKey).update({ 
-                name, 
-                price, 
-                purchasePrice: finalPurchasePrice,
-                stockQuantity: totalStock,
-                profit: parseFloat(price) - finalPurchasePrice,
-                barcode 
-              });
-            });
-        } else {
-          // For new products, just use the provided purchase price (rounded)
-          let finalPurchasePrice = Math.round(newPurchasePrice);
-          let newProduct = database.ref("products").push();
-          return newProduct.set({ 
+          database.ref("products/" + editingProductKey).update({ 
             name, 
             price, 
-            purchasePrice: finalPurchasePrice,
-            stockQuantity: newStockQuantity,
-            profit: parseFloat(price) - finalPurchasePrice,
+            purchasePrice,
+            stockQuantity,
+            profit,
             barcode 
-          });
+          })
+            .then(() => {
+              showSuccessMessage();
+              editingProductKey = null;
+              document.getElementById("addProductBtn").innerHTML = '<i class="fas fa-plus-circle"></i> Add';
+            });
+        } else {
+          let newProduct = database.ref("products").push();
+          newProduct.set({ 
+            name, 
+            price, 
+            purchasePrice,
+            stockQuantity,
+            profit,
+            barcode 
+          })
+            .then(() => {
+              showSuccessMessage();
+            });
         }
-      })
-      .then(() => {
-        showSuccessMessage();
-        if (editingProductKey) {
-          editingProductKey = null;
-          document.getElementById("addProductBtn").innerHTML = '<i class="fas fa-plus-circle"></i> Add';
-        }
-        // Clear form fields
         document.getElementById("productName").value = "";
         document.getElementById("productPrice").value = "";
         document.getElementById("purchasePrice").value = "";
         document.getElementById("stockQuantity").value = "";
         document.getElementById("productBarcode").value = "";
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert("An error occurred while processing your request.");
-      });
-  } else {
-    alert("Please fill all required fields with valid values!");
-  }
-}
+      } else {
+        alert("Please fill all required fields!");
+      }
+    }
 
     // function fetchProducts() {
     //   document.querySelector(".spinner").style.display = "block";
@@ -754,7 +599,7 @@ function displayProducts(products) {
       document.getElementById("productName").value = name;
       document.getElementById("productPrice").value = price;
       document.getElementById("purchasePrice").value = purchasePrice;
-      document.getElementById("stockQuantity").value = 0;
+      document.getElementById("stockQuantity").value = stockQuantity;
       document.getElementById("productBarcode").value = barcode;
       editingProductKey = key;
       document.getElementById("addProductBtn").innerHTML = '<i class="fas fa-save"></i> Save';
@@ -1180,7 +1025,7 @@ async function importFromExcel(event) {
     // Remove empty rows and header if exists
     const rows = jsonData.filter(row => row.length > 0 && !row.every(cell => cell === null || cell === ""));
     
-    // Check if first row is header
+    // Check if first row is header (contains expected column names)
     const isFirstRowHeader = rows.length > 0 && 
       (rows[0].some(cell => typeof cell === 'string' && cell.toLowerCase().includes('name')) ||
        rows[0].some(cell => typeof cell === 'string' && cell.toLowerCase().includes('price')));
@@ -1192,19 +1037,10 @@ async function importFromExcel(event) {
       return;
     }
     
-    // Get all existing products first
-    const snapshot = await database.ref("products").once('value');
-    const existingProducts = snapshot.val() || {};
-    const existingProductNames = new Set(
-      Object.values(existingProducts).map(p => p.name.toLowerCase().trim())
-    );
-    
     // Process each row
     let successCount = 0;
     let errorCount = 0;
-    let skipCount = 0;
     const errors = [];
-    const skipped = [];
     
     for (let i = 0; i < dataRows.length; i++) {
       const row = dataRows[i];
@@ -1214,16 +1050,19 @@ async function importFromExcel(event) {
         
         // Attempt to find columns by content
         if (row.length >= 4) {
+          // Assume standard order: name, price, purchasePrice, stock
           name = String(row[0]).trim();
           price = parseFloat(row[1]);
           purchasePrice = parseFloat(row[2]);
           stockQuantity = parseInt(row[3]);
         } else if (row.length >= 3) {
+          // Assume name, price, purchasePrice (stock optional)
           name = String(row[0]).trim();
           price = parseFloat(row[1]);
           purchasePrice = parseFloat(row[2]);
           stockQuantity = row.length > 3 ? parseInt(row[3]) : 0;
         } else if (row.length >= 2) {
+          // Assume name and price (minimum required)
           name = String(row[0]).trim();
           price = parseFloat(row[1]);
           purchasePrice = 0;
@@ -1237,13 +1076,6 @@ async function importFromExcel(event) {
           throw new Error("Missing required fields (name and price)");
         }
         
-        // Check if product already exists
-        if (existingProductNames.has(name.toLowerCase())) {
-          skipCount++;
-          skipped.push(`Row ${i + (isFirstRowHeader ? 2 : 1)}: "${name}" already exists`);
-          continue;
-        }
-        
         // Set defaults if not provided
         if (isNaN(purchasePrice)) purchasePrice = 0;
         if (isNaN(stockQuantity)) stockQuantity = 0;
@@ -1251,20 +1083,17 @@ async function importFromExcel(event) {
         // Calculate profit
         const profit = price - purchasePrice;
         
-        // Create product in database
+        // Create product in database (barcode will be auto-generated)
         await database.ref("products").push().set({
           name,
           price,
           purchasePrice,
           stockQuantity,
           profit,
-          barcode: ""
+          barcode: "" // Will be auto-generated later
         });
         
-        // Add to existing names to prevent duplicates in the same import
-        existingProductNames.add(name.toLowerCase());
         successCount++;
-        
       } catch (error) {
         errorCount++;
         errors.push(`Row ${i + (isFirstRowHeader ? 2 : 1)}: ${error.message}`);
@@ -1273,10 +1102,6 @@ async function importFromExcel(event) {
     
     // Show results
     let resultMessage = `Import completed: ${successCount} products added successfully.`;
-    if (skipCount > 0) {
-      resultMessage += ` ${skipCount} products skipped (already exist).`;
-      console.log("Skipped products:", skipped.join("\n"));
-    }
     if (errorCount > 0) {
       resultMessage += ` ${errorCount} rows had errors.`;
       console.error("Import errors:", errors.join("\n"));
@@ -1546,50 +1371,6 @@ function printSingleBarcode(key, name, price, barcode) {
   `;
   printContainer.id = 'print-container';
   printContainer.appendChild(style);
-}
-
-
-// Initialize the toggle button
-function initAveragePriceToggle() {
-  database.ref("CalculateAverageForPurchasePrice").on('value', (snapshot) => {
-    const shouldCalculate = snapshot.val();
-    document.getElementById("averagePriceToggle").checked = shouldCalculate === true;
-  });
-  
-  // Add event listener for toggle changes
-  document.getElementById("averagePriceToggle").addEventListener('change', (e) => {
-    const newValue = e.target.checked;
-    database.ref("CalculateAverageForPurchasePrice").set(newValue)
-      .then(() => {
-        showToastMessage(`Setting updated: ${newValue ? 'ON' : 'OFF'}`);
-      })
-      .catch((error) => {
-        console.error("Error updating setting:", error);
-        showToastMessage("Error updating setting", true);
-      });
-  });
-}
-
-// Call this when your app loads
-initAveragePriceToggle();
-
-// Helper function for notifications
-function showToastMessage(message, isError = false) {
-  const toast = document.createElement('div');
-  toast.textContent = message;
-  toast.style.position = 'fixed';
-  toast.style.bottom = '20px';
-  toast.style.right = '20px';
-  toast.style.padding = '10px 20px';
-  toast.style.backgroundColor = isError ? '#ff4444' : '#4CAF50';
-  toast.style.color = 'white';
-  toast.style.borderRadius = '4px';
-  toast.style.zIndex = '1000';
-  document.body.appendChild(toast);
-  
-  setTimeout(() => {
-    toast.remove();
-  }, 3000);
 }
   </script>
   
