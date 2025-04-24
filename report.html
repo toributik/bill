@@ -116,7 +116,7 @@
 
   <div class="container mt-5" style="padding-top: 30px;">
     <!-- Date Range Selector -->
-    <div class="row mb-4">
+    <div class="row mb-3">
       <div class="col-md-12">
         <div class="card shadow-sm">
           <div class="card-body">
@@ -142,10 +142,37 @@
                 </div>
               
             </div>
+
+            <div class="row align-items-center">
+              <div class="col-md-4 mb-2 mb-md-0">
+                <h5 class="mb-0"><i class="fas fa-filter"></i> Filter by Product</h5>
+              </div>
+              
+                <div class="input-group">
+                  <div class="col-md-8 mb-2">
+                    <select class="form-control" id="productFilter">
+                      <option value="">All Products</option>
+                      <!-- Products will be loaded dynamically -->
+                    </select>                  
+                  </div>
+                  <div class="col-md-4">
+                  <div class="input-group-append ">
+                    <button class="btn btn1 mr-2" type="button" onclick="loadReports()">
+                      <i class="fas fa-filter"></i> Apply
+                    </button>
+                    <button class="btn btn1" type="button" onclick="resetProductFilter()" title="Reset product filter">
+                      <i class="fas fa-times"></i> Clear
+                    </button>
+                  </div>
+                  </div>
+                </div>
+              
+            </div>
           </div>
         </div>
       </div>
     </div>
+
 
     <!-- Summary Cards -->
     <div class="row">
@@ -358,29 +385,25 @@
     // });
 
     // Check authentication state
-auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(user => {
   if (!user) {
     window.location.href = "login.html";
   } else {
-    // Check if user's email is toributik33@gmail.com
     if (user.email !== "toributik33@gmail.com") {
       window.location.href = "index.html";
-      return; // Exit the function early
+      return;
     }
     
-    // Set default date range to current month
     const now = new Date();
     dateRange.start = new Date(now.getFullYear(), now.getMonth(), 1);
     dateRange.end = now;
     
-    // Set the date picker value
     document.getElementById("dateRange")._flatpickr.setDate([dateRange.start, dateRange.end]);
     
-    // Load initial reports
+    loadProductFilter(); // Load products for filter dropdown
     loadReports();
   }
 });
-
     // Logout function
     function logout() {
       auth.signOut().then(() => {
@@ -389,22 +412,21 @@ auth.onAuthStateChanged(user => {
     }
 
     // Main function to load all reports
-    function loadReports() {
+// Modified loadReports function to handle product filtering
+function loadReports() {
   showLoading(true);
   
-  // Convert dates to Date objects for comparison
   const startDate = new Date(dateRange.start);
   const endDate = new Date(dateRange.end);
-  
-  // Set end date to end of day
   endDate.setHours(23, 59, 59, 999);
   
-  // Load all products first for profit calculation
+  // Get selected product filter
+  const selectedProduct = document.getElementById('productFilter').value;
+  
   database.ref("products").once("value")
     .then(productSnapshot => {
       const allProducts = productSnapshot.val() || {};
       
-      // Then load sales data
       return database.ref("bills").orderByChild("createdAt").once("value")
         .then(billSnapshot => {
           const bills = [];
@@ -423,74 +445,91 @@ auth.onAuthStateChanged(user => {
             const bill = child.val();
             const billDate = getBillDate(bill);
             
-            // Check if bill is within date range
             if (billDate >= startDate && billDate <= endDate) {
               const billDateStr = billDate.toISOString().split('T')[0];
-              bills.push(bill);
-              totalSales += parseFloat(bill.grandTotal) || 0;
-              salesCount++;
+              let billItems = [];
+              let billMatchesFilter = !selectedProduct; // If no product selected, all bills match
               
-              // Track customers
-              if (bill.customer && bill.customer.name) {
-                customers.add(bill.customer.name);
-                if (bill.customer.mobile && isNewCustomer(bill.customer.mobile, billDateStr)) {
-                  newCustomers++;
-                }
+              if (bill.items && Array.isArray(bill.items)) {
+                // Filter items if a product is selected
+                billItems = selectedProduct 
+                  ? bill.items.filter(item => item.name === selectedProduct)
+                  : bill.items;
+                
+                // Only include bill if it has matching items (when product filter is active)
+                billMatchesFilter = !selectedProduct || billItems.length > 0;
               }
               
-              // Track sales by day
-              const day = formatDateShort(billDate);
-              salesByDay[day] = (salesByDay[day] || 0) + parseFloat(bill.grandTotal);
-              
-              // Track payment methods
-              const paymentMethod = bill.remarks ? bill.remarks.split(':')[0] : 'Unknown';
-              paymentMethods[paymentMethod] = (paymentMethods[paymentMethod] || 0) + parseFloat(bill.grandTotal);
-              
-              // Process items for product stats and profit calculation
-              if (bill.items && Array.isArray(bill.items)) {
-                bill.items.forEach(item => {
-                  productsSold += item.quantity || 0;
-                  productTypes.add(item.name);
-                  
-                  // Find matching product in our inventory
-                  const productKey = Object.keys(allProducts).find(key => 
-                    allProducts[key].name === item.name || 
-                    allProducts[key].barcode === item.barcode
-                  );
-                  
-                  const product = productKey ? allProducts[productKey] : null;
-                  const purchasePrice = product ? parseFloat(product.purchasePrice) || 0 : 0;
-                  const salePrice = parseFloat(item.price) || 0;
-                  const quantity = item.quantity || 0;
-                  
-                  // Calculate profit for this item
-                  const itemProfit = (salePrice - purchasePrice) * quantity;
-                  totalProfit += itemProfit;
-                  
-                  // Track top products with profit data
-                  if (!topProducts[item.name]) {
-                    topProducts[item.name] = {
-                      quantity: 0,
-                      revenue: 0,
-                      profit: 0
-                    };
+              if (billMatchesFilter) {
+                const filteredBill = {...bill};
+                if (selectedProduct) {
+                  filteredBill.items = billItems;
+                  // Recalculate grand total for filtered items
+                  if (filteredBill.items) {
+                    filteredBill.grandTotal = filteredBill.items.reduce((sum, item) => {
+                      return sum + (parseFloat(item.price) * (item.quantity || 1));
+                    }, 0).toFixed(2);
                   }
-                  topProducts[item.name].quantity += quantity;
-                  topProducts[item.name].revenue += salePrice * quantity;
-                  topProducts[item.name].profit += itemProfit;
-                });
+                }
+                
+                bills.push(filteredBill);
+                totalSales += parseFloat(filteredBill.grandTotal) || 0;
+                salesCount++;
+                
+                if (filteredBill.customer && filteredBill.customer.name) {
+                  customers.add(filteredBill.customer.name);
+                  if (filteredBill.customer.mobile && isNewCustomer(filteredBill.customer.mobile, billDateStr)) {
+                    newCustomers++;
+                  }
+                }
+                
+                const day = formatDateShort(billDate);
+                salesByDay[day] = (salesByDay[day] || 0) + parseFloat(filteredBill.grandTotal);
+                
+                const paymentMethod = filteredBill.remarks ? filteredBill.remarks.split(':')[0] : 'Unknown';
+                paymentMethods[paymentMethod] = (paymentMethods[paymentMethod] || 0) + parseFloat(filteredBill.grandTotal);
+                
+                if (filteredBill.items && Array.isArray(filteredBill.items)) {
+                  filteredBill.items.forEach(item => {
+                    productsSold += item.quantity || 0;
+                    productTypes.add(item.name);
+                    
+                    const productKey = Object.keys(allProducts).find(key => 
+                      allProducts[key].name === item.name || 
+                      allProducts[key].barcode === item.barcode
+                    );
+                    
+                    const product = productKey ? allProducts[productKey] : null;
+                    const purchasePrice = product ? parseFloat(product.purchasePrice) || 0 : 0;
+                    const salePrice = parseFloat(item.price) || 0;
+                    const quantity = item.quantity || 0;
+                    
+                    const itemProfit = (salePrice - purchasePrice) * quantity;
+                    totalProfit += itemProfit;
+                    
+                    if (!topProducts[item.name]) {
+                      topProducts[item.name] = {
+                        quantity: 0,
+                        revenue: 0,
+                        profit: 0
+                      };
+                    }
+                    topProducts[item.name].quantity += quantity;
+                    topProducts[item.name].revenue += salePrice * quantity;
+                    topProducts[item.name].profit += itemProfit;
+                  });
+                }
               }
             }
           });
           
-          // Sort bills by date (newest first)
           bills.sort((a, b) => {
             const dateA = getBillDate(a);
             const dateB = getBillDate(b);
             return dateB - dateA;
           });
           
-          // Update summary cards including profit
+          // Update summary cards
           document.getElementById("totalSales").textContent = `₹${totalSales.toFixed(2)}`;
           document.getElementById("salesCount").textContent = `${salesCount} orders`;
           document.getElementById("totalProducts").textContent = productsSold;
@@ -501,7 +540,6 @@ auth.onAuthStateChanged(user => {
           const profitMargin = totalSales > 0 ? (totalProfit / totalSales * 100) : 0;
           document.getElementById("profitMargin").textContent = `${profitMargin.toFixed(1)}% margin`;
           
-          // Load expenses data
           return database.ref("expenses").once("value")
             .then(expenseSnapshot => {
               let totalExpenses = 0;
@@ -520,19 +558,16 @@ auth.onAuthStateChanged(user => {
               document.getElementById("totalExpenses").textContent = `₹${totalExpenses.toFixed(2)}`;
               document.getElementById("expenseCount").textContent = `${expenseCount} records`;
               
-              // Calculate Actual Profit (Total Profit - Expenses)
               const actualProfit = totalProfit - totalExpenses;
               document.getElementById("actualProfit").textContent = `₹${actualProfit.toFixed(2)}`;
               const actualProfitMargin = totalSales > 0 ? (actualProfit / totalSales * 100) : 0;
               document.getElementById("actualProfitMargin").textContent = `${actualProfitMargin.toFixed(1)}% margin`;
               
-              // Update charts and tables with the collected data
               updateSalesChart(salesByDay);
               updatePaymentChart(paymentMethods);
               updateSalesTable(bills);
               updateTopProductsTable(topProducts);
               
-              // Store current data for export
               currentData = {
                 bills: bills,
                 expenses: totalExpenses,
@@ -553,6 +588,7 @@ auth.onAuthStateChanged(user => {
       showLoading(false);
     });
 }
+
 
     // Helper function to get bill date in consistent format
     function getBillDate(bill) {
@@ -926,6 +962,40 @@ function updateStockChart(products) {
       categoryPercentage: 0.9
     }
   });
+}
+
+
+
+// Global variable to store products for filtering
+let allProductsList = [];
+
+// Function to load products into dropdown
+function loadProductFilter() {
+  database.ref("products").once("value")
+    .then(snapshot => {
+      const productSelect = document.getElementById('productFilter');
+      productSelect.innerHTML = '<option value="">All Products</option>';
+      
+      allProductsList = [];
+      snapshot.forEach(child => {
+        const product = child.val();
+        allProductsList.push(product.name);
+        
+        const option = document.createElement('option');
+        option.value = product.name;
+        option.textContent = product.name;
+        productSelect.appendChild(option);
+      });
+    })
+    .catch(error => {
+      console.error("Error loading products:", error);
+    });
+}
+
+// Function to reset product filter
+function resetProductFilter() {
+  document.getElementById('productFilter').value = '';
+  loadReports();
 }
   </script>
 </body>

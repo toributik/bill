@@ -337,7 +337,7 @@
 
   if (!productName || isNaN(price) || isNaN(quantity) || price <= 0 || quantity <= 0) {
     //alert("Please select a valid product and enter quantity.");
-    showMessage('Please select a valid product and enter quantity.');
+    showMessagered('Please select a valid product and enter quantity.');
     return;
   }
 
@@ -505,7 +505,7 @@ async function generateBill() {
   // Check if there are any items in the bill table
   const billTable = document.getElementById("billTable");
   if (billTable.rows.length === 0) {
-    showMessage('Please add at least one item before generating the bill.');
+    showMessagered('Please add at least one item before generating the bill.');
     return;
   }
 
@@ -580,7 +580,7 @@ async function generateBill() {
     })
     .catch((error) => {
       console.error("Error saving bill:", error);
-      showMessage("Error generating bill. Please try again.");
+      showMessagered("Error generating bill. Please try again.");
       generateBtn.disabled = false;
       generateBtn.innerHTML = '<i class="fas fa-bolt"></i> <span>Generate Bill</span>';
     });
@@ -791,6 +791,17 @@ function showMessage(message = "sdsf ") {
       }, 4000);
     }
 
+    function showMessagered(message = "sdsf ") {
+      const messageDiv = document.getElementById("productMessage");
+      messageDiv.innerHTML = `<p class="indi-red"><i class="fa-solid fa-xmark"></i> ${message}</p>`;
+      messageDiv.style.display = "block";
+      
+      // Hide the message after 3 seconds
+      setTimeout(() => {
+        messageDiv.style.display = "none";
+      }, 4000);
+    }
+
 
 
     // Global variables to store remarks data
@@ -917,16 +928,17 @@ function fetchProductByBarcodeFromFirebase(barcode) {
         autoFillProductForm(product);
         stopBarcodeScan();
       } else {
-        showMessage('Product not found for barcode: ' + barcode);
+        showMessagered('Product not found for barcode: ' + barcode);
         stopBarcodeScan();
       }
     })
     .catch(error => {
       console.error("Error fetching product:", error);
-      showMessage('Error looking up product');
+      showMessagered('Error looking up product');
       stopBarcodeScan();
     });
 }
+
 
 // Function to auto-fill the product form
 function autoFillProductForm(product) {
@@ -948,6 +960,30 @@ function autoFillProductForm(product) {
   document.getElementById('quantity').focus();
   
   showMessage(`Product found: ${product.name}`);
+  playBeepSound();
+}
+
+// Function to play a beep sound
+function playBeepSound() {
+  try {
+    // Option 1: Using Web Audio API (no external files needed)
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.type = 'sine'; // Type of sound wave
+    oscillator.frequency.value = 1000; // Frequency in hertz
+    gainNode.gain.value = 0.3; // Volume
+    
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.1); // Duration in seconds
+    
+  } catch (e) {
+    console.error("Couldn't play beep sound:", e);
+  }
 }
   </script>
 </body>
