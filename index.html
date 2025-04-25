@@ -773,6 +773,27 @@ document.addEventListener('DOMContentLoaded', async function() {
   fetchCustomers();
 });
 
+// Clear barcode scanner data on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Clear any existing barcode input
+  document.getElementById('barcodeInput').value = '';
+  
+  // Reset scanner state
+  isBarcodeScanning = false;
+  
+  // Clear any related localStorage/sessionStorage
+  localStorage.removeItem('lastBarcodeScan');
+  sessionStorage.removeItem('barcodeScanInProgress');
+  
+  // Initialize scanner with fresh state
+  initializeScanner();
+});
+
+function initializeScanner() {
+  // Add any scanner initialization code here
+  console.log('Scanner initialized for this session');
+}
+
     function logout() {
       auth.signOut().then(() => {
         window.location.href = "login.html";
