@@ -46,7 +46,7 @@
   display: none !important;
     }    
 
-/*
+
 #barcodeInput {
   position: absolute;
   left: -9999px;
@@ -57,7 +57,7 @@
 #barcodeInput.d-none {
   display: none;
 }
-} */
+
   </style>
 </head>
 <body>
@@ -853,6 +853,26 @@ function saveOtherRemarks() {
 }
 
 
+// Global variable to track barcode scanner state
+let isScannerActive = false;
+
+// Add this event listener to detect scanner activation
+document.addEventListener('keydown', function(event) {
+  // Common barcode scanner activation sequences (you may need to adjust these)
+  // Some scanners send a prefix like "Shift" or "Alt" when activated
+  if (event.key === 'Shift' || event.key === 'Alt' || event.key === 'Control') {
+    isScannerActive = true;
+    startBarcodeScan();
+  }
+});
+
+// Also detect when scanning might be done (optional)
+document.addEventListener('keyup', function(event) {
+  if (event.key === 'Shift' || event.key === 'Alt' || event.key === 'Control') {
+    isScannerActive = false;
+  }
+});
+
 // Global variable to track if we're in barcode scanning mode
 let isBarcodeScanning = false;
 
@@ -883,19 +903,27 @@ function stopBarcodeScan() {
   document.getElementById('barcodeInput').classList.add('d-none');
 }
 
-// Add event listener for barcode input
-document.getElementById('barcodeInput').addEventListener('input', function(e) {
+
+
+let scanTimeout;
+const barcodeInput = document.getElementById('barcodeInput');
+
+barcodeInput.addEventListener('input', function () {
   if (!isBarcodeScanning) return;
-  
-  const barcode = e.target.value.trim();
-  if (barcode) {
-    // Look up product by barcode
-    lookupProductByBarcode(barcode);
-  }
-  
-  // Clear the input for next scan
-  e.target.value = '';
+
+  clearTimeout(scanTimeout);
+
+  // Wait 300ms to allow the scanner to finish inputting all characters
+  scanTimeout = setTimeout(() => {
+    const barcode = barcodeInput.value.trim();
+    if (barcode.length > 0) {
+      lookupProductByBarcode(barcode);
+      barcodeInput.value = '';
+    }
+  }, 300); // adjust timeout if necessary
 });
+
+
 
 // Function to lookup product by barcode
 function lookupProductByBarcode(barcode) {
