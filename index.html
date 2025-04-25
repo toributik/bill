@@ -30,8 +30,18 @@
       padding: 4px 8px; /* Adjust button size */
       font-size: 10px;
     }
+    .fa-plus{
+    font-size: 7px;
+  }
+  .btn-table{
+    padding: 2px 2px;
+  }
   }
 
+  .btn-table{
+    border-radius: 50%;
+    font-size: 10px;
+  }
   .logo {
         width: 45px; /* Adjust size as needed */
         height: 40px;
@@ -329,42 +339,144 @@
       priceInput.value = productSelect.value ? productSelect.value : "";
     }
 
-    function addItem() {
+//     function addItem() {
+//   let productSelect = document.getElementById("productSelect");
+//   let price = parseFloat(document.getElementById("price").value);
+//   let quantity = parseInt(document.getElementById("quantity").value);
+//   let productName = productSelect.options[productSelect.selectedIndex].text;
+
+//   if (!productName || isNaN(price) || isNaN(quantity) || price <= 0 || quantity <= 0) {
+//     showMessagered('Please select a valid product and enter quantity.');
+//     return;
+//   }
+
+//   let total = price * quantity;
+//   grandTotal += total;
+
+//   let table = document.getElementById("billTable");
+//   let rowCount = table.rows.length;
+//   let row = table.insertRow();
+  
+//   row.innerHTML = `
+//     <td>${rowCount + 1}</td>
+//     <td>${productName}</td>
+//     <td>₹${price.toFixed(2)}</td>
+//     <td>
+//       <div class="d-flex align-items-center">
+//         <button class="btn btn-table btn-sm btn-danger d-none" onclick="decreaseQuantity(this, ${price})">
+//           <i class="fas fa-minus"></i>
+//         </button>
+//         <span class="mx-2 quantity-display">${quantity}</span>
+//         <button class="btn btn-table btn-sm btn-success" onclick="increaseQuantity(this, ${price})">
+//           <i class="fas fa-plus"></i>
+//         </button>
+//       </div>
+//     </td>
+//     <td class="total-cell">₹${total.toFixed(2)}</td>
+//     <td class="text-center align-middle">
+//       <button class="btn  btn-danger btn-sm" onclick="removeItem(this)">
+//         <i class="fas fa-trash"></i>
+//       </button>
+//     </td>
+//   `;
+  
+//   // Store the price as a data attribute for later reference
+//   row.querySelector('.total-cell').dataset.price = price;
+//   row.querySelector('.total-cell').dataset.quantity = quantity;
+
+//   updateTotals();
+//   document.getElementById("quantity").value = "";
+// }
+
+function addItem() {
   let productSelect = document.getElementById("productSelect");
   let price = parseFloat(document.getElementById("price").value);
   let quantity = parseInt(document.getElementById("quantity").value);
   let productName = productSelect.options[productSelect.selectedIndex].text;
 
   if (!productName || isNaN(price) || isNaN(quantity) || price <= 0 || quantity <= 0) {
-    //alert("Please select a valid product and enter quantity.");
     showMessagered('Please select a valid product and enter quantity.');
     return;
   }
 
-  let total = price * quantity;
-  grandTotal += total;
-
+  // Check if product already exists in the table
   let table = document.getElementById("billTable");
-  let rowCount = table.rows.length; // Get current row count for serial number
-  let row = table.insertRow();
-  row.innerHTML = `
-    <td>${rowCount + 1}</td> <!-- Serial number -->
-    <td>${productName}</td>
-    <td>₹${price.toFixed(2)}</td>
-    <td>${quantity}</td>
-    <td>₹${total.toFixed(2)}</td>
-    <td class="text-center align-middle"><button class="btn btn-danger btn-sm" onclick="removeItem(this, ${total})"><i class="fas fa-trash"></i></button></td>
-  `;
+  let existingRow = null;
+  
+  // Search all rows for matching product name
+  for (let i = 0; i < table.rows.length; i++) {
+    let row = table.rows[i];
+    if (row.cells[1].textContent === productName) {
+      existingRow = row;
+      break;
+    }
+  }
+
+  if (existingRow) {
+    // Product exists - update quantity instead of adding new row
+    let currentQuantity = parseInt(existingRow.querySelector('.quantity-display').textContent);
+    let newQuantity = currentQuantity + quantity;
+    let rowPrice = parseFloat(existingRow.querySelector('.total-cell').dataset.price);
+    
+    // Update quantity display
+    existingRow.querySelector('.quantity-display').textContent = newQuantity;
+    
+    // Update total
+    let newTotal = rowPrice * newQuantity;
+    existingRow.querySelector('.total-cell').textContent = `₹${newTotal.toFixed(2)}`;
+    existingRow.querySelector('.total-cell').dataset.quantity = newQuantity;
+    
+    // Update grand total
+    grandTotal += (rowPrice * quantity);
+  } else {
+    // Product doesn't exist - add new row
+    let total = price * quantity;
+    grandTotal += total;
+
+    let rowCount = table.rows.length;
+    let row = table.insertRow();
+    
+    row.innerHTML = `
+      <td>${rowCount + 1}</td>
+      <td>${productName}</td>
+      <td>₹${price.toFixed(2)}</td>
+      <td>
+        <div class="d-flex align-items-center">
+          <button class="btn btn-table btn-sm btn-danger d-none" onclick="decreaseQuantity(this, ${price})">
+            <i class="fas fa-minus"></i>
+          </button>
+          <span class="mx-2 quantity-display">${quantity}</span>
+          <button class="btn btn-table btn-sm btn-success" onclick="increaseQuantity(this, ${price})">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+      </td>
+      <td class="total-cell">₹${total.toFixed(2)}</td>
+      <td class="text-center align-middle">
+        <button class="btn btn-danger btn-sm" onclick="removeItem(this)">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    `;
+    
+    // Store the price as a data attribute for later reference
+    row.querySelector('.total-cell').dataset.price = price;
+    row.querySelector('.total-cell').dataset.quantity = quantity;
+  }
 
   updateTotals();
   document.getElementById("quantity").value = "";
 }
 
 function removeItem(button, itemTotal) {
-  let row = button.parentElement.parentElement;
+  // Use the actual total from the data attribute if available
+  const row = button.parentElement.parentElement;
+  const totalCell = row.querySelector('td:nth-child(5)');
+  const actualTotal = parseFloat(totalCell.textContent.replace("₹", "")) || itemTotal;
+  
   let table = row.parentElement;
   row.remove();
-  grandTotal -= itemTotal;
+  grandTotal -= actualTotal;
   
   // Renumber all remaining rows
   let rows = table.rows;
@@ -693,27 +805,6 @@ auth.onAuthStateChanged(user => {
     fetchProducts();
 
 
-//     function fetchCustomers() {
-//     database.ref("bills").on("value", (snapshot) => {
-//         let customers = {};
-//         snapshot.forEach((childSnapshot) => {
-//             let bill = childSnapshot.val();
-//             if (bill.customer && bill.customer.name) {
-//                 customers[bill.customer.name] = bill.customer.mobile; // Store name & mobile
-//             }
-//         });
-
-//         let datalist = document.getElementById("customerList");
-//         datalist.innerHTML = ""; // Clear previous suggestions
-//         for (let name in customers) {
-//             let option = document.createElement("option");
-//             option.value = name;
-//             option.dataset.mobile = customers[name]; // Store mobile in dataset
-//             datalist.appendChild(option);
-//         }
-//     });
-// }
-
 function fetchCustomers() {
     database.ref("bills").on("value", (snapshot) => {
         let nameToMobile = {};
@@ -744,24 +835,6 @@ function fetchCustomers() {
     });
 }
 
-// function fillCustomerMobile() {
-//     let customerName = document.getElementById("customerName").value;
-//     let options = document.querySelectorAll("#customerList option");
-
-//     for (let option of options) {
-//         if (option.value === customerName) {
-//             document.getElementById("customerMobile").value = option.dataset.mobile;
-//             return;
-//         }
-//     }
-// }
-
-// document.getElementById("customerMobile").addEventListener("input", function() {
-//     let mobile = this.value.trim();
-//     if (window.customerData && window.customerData.mobileToName[mobile]) {
-//         document.getElementById("customerName").value = window.customerData.mobileToName[mobile];
-//     }
-// });
 
 function fillCustomerMobile() {
     let customerName = document.getElementById("customerName").value;
@@ -985,8 +1058,9 @@ function autoFillProductForm(product) {
   document.getElementById('price').value = product.price;
   
   // Focus on quantity field for quick entry
-  document.getElementById('quantity').focus();
-  
+  //document.getElementById('quantity').focus();
+  document.getElementById('quantity').value = 1;
+  addItem();
   showMessage(`Product found: ${product.name}`);
   playBeepSound();
 }
@@ -1011,6 +1085,53 @@ function playBeepSound() {
     
   } catch (e) {
     console.error("Couldn't play beep sound:", e);
+  }
+}
+
+function increaseQuantity(button, price) {
+  const row = button.closest('tr');
+  const quantityDisplay = row.querySelector('.quantity-display');
+  const totalCell = row.querySelector('.total-cell');
+  
+  let quantity = parseInt(quantityDisplay.textContent);
+  quantity++;
+  quantityDisplay.textContent = quantity;
+  
+  // Update the total
+  const newTotal = price * quantity;
+  totalCell.textContent = `₹${newTotal.toFixed(2)}`;
+  totalCell.dataset.quantity = quantity;
+  
+  // Update grand total
+  const oldTotal = parseFloat(totalCell.dataset.previousTotal || (price * (quantity - 1)));
+  grandTotal += (newTotal - oldTotal);
+  totalCell.dataset.previousTotal = newTotal;
+  
+  updateTotals();
+}
+
+function decreaseQuantity(button, price) {
+  const row = button.closest('tr');
+  const quantityDisplay = row.querySelector('.quantity-display');
+  const totalCell = row.querySelector('.total-cell');
+  
+  let quantity = parseInt(quantityDisplay.textContent);
+  
+  if (quantity > 1) {
+    quantity--;
+    quantityDisplay.textContent = quantity;
+    
+    // Update the total
+    const newTotal = price * quantity;
+    totalCell.textContent = `₹${newTotal.toFixed(2)}`;
+    totalCell.dataset.quantity = quantity;
+    
+    // Update grand total
+    const oldTotal = parseFloat(totalCell.dataset.previousTotal || (price * (quantity + 1)));
+    grandTotal += (newTotal - oldTotal);
+    totalCell.dataset.previousTotal = newTotal;
+    
+    updateTotals();
   }
 }
   </script>
