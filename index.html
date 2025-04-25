@@ -416,7 +416,7 @@ function addItem() {
     // Product exists - update quantity instead of adding new row
     let currentQuantity = parseInt(existingRow.querySelector('.quantity-display').textContent);
     let newQuantity = currentQuantity + quantity;
-    let rowPrice = parseFloat(existingRow.querySelector('.total-cell').dataset.price);
+    let rowPrice = parseFloat(existingRow.querySelector('.price-input').value);
     
     // Update quantity display
     existingRow.querySelector('.quantity-display').textContent = newQuantity;
@@ -439,14 +439,14 @@ function addItem() {
     row.innerHTML = `
       <td>${rowCount + 1}</td>
       <td>${productName}</td>
-      <td>₹${price.toFixed(2)}</td>
+      <td><input type="number" class="form-control form-control-sm price-input" value="${price.toFixed(2)}" oninput="updateRowTotal(this)"></td>
       <td>
         <div class="d-flex align-items-center">
-          <button class="btn btn-table btn-sm btn-danger d-none" onclick="decreaseQuantity(this, ${price})">
+          <button class="btn btn-table btn-sm btn-danger" onclick="decreaseQuantity(this, this.parentElement.parentElement.parentElement.querySelector('.price-input').value)">
             <i class="fas fa-minus"></i>
           </button>
           <span class="mx-2 quantity-display">${quantity}</span>
-          <button class="btn btn-table btn-sm btn-success" onclick="increaseQuantity(this, ${price})">
+          <button class="btn btn-table btn-sm btn-success" onclick="increaseQuantity(this, this.parentElement.parentElement.parentElement.querySelector('.price-input').value)">
             <i class="fas fa-plus"></i>
           </button>
         </div>
@@ -459,13 +459,48 @@ function addItem() {
       </td>
     `;
     
-    // Store the price as a data attribute for later reference
+    // Store the initial price and quantity as data attributes
     row.querySelector('.total-cell').dataset.price = price;
     row.querySelector('.total-cell').dataset.quantity = quantity;
   }
 
   updateTotals();
   document.getElementById("quantity").value = "";
+}
+
+// New function to update row total when price changes
+function updateRowTotal(inputElement) {
+  const row = inputElement.closest('tr');
+  const price = parseFloat(inputElement.value) || 0;
+  const quantity = parseInt(row.querySelector('.quantity-display').textContent) || 0;
+  const totalCell = row.querySelector('.total-cell');
+  
+  // Calculate new total
+  const newTotal = price * quantity;
+  totalCell.textContent = `₹${newTotal.toFixed(2)}`;
+  
+  // Update data attributes
+  totalCell.dataset.price = price;
+  totalCell.dataset.quantity = quantity;
+  
+  // Recalculate grand total
+  recalculateGrandTotal();
+}
+
+// Function to recalculate grand total after any changes
+function recalculateGrandTotal() {
+  grandTotal = 0;
+  const rows = document.querySelectorAll("#billTable tr");
+  
+  rows.forEach(row => {
+    const totalCell = row.querySelector('.total-cell');
+    if (totalCell) {
+      const total = parseFloat(totalCell.textContent.replace('₹', '')) || 0;
+      grandTotal += total;
+    }
+  });
+  
+  updateTotals();
 }
 
 function removeItem(button, itemTotal) {
@@ -1109,8 +1144,10 @@ function playBeepSound() {
   }
 }
 
+// Update increaseQuantity and decreaseQuantity functions to use the current price
 function increaseQuantity(button, price) {
   const row = button.closest('tr');
+  const currentPrice = parseFloat(row.querySelector('.price-input').value) || 0;
   const quantityDisplay = row.querySelector('.quantity-display');
   const totalCell = row.querySelector('.total-cell');
   
@@ -1119,20 +1156,17 @@ function increaseQuantity(button, price) {
   quantityDisplay.textContent = quantity;
   
   // Update the total
-  const newTotal = price * quantity;
+  const newTotal = currentPrice * quantity;
   totalCell.textContent = `₹${newTotal.toFixed(2)}`;
   totalCell.dataset.quantity = quantity;
   
   // Update grand total
-  const oldTotal = parseFloat(totalCell.dataset.previousTotal || (price * (quantity - 1)));
-  grandTotal += (newTotal - oldTotal);
-  totalCell.dataset.previousTotal = newTotal;
-  
-  updateTotals();
+  recalculateGrandTotal();
 }
 
 function decreaseQuantity(button, price) {
   const row = button.closest('tr');
+  const currentPrice = parseFloat(row.querySelector('.price-input').value) || 0;
   const quantityDisplay = row.querySelector('.quantity-display');
   const totalCell = row.querySelector('.total-cell');
   
@@ -1143,16 +1177,12 @@ function decreaseQuantity(button, price) {
     quantityDisplay.textContent = quantity;
     
     // Update the total
-    const newTotal = price * quantity;
+    const newTotal = currentPrice * quantity;
     totalCell.textContent = `₹${newTotal.toFixed(2)}`;
     totalCell.dataset.quantity = quantity;
     
     // Update grand total
-    const oldTotal = parseFloat(totalCell.dataset.previousTotal || (price * (quantity + 1)));
-    grandTotal += (newTotal - oldTotal);
-    totalCell.dataset.previousTotal = newTotal;
-    
-    updateTotals();
+    recalculateGrandTotal();
   }
 }
   </script>

@@ -945,20 +945,19 @@ function displayProducts(products) {
     const margin = 10; // mm
     const padding = 5; // mm
     
-    // Calculate layout parameters
-    const itemsPerRow = barcodeOnly ? 6 : 4; // More items per row for barcode-only
+    // Calculate layout parameters - same for both modes
+    const itemsPerRow = 5; // 5 items per row in both modes
+    const rowsPerPage = 4; // 4 rows per page in both modes
     const itemWidth = (pageWidth - 2 * margin) / itemsPerRow;
-    const itemHeight = barcodeOnly ? 30 : 50; // mm
+    const itemHeight = (pageHeight - 2 * margin - 15) / rowsPerPage; // 15mm reserved for header
     
-    // Calculate how many rows fit per page
-    const rowsPerPage = Math.floor((pageHeight - 2 * margin) / itemHeight);
     const itemsPerPage = itemsPerRow * rowsPerPage;
     
     // Add title
-    doc.setFontSize(14);
-    doc.text(`Product ${barcodeOnly ? 'Barcodes' : 'Catalog'}`, pageWidth / 2, margin, { align: 'center' });
-    doc.setFontSize(10);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, margin + 7, { align: 'center' });
+    // doc.setFontSize(14);
+    // doc.text(`Product ${barcodeOnly ? 'Barcodes' : 'Catalog'}`, pageWidth / 2, margin, { align: 'center' });
+    // doc.setFontSize(10);
+    // doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, margin + 7, { align: 'center' });
     
     let currentItem = 0;
     let currentPage = 0;
@@ -969,8 +968,8 @@ function displayProducts(products) {
         currentPage++;
         
         // Add header to new page
-        doc.setFontSize(14);
-        doc.text(`Product ${barcodeOnly ? 'Barcodes' : 'Catalog'} (cont.)`, pageWidth / 2, margin, { align: 'center' });
+        // doc.setFontSize(14);
+        // doc.text(`Product ${barcodeOnly ? 'Barcodes' : 'Catalog'} (cont.)`, pageWidth / 2, margin, { align: 'center' });
         doc.setFontSize(10);
         doc.text(`Page ${currentPage + 1}`, pageWidth / 2, margin + 7, { align: 'center' });
       }
@@ -986,14 +985,13 @@ function displayProducts(products) {
       const product = displayedProducts[currentItem];
       
       if (!barcodeOnly) {
-        // Product information
-        const leftPadding = 10;
-        doc.setFontSize(8);
+        // Product information (smaller font to fit more items)
+        doc.setFontSize(7); // Reduced from 8
         doc.setFont('helvetica', 'bold');
-        doc.text(product.name.substring(0, 20), x + padding + leftPadding, y);
+        doc.text(product.name.substring(0, 15), x + padding, y); // Reduced from 20 chars
         doc.setFont('helvetica', 'normal');
-        doc.text(`Price: ₹${product.price}`, x + padding + leftPadding, y + 5);
-        //doc.text(`Stock: ${product.stockQuantity || 0}`, x + padding, y + 10);
+        doc.text(`prize: ${product.price}`, x + padding, y + 4); // Reduced spacing
+        // Removed stock quantity to save space
       }
       
       if (product.barcode) {
@@ -1001,34 +999,34 @@ function displayProducts(products) {
         if (canvas) {
           // Create a new canvas with adjusted size
           const barcodeCanvas = document.createElement('canvas');
-          barcodeCanvas.width = 150; // Fixed width for consistent sizing
+          barcodeCanvas.width = 150;
           barcodeCanvas.height = 50;
           
           // Generate barcode with smaller size
           JsBarcode(barcodeCanvas, product.barcode, {
             format: "CODE128",
             lineColor: "#000",
-            width: 1.5, // Thinner lines
-            height: 30,  // Shorter height
+            width: 1.2, // Thinner lines (reduced from 1.5)
+            height: 25,  // Shorter height (reduced from 30)
             displayValue: false,
-            margin: 5
+            margin: 3    // Reduced from 5
           });
           
           const imgData = barcodeCanvas.toDataURL('image/png');
           
-          // Calculate image dimensions (max 2.5 inches = 63.5mm)
-          const imgWidth = barcodeOnly ? itemWidth - 2 * padding : 40; // mm
-          const imgHeight = 15; // mm
+          // Calculate image dimensions
+          const imgWidth = itemWidth - 2 * padding; // Same width for both modes
+          const imgHeight = 12; // mm (reduced from 15)
           
           // Position the barcode
           const imgX = x + (itemWidth - imgWidth) / 2;
-          const imgY = barcodeOnly ? y : y + 8; // Reduced space between the barcode and product information
+          const imgY = barcodeOnly ? y : y + 6; // Reduced spacing
           
           doc.addImage(imgData, 'PNG', imgX, imgY, imgWidth, imgHeight);
           
-          // Add barcode text below
-          doc.setFontSize(6);
-          doc.text(product.barcode, x + itemWidth / 2, imgY + imgHeight + 3, { align: 'center' });
+          // Add barcode text below (smaller font)
+          doc.setFontSize(5); // Reduced from 6
+          doc.text(product.barcode, x + itemWidth / 2, imgY + imgHeight + 2, { align: 'center' }); // Reduced spacing
         }
       }
       
@@ -1051,7 +1049,6 @@ function displayProducts(products) {
     document.body.removeChild(loadingMessage);
   }
 }
-
     // Add this function to get the currently displayed products
     function getDisplayedProducts() {
       const searchValue = document.getElementById("searchProduct").value.toLowerCase();
