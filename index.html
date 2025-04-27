@@ -688,9 +688,13 @@ async function generateBill() {
   const items = Array.from(document.querySelectorAll("#billTable tr")).map(row => {
     let cells = row.getElementsByTagName("td");
     if (cells.length === 6) {
+      // Get the price from the input field instead of the cell text
+      const priceInput = row.querySelector('.price-input');
+      const price = priceInput ? parseFloat(priceInput.value) : 0;
+      
       return {
         name: cells[1].textContent.trim(),
-        price: parseFloat(cells[2].textContent.replace("₹", "").trim()) || 0,
+        price: price,
         quantity: parseInt(cells[3].textContent.trim()) || 0,
         total: parseFloat(cells[4].textContent.replace("₹", "").trim()) || 0
       };

@@ -969,26 +969,66 @@ function updateStockChart(products) {
 // Global variable to store products for filtering
 let allProductsList = [];
 
-// Function to load products into dropdown
+// // Function to load products into dropdown
+// function loadProductFilter() {
+//   database.ref("products").once("value")
+//     .then(snapshot => {
+//       const productSelect = document.getElementById('productFilter');
+//       productSelect.innerHTML = '<option value="">All Products</option>';
+      
+//       allProductsList = [];
+//       snapshot.forEach(child => {
+//         const product = child.val();
+//         allProductsList.push(product.name);
+        
+//         const option = document.createElement('option');
+//         option.value = product.name;
+//         option.textContent = product.name;
+//         productSelect.appendChild(option);
+//       });
+//     })
+//     .catch(error => {
+//       console.error("Error loading products:", error);
+//     });
+// }
+
+// Function to load products into dropdown from bills data
 function loadProductFilter() {
-  database.ref("products").once("value")
+  database.ref("bills").once("value")
     .then(snapshot => {
       const productSelect = document.getElementById('productFilter');
       productSelect.innerHTML = '<option value="">All Products</option>';
       
+      // Use a Set to store unique product names
+      const uniqueProducts = new Set();
       allProductsList = [];
-      snapshot.forEach(child => {
-        const product = child.val();
-        allProductsList.push(product.name);
+      
+      snapshot.forEach(billSnapshot => {
+        const bill = billSnapshot.val();
         
+        // Check if bill has items array
+        if (bill.items && Array.isArray(bill.items)) {
+          bill.items.forEach(item => {
+            if (item.name) {
+              uniqueProducts.add(item.name);
+            }
+          });
+        }
+      });
+      
+      // Convert Set to array and sort alphabetically
+      allProductsList = Array.from(uniqueProducts).sort();
+      
+      // Add options to select
+      allProductsList.forEach(productName => {
         const option = document.createElement('option');
-        option.value = product.name;
-        option.textContent = product.name;
+        option.value = productName;
+        option.textContent = productName;
         productSelect.appendChild(option);
       });
     })
     .catch(error => {
-      console.error("Error loading products:", error);
+      console.error("Error loading products from bills:", error);
     });
 }
 
