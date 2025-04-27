@@ -271,6 +271,34 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printContainer, #printContainer * {
+    visibility: visible;
+  }
+  #printContainer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2.5in;
+    height: auto;
+    margin: 0;
+    padding: 10px;
+    border: none;
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap');
+.modal-head-text{
+  margin: 0px; 
+  font-size: 14px; 
+  font-weight: bold;
+  font-family: "Rubik Mono One", monospace;
+  text-transform: uppercase;
+}
   </style>
 </head>
 <body>
@@ -326,6 +354,48 @@ input:checked + .slider:before {
       </div>
     </div>
   </nav>
+<!-- Print Modal -->
+<!-- Print Modal -->
+<div class="modal fade" id="printModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Download Barcode</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <!-- This will be our print template -->
+        <div id="printTemplate" style="display: none;">
+          <div style="width: 3in; height: 1.6in; background: white; padding: 2px; margin: 0 auto; border: 2px solid #050505;">
+            <img src="img/tb-modal-tag.png" style=" width: 100%; height: 45px;">
+            <h5 class="modal-head-text" style="border: 1px solid black; background-color: #c7f7ff;" id="printProductName"><span id="printProductPrice"></span></h5>
+            <div class="row">
+              <div class="col" style="margin: 5px; border-right: 1px dashed black;">
+                <div class="text-left" style="margin: 0px auto; width: 100%; " id="printBarcodeContainer"></div>
+              </div>
+              <div class="col text-left">
+                <div><h5 class="modal-head-text" style="border-bottom: 1px solid black;">Product Size:</h5></div>
+              </div>
+            </div>
+            
+            <h5 class="modal-head-text" style="font-size: 10px; border-top: 1px dashed black;">Thank you for shopping with us!
+              Please visit again</h5>
+          </div>
+        </div>
+        <!-- Preview container -->
+        <div id="printPreview"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="downloadBarcodeImage()">
+          <i class="fas fa-download"></i> Download Image
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
   <div class="container mt-5" style="padding-top: 20px;">
     <div id="productMessage">
       <p class="indi"> <i class="fa-solid fa-circle-check"></i> Success</p>
@@ -705,8 +775,8 @@ function displayProducts(products) {
                 <button class="btn btn-info btn-sm mr-2" title="Download" onclick="downloadSingleBarcode('${product.key}', '${product.name}', '${product.price}', '${product.barcode}')">
                   <i class="fas fa-download"></i><span class="d-none d-sm-inline"> Download IMG</span>
                 </button>
-                <button class="btn btn-primary btn-sm mr-2" title="Print" onclick="printSingleBarcode('${product.key}', '${product.name}', '${product.price}', '${product.barcode}')">
-                  <i class="fas fa-print"></i><span class="d-none d-sm-inline"> Print</span>
+                <button class="btn btn-primary btn-sm mr-2" title="Print" onclick="showPrintModal('${product.key}', '${product.name}', '${product.price}', '${product.barcode}')">
+                <i class="fas fa-print"></i><span class="d-none d-sm-inline"> Print</span>
                 </button>
                 <button class="btn btn-danger btn-sm mr-2" title="Delete" onclick="deleteProduct('${product.key}')">
                   <i class="fas fa-trash"></i><span class="d-none d-sm-inline"> Delete</span>
@@ -1332,8 +1402,8 @@ async function downloadBarcodeImages() {
       const ctx = canvas.getContext('2d');
       
       // Set canvas dimensions (width: 3 inches, height: 1.5 inches at 150 DPI)
-      canvas.width = 450;  // 3 inches * 150 DPI
-      canvas.height = 200; // 1.5 inches * 150 DPI
+      canvas.width = 350;
+      canvas.height = 175;
       
       // Draw white background
       ctx.fillStyle = 'white';
@@ -1408,8 +1478,13 @@ function downloadSingleBarcode(key, name, price, barcode) {
   const ctx = canvas.getContext('2d');
   
   // Set canvas dimensions
-  canvas.width = 450;
-  canvas.height = 200;
+  canvas.width = 350;
+  canvas.height = 175;
+
+  // Draw black border
+  ctx.lineWidth = 8; // Border thickness
+  ctx.strokeStyle = '#000000'; // Explicit deep black
+  ctx.strokeRect(0, 0, canvas.width, canvas.height);
   
   // Draw white background
   ctx.fillStyle = 'white';
@@ -1459,111 +1534,9 @@ function downloadSingleBarcode(key, name, price, barcode) {
   document.body.removeChild(link);
 }
 
-function printSingleBarcode(key, name, price, barcode) {
-  if (!barcode) {
-    alert("This product doesn't have a barcode yet!");
-    return;
-  }
 
-  // Create a printable container
-  const printContainer = document.createElement('div');
-  printContainer.style.position = 'fixed';
-  printContainer.style.top = '0';
-  printContainer.style.left = '0';
-  printContainer.style.width = '100%';
-  printContainer.style.height = '100%';
-  printContainer.style.backgroundColor = 'white';
-  printContainer.style.zIndex = '9999';
-  printContainer.style.padding = '20px';
-  printContainer.style.textAlign = 'center';
-  
-  // Create the barcode label
-  const canvas = document.createElement('canvas');
-  canvas.width = 450;
-  canvas.height = 200;
-  
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Product Information
-  ctx.fillStyle = 'black';
-  ctx.font = 'bold 24px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText(name, canvas.width / 2, 30);
 
-  ctx.font = 'bold 20px Arial';
-  ctx.fillText(`Price: ₹${price}`, canvas.width / 2, 60);
 
-  // Barcode Section
-  const barcodeCanvas = document.createElement('canvas');
-  barcodeCanvas.width = canvas.width * 0.8;
-  barcodeCanvas.height = 100;
-
-  JsBarcode(barcodeCanvas, barcode, {
-    format: "CODE128",
-    lineColor: "#000",
-    width: 2,
-    height: 60,
-    displayValue: true,
-    fontSize: 16,
-    margin: 5
-  });
-
-  const barcodeX = (canvas.width - barcodeCanvas.width) / 2;
-  const barcodeY = 80;
-  ctx.drawImage(barcodeCanvas, barcodeX, barcodeY);
-
-  // Add to printable container
-  printContainer.appendChild(canvas);
-  
-  // Add print button
-  const printBtn = document.createElement('button');
-  printBtn.innerHTML = '<i class="fas fa-print"></i> Print Now';
-  printBtn.className = 'btn btn-primary mt-3';
-  printBtn.onclick = function() {
-    window.print();
-    document.body.removeChild(printContainer);
-  };
-  printContainer.appendChild(printBtn);
-  
-  // Add close button
-  const closeBtn = document.createElement('button');
-  closeBtn.innerHTML = '<i class="fas fa-times"></i> Close';
-  closeBtn.className = 'btn btn-danger mt-3 ml-2';
-  closeBtn.onclick = function() {
-    document.body.removeChild(printContainer);
-  };
-  printContainer.appendChild(closeBtn);
-
-  // Add to document
-  document.body.appendChild(printContainer);
-  
-  // CSS for printing
-  const style = document.createElement('style');
-  style.innerHTML = `
-    @media print {
-      body * {
-        visibility: hidden;
-      }
-      #print-container, #print-container * {
-        visibility: visible;
-      }
-      #print-container {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-      }
-      button {
-        display: none !important;
-      }
-    }
-  `;
-  printContainer.id = 'print-container';
-  printContainer.appendChild(style);
-}
 
 
 // Initialize the toggle button
@@ -1607,6 +1580,101 @@ function showToastMessage(message, isError = false) {
   setTimeout(() => {
     toast.remove();
   }, 3000);
+}
+
+
+
+function showPrintModal(key, name, price, barcode) {
+  if (!barcode) {
+    alert("This product doesn't have a barcode yet!");
+    return;
+  }
+
+  // Clear previous content
+  const printPreview = document.getElementById('printPreview');
+  printPreview.innerHTML = '';
+  
+  // Clone the template
+  const template = document.getElementById('printTemplate');
+  const clone = template.cloneNode(true);
+  clone.id = 'printClone';
+  clone.style.display = 'block';
+  
+  // Set product info - fixed to match your HTML structure
+  const productNameElement = clone.querySelector('#printProductName');
+  productNameElement.innerHTML = `${name},<span id="printProductPrice"> ₹${price}`;
+  
+  // Create canvas for barcode
+  const canvas = document.createElement('canvas');
+
+  // Set high resolution for HD quality
+  canvas.width = 400;
+  canvas.height = 100;
+
+  clone.querySelector('#printBarcodeContainer').appendChild(canvas);
+
+  // Generate barcode with print-optimized settings
+  JsBarcode(canvas, barcode, {
+    format: "CODE128",
+    lineColor: "#000",
+    width: 1.5,
+    height: 40,
+    displayValue: true,
+    fontSize: 16,
+    margin: 0,
+  });
+  
+  // Add to preview
+  printPreview.appendChild(clone);
+  
+  // Show the modal
+  $('#printModal').modal('show');
+}
+
+
+function downloadBarcodeImage() {
+  // Get the preview container
+  const preview = document.getElementById('printPreview');
+  const clone = preview.querySelector('#printClone');
+  
+  if (!clone) return;
+  
+  // Create a canvas for the complete label
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Set canvas dimensions (slightly larger for better quality)
+  canvas.width = clone.offsetWidth * 2;
+  canvas.height = clone.offsetHeight * 2;
+  
+  // Draw white background
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw the preview content
+  html2canvas(clone, {
+    scale: 2,
+    backgroundColor: null,
+    canvas: canvas,
+    logging: false
+  }).then(canvas => {
+    // Convert to image and download
+    const imageData = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    
+    // Get product details for filename
+    const name = document.getElementById('printProductName').textContent;
+    const price = document.getElementById('printProductPrice').textContent.replace('Price: ₹', '');
+    
+    link.href = imageData;
+    link.download = `${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_₹${price}_barcode.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Close the modal
+    $('#printModal').modal('hide');
+  });
 }
   </script>
   
