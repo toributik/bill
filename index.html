@@ -126,7 +126,7 @@
     <div class="row mb-2">
       <div class="col-md-2">
         <!-- Customer Name Input with Suggestions -->
-      <input type="text" id="customerName" class="form-control from-input  form-control from-input-sm mb-1" placeholder="Customer Name" list="customerList" oninput="fillCustomerMobile()" onchange="fillCustomerMobile()" autocomplete="off">
+      <input type="text" id="customerName" class="form-control from-input  form-control from-input-sm mb-1 text-capitalize" placeholder="Customer Name" list="customerList" oninput="fillCustomerMobile()" onchange="fillCustomerMobile()" autocomplete="off">
       <datalist id="customerList"></datalist>
       </div>
       <div class="col-md-2">
@@ -291,7 +291,7 @@
       <div class="modal-body">
         <div class="form-group">
           <label for="customRemarks">Remarks:</label>
-          <input type="text" class="form-control" id="customRemarks" placeholder="Enter your remarks">
+          <input type="text" class="form-control text-capitalize" id="customRemarks" placeholder="Enter your remarks">
         </div>
       </div>
       <div class="modal-footer">
