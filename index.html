@@ -104,6 +104,7 @@
                 <a class="dropdown-item" href="product.html">Products Management</a>
                 <a class="dropdown-item" href="expense.html">Add Expense</a>
                 <a class="dropdown-item" href="report.html">Report</a>
+                <a class="dropdown-item" href="trash.html">Trash</a>
               </div>
             </div>
           
@@ -585,6 +586,65 @@ function removeItem(button, itemTotal) {
 //   }
 // }
 
+// async function getNextBillId() {
+//   try {
+//     // 1. Get current date components
+//     const now = new Date();
+//     const currentYear = now.getFullYear().toString().slice(-2); // e.g., "25"
+//     const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+//     const currentMonth = monthNames[now.getMonth()]; // e.g., "APR"
+
+//     // 2. Format: B25APRTB[number]
+//     const prefix = `B${currentYear}${currentMonth}TB`;
+
+//     // 3. Query the last bill of the current month
+//     const snapshot = await database.ref("bills")
+//       .orderByChild("billId")
+//       .startAt(prefix)
+//       .endAt(prefix + "\uf8ff")
+//       .limitToLast(50) // More for safety
+//       .once("value");
+
+//     let lastNumber = 0;
+
+//     if (snapshot.exists()) {
+//       const bills = Object.values(snapshot.val());
+
+//       for (const bill of bills) {
+//         if (bill.billId && bill.billId.startsWith(prefix)) {
+//           const num = parseInt(bill.billId.replace(prefix, ''), 10);
+//           if (!isNaN(num) && num > lastNumber) {
+//             lastNumber = num;
+//           }
+//         }
+//       }
+
+//      // console.log("Last Bill Number:", lastNumber);
+//     }
+
+//     // 4. Create next bill ID
+//     const nextNumber = lastNumber + 1;
+
+//     if (nextNumber > 99999) {
+//       throw new Error("Maximum 99999 bills per month exceeded.");
+//     }
+
+//     const paddedNumber = nextNumber.toString().padStart(5, '0'); // e.g., TB00001
+//     const newBillId = `${prefix}${paddedNumber}`;
+
+//     // console.log("New Bill ID:", newBillId);
+//     return newBillId;
+
+//   } catch (error) {
+//     console.error("Error generating bill ID:", error);
+//     const now = new Date();
+//     const currentYear = now.getFullYear().toString().slice(-2);
+//     const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+//     const currentMonth = monthNames[now.getMonth()];
+//     return `B${currentYear}${currentMonth}TB00001`;
+//   }
+// }
+
 async function getNextBillId() {
   try {
     // 1. Get current date components
@@ -596,19 +656,27 @@ async function getNextBillId() {
     // 2. Format: B25APRTB[number]
     const prefix = `B${currentYear}${currentMonth}TB`;
 
-    // 3. Query the last bill of the current month
-    const snapshot = await database.ref("bills")
-      .orderByChild("billId")
-      .startAt(prefix)
-      .endAt(prefix + "\uf8ff")
-      .limitToLast(50) // More for safety
-      .once("value");
+    // 3. Query both active bills and trashBills for the current month's prefix
+    const [activeBillsSnapshot, trashBillsSnapshot] = await Promise.all([
+      database.ref("bills")
+        .orderByChild("billId")
+        .startAt(prefix)
+        .endAt(prefix + "\uf8ff")
+        .limitToLast(50)
+        .once("value"),
+      database.ref("trashBills")
+        .orderByChild("billId")
+        .startAt(prefix)
+        .endAt(prefix + "\uf8ff")
+        .limitToLast(50)
+        .once("value")
+    ]);
 
     let lastNumber = 0;
 
-    if (snapshot.exists()) {
-      const bills = Object.values(snapshot.val());
-
+    // Check active bills
+    if (activeBillsSnapshot.exists()) {
+      const bills = Object.values(activeBillsSnapshot.val());
       for (const bill of bills) {
         if (bill.billId && bill.billId.startsWith(prefix)) {
           const num = parseInt(bill.billId.replace(prefix, ''), 10);
@@ -617,8 +685,19 @@ async function getNextBillId() {
           }
         }
       }
+    }
 
-     // console.log("Last Bill Number:", lastNumber);
+    // Check trashed bills
+    if (trashBillsSnapshot.exists()) {
+      const trashedBills = Object.values(trashBillsSnapshot.val());
+      for (const bill of trashedBills) {
+        if (bill.billId && bill.billId.startsWith(prefix)) {
+          const num = parseInt(bill.billId.replace(prefix, ''), 10);
+          if (!isNaN(num) && num > lastNumber) {
+            lastNumber = num;
+          }
+        }
+      }
     }
 
     // 4. Create next bill ID
@@ -631,11 +710,11 @@ async function getNextBillId() {
     const paddedNumber = nextNumber.toString().padStart(5, '0'); // e.g., TB00001
     const newBillId = `${prefix}${paddedNumber}`;
 
-    // console.log("New Bill ID:", newBillId);
     return newBillId;
 
   } catch (error) {
     console.error("Error generating bill ID:", error);
+    // Fallback to first ID of the month if there's any error
     const now = new Date();
     const currentYear = now.getFullYear().toString().slice(-2);
     const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -643,8 +722,6 @@ async function getNextBillId() {
     return `B${currentYear}${currentMonth}TB00001`;
   }
 }
-
-
 
 
 // Modify your generateBill function to include the billId
