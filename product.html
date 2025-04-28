@@ -367,16 +367,16 @@ input:checked + .slider:before {
       <div class="modal-body text-center">
         <!-- This will be our print template -->
         <div id="printTemplate" style="display: none;">
-          <div style="width: 3in; height: 1.8in; background: white; padding: 2px; margin: 0 auto; border: 2px solid #050505;">
-            <img src="img/tb-modal-tag.png" style=" width: 2.8in; height: 40px;">
-            <h5 class="modal-head-text" style="border: 1px solid black; background-color: #c7f7ff;" id="printProductName"><span id="printProductPrice"></span></h5>   
+          <div style="width: 3in; height: 1.7in; background: white; padding: 0px; margin: 0 auto; border: 1px solid #050505;">
+            <img src="img/tb-modal-tag.png" style=" width: 2.8in; height: 40px; padding-right: 3px;">
+            <h5 class="modal-head-text" style="border-top: 1px solid black;border-bottom: 1px solid black; background-color: #c7f7ff;" id="printProductName"><span id="printProductPrice"></span></h5>   
             <div class="text-center" style="margin: 2px auto; width: 100%; " id="printBarcodeContainer">
             <span id="printBarcodeText" style="font-size: 9px; display: block;"></span>
             </div>
-            <div class="text-left"><h5 class="modal-head-text" style="border-top: 1px solid black; padding-top: 1px; padding-bottom: 1px;">Product Size:</h5></div>
+            <div class="text-left"><h5 class="modal-head-text" style="border-top: 1px solid black; padding-top: 1px; padding-bottom: 1px; padding-left: 30px;">Product Size:</h5></div>
               
            
-            <h5 class="modal-head-text" style="font-size: 14px; border-top: 1px solid black; padding-top: 3px;">Thank you! Visit us again.</h5>
+            <h5 class="modal-head-text" style="font-size: 14px; border-top: 1px solid black; padding-top: 1.5px;">Thank you! Visit us again. 🛒</h5>
           </div>
         </div>
         <!-- Preview container -->
@@ -705,7 +705,7 @@ function displayProducts(products) {
                   <i class="fas fa-download"></i><span class="d-none d-sm-inline"> Download IMG</span>
                 </button>
                 <button class="btn btn-primary btn-sm mr-2" title="Print" onclick="showPrintModal('${product.key}', '${product.name}', '${product.price}', '${product.barcode}')">
-                <i class="fas fa-download"></i><span class="d-none d-sm-inline"> Label Sticker</span>
+                <i class="fas fa-download"></i><span class="d-none d-sm-inline"> Labels</span>
                 </button>
                 <button class="btn btn-danger btn-sm mr-2" title="Delete" onclick="deleteProduct('${product.key}')">
                   <i class="fas fa-trash"></i><span class="d-none d-sm-inline"> Delete</span>
