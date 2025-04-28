@@ -355,12 +355,11 @@ input:checked + .slider:before {
     </div>
   </nav>
 <!-- Print Modal -->
-<!-- Print Modal -->
 <div class="modal fade" id="printModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Download Barcode</h5>
+      <div class="modal-header" style="justify-content: center;">
+        <h5 class="modal-title ">Download Barcode</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -368,29 +367,25 @@ input:checked + .slider:before {
       <div class="modal-body text-center">
         <!-- This will be our print template -->
         <div id="printTemplate" style="display: none;">
-          <div style="width: 3in; height: 1.6in; background: white; padding: 2px; margin: 0 auto; border: 2px solid #050505;">
-            <img src="img/tb-modal-tag.png" style=" width: 100%; height: 45px;">
-            <h5 class="modal-head-text" style="border: 1px solid black; background-color: #c7f7ff;" id="printProductName"><span id="printProductPrice"></span></h5>
-            <div class="row">
-              <div class="col" style="margin: 5px; border-right: 1px dashed black;">
-                <div class="text-left" style="margin: 0px auto; width: 100%; " id="printBarcodeContainer"></div>
-              </div>
-              <div class="col text-left">
-                <div><h5 class="modal-head-text" style="border-bottom: 1px solid black;">Product Size:</h5></div>
-              </div>
+          <div style="width: 3in; height: 1.8in; background: white; padding: 2px; margin: 0 auto; border: 2px solid #050505;">
+            <img src="img/tb-modal-tag.png" style=" width: 2.8in; height: 40px;">
+            <h5 class="modal-head-text" style="border: 1px solid black; background-color: #c7f7ff;" id="printProductName"><span id="printProductPrice"></span></h5>   
+            <div class="text-center" style="margin: 2px auto; width: 100%; " id="printBarcodeContainer">
+            <span id="printBarcodeText" style="font-size: 9px; display: block;"></span>
             </div>
-            
-            <h5 class="modal-head-text" style="font-size: 10px; border-top: 1px dashed black;">Thank you for shopping with us!
-              Please visit again</h5>
+            <div class="text-left"><h5 class="modal-head-text" style="border-top: 1px solid black; padding-top: 1px; padding-bottom: 1px;">Product Size:</h5></div>
+              
+           
+            <h5 class="modal-head-text" style="font-size: 14px; border-top: 1px solid black; padding-top: 3px;">Thank you! Visit us again.</h5>
           </div>
         </div>
         <!-- Preview container -->
         <div id="printPreview"></div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" onclick="downloadBarcodeImage()">
-          <i class="fas fa-download"></i> Download Image
+      <div class="modal-footer " style="justify-content: center;">
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn1 text-light" onclick="downloadBarcodeImage()">
+          <i class="fas fa-download"></i> Download
         </button>
       </div>
     </div>
@@ -523,59 +518,6 @@ input:checked + .slider:before {
       document.getElementById("productBarcode").value = formattedBarcode;
     }
 
-    // function addOrUpdateProduct() {
-    //   let name = document.getElementById("productName").value;
-    //   let price = document.getElementById("productPrice").value;
-    //   let purchasePrice = document.getElementById("purchasePrice").value;
-    //   let stockQuantity = document.getElementById("stockQuantity").value;
-    //   let barcode = document.getElementById("productBarcode").value;
-      
-    //   if (name && price && purchasePrice && stockQuantity) {
-    //     if (!barcode) {
-    //       generateBarcode(name, price);
-    //       barcode = document.getElementById("productBarcode").value;
-    //     }
-        
-    //     // Calculate profit
-    //     let profit = parseFloat(price) - parseFloat(purchasePrice);
-        
-    //     if (editingProductKey) {
-    //       database.ref("products/" + editingProductKey).update({ 
-    //         name, 
-    //         price, 
-    //         purchasePrice,
-    //         stockQuantity,
-    //         profit,
-    //         barcode 
-    //       })
-    //         .then(() => {
-    //           showSuccessMessage();
-    //           editingProductKey = null;
-    //           document.getElementById("addProductBtn").innerHTML = '<i class="fas fa-plus-circle"></i> Add';
-    //         });
-    //     } else {
-    //       let newProduct = database.ref("products").push();
-    //       newProduct.set({ 
-    //         name, 
-    //         price, 
-    //         purchasePrice,
-    //         stockQuantity,
-    //         profit,
-    //         barcode 
-    //       })
-    //         .then(() => {
-    //           showSuccessMessage();
-    //         });
-    //     }
-    //     document.getElementById("productName").value = "";
-    //     document.getElementById("productPrice").value = "";
-    //     document.getElementById("purchasePrice").value = "";
-    //     document.getElementById("stockQuantity").value = "";
-    //     document.getElementById("productBarcode").value = "";
-    //   } else {
-    //     alert("Please fill all required fields!");
-    //   }
-    // }
 
     function addOrUpdateProduct() {
   let name = document.getElementById("productName").value;
@@ -665,20 +607,7 @@ input:checked + .slider:before {
   }
 }
 
-    // function fetchProducts() {
-    //   document.querySelector(".spinner").style.display = "block";
-
-    //   database.ref("products").on("value", snapshot => {
-    //     document.querySelector(".spinner").style.display = "none";
-    //     allProducts = [];
-    //     snapshot.forEach(childSnapshot => {
-    //       let product = childSnapshot.val();
-    //       product.key = childSnapshot.key;
-    //       allProducts.push(product);
-    //     });
-    //     sortAndDisplayProducts();
-    //   });
-    // }
+   
     function fetchProducts() {
   document.querySelector(".spinner").style.display = "block";
 
@@ -776,7 +705,7 @@ function displayProducts(products) {
                   <i class="fas fa-download"></i><span class="d-none d-sm-inline"> Download IMG</span>
                 </button>
                 <button class="btn btn-primary btn-sm mr-2" title="Print" onclick="showPrintModal('${product.key}', '${product.name}', '${product.price}', '${product.barcode}')">
-                <i class="fas fa-print"></i><span class="d-none d-sm-inline"> Print</span>
+                <i class="fas fa-download"></i><span class="d-none d-sm-inline"> Label Sticker</span>
                 </button>
                 <button class="btn btn-danger btn-sm mr-2" title="Delete" onclick="deleteProduct('${product.key}')">
                   <i class="fas fa-trash"></i><span class="d-none d-sm-inline"> Delete</span>
@@ -1617,13 +1546,18 @@ function showPrintModal(key, name, price, barcode) {
   JsBarcode(canvas, barcode, {
     format: "CODE128",
     lineColor: "#000",
-    width: 1.5,
+    width: 2,
     height: 40,
-    displayValue: true,
+    displayValue: false,
     fontSize: 16,
     margin: 0,
   });
   
+   // Set barcode text manually
+   const barcodeTextElement = clone.querySelector('#printBarcodeText');
+  if (barcodeTextElement) {
+    barcodeTextElement.textContent = barcode;
+  }
   // Add to preview
   printPreview.appendChild(clone);
   
@@ -1638,6 +1572,14 @@ function downloadBarcodeImage() {
   const clone = preview.querySelector('#printClone');
   
   if (!clone) return;
+  
+  // Get product details from the DOM
+  const nameElement = clone.querySelector('#printProductName');
+  const priceElement = clone.querySelector('#printProductPrice');
+  
+  // Extract text content and clean it up
+  const name = nameElement ? nameElement.textContent.split(',')[0].trim() : 'product';
+  const price = priceElement ? priceElement.textContent.replace('₹', '').trim() : '0';
   
   // Create a canvas for the complete label
   const canvas = document.createElement('canvas');
@@ -1662,12 +1604,10 @@ function downloadBarcodeImage() {
     const imageData = canvas.toDataURL('image/png');
     const link = document.createElement('a');
     
-    // Get product details for filename
-    const name = document.getElementById('printProductName').textContent;
-    const price = document.getElementById('printProductPrice').textContent.replace('Price: ₹', '');
-    
+    // Create filename (clean special characters)
+    const cleanName = name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     link.href = imageData;
-    link.download = `${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_₹${price}_barcode.png`;
+    link.download = `${cleanName}_₹${price}_sticker.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
