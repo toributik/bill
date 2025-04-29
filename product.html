@@ -1566,56 +1566,96 @@ function showPrintModal(key, name, price, barcode) {
 }
 
 
-function downloadBarcodeImage() {
-  // Get the preview container
+// function downloadBarcodeImage() {
+//   // Get the preview container
+//   const preview = document.getElementById('printPreview');
+//   const clone = preview.querySelector('#printClone');
+  
+//   if (!clone) return;
+  
+//   // Get product details from the DOM
+//   const nameElement = clone.querySelector('#printProductName');
+//   const priceElement = clone.querySelector('#printProductPrice');
+  
+//   // Extract text content and clean it up
+//   const name = nameElement ? nameElement.textContent.split(',')[0].trim() : 'product';
+//   const price = priceElement ? priceElement.textContent.replace('₹', '').trim() : '0';
+  
+//   // Create a canvas for the complete label
+//   const canvas = document.createElement('canvas');
+//   const ctx = canvas.getContext('2d');
+  
+//   // Set canvas dimensions (slightly larger for better quality)
+//   canvas.width = clone.offsetWidth * 2;
+//   canvas.height = clone.offsetHeight * 2;
+  
+//   // Draw white background
+//   ctx.fillStyle = 'white';
+//   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+//   // Draw the preview content
+//   html2canvas(clone, {
+//     scale: 2,
+//     backgroundColor: null,
+//     canvas: canvas,
+//     logging: false
+//   }).then(canvas => {
+//     // Convert to image and download
+//     const imageData = canvas.toDataURL('image/png');
+//     const link = document.createElement('a');
+    
+//     // Create filename (clean special characters)
+//     const cleanName = name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+//     link.href = imageData;
+//     link.download = `${cleanName}_₹${price}_sticker.png`;
+//     document.body.appendChild(link);
+//     link.click();
+//     document.body.removeChild(link);
+    
+//     // Close the modal
+//     $('#printModal').modal('hide');
+//   });
+// }
+
+    function downloadBarcodeImage() {
   const preview = document.getElementById('printPreview');
   const clone = preview.querySelector('#printClone');
-  
   if (!clone) return;
-  
-  // Get product details from the DOM
+
   const nameElement = clone.querySelector('#printProductName');
   const priceElement = clone.querySelector('#printProductPrice');
-  
-  // Extract text content and clean it up
+
   const name = nameElement ? nameElement.textContent.split(',')[0].trim() : 'product';
   const price = priceElement ? priceElement.textContent.replace('₹', '').trim() : '0';
-  
-  // Create a canvas for the complete label
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  
-  // Set canvas dimensions (slightly larger for better quality)
-  canvas.width = clone.offsetWidth * 2;
-  canvas.height = clone.offsetHeight * 2;
-  
-  // Draw white background
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Draw the preview content
+
+  // Temporarily scale the element up for higher resolution
+  clone.style.transform = 'scale(2)';
+  clone.style.transformOrigin = 'top left';
+  clone.style.width = '288px';
+
+
   html2canvas(clone, {
-    scale: 2,
-    backgroundColor: null,
-    canvas: canvas,
-    logging: false
+    scale: 2,  // Ensures high-quality image
+    useCORS: true
   }).then(canvas => {
-    // Convert to image and download
+    // Reset transform
+    clone.style.transform = '';
+    clone.style.transformOrigin = '';
+
     const imageData = canvas.toDataURL('image/png');
     const link = document.createElement('a');
-    
-    // Create filename (clean special characters)
     const cleanName = name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
     link.href = imageData;
     link.download = `${cleanName}_₹${price}_sticker.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
-    // Close the modal
+
     $('#printModal').modal('hide');
   });
 }
+
   </script>
   
 </body>
