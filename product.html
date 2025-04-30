@@ -294,10 +294,22 @@ input:checked + .slider:before {
 @import url('https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap');
 .modal-head-text{
   margin: 0px; 
-  font-size: 14px; 
+  font-size: 12px; 
   font-weight: bold;
   font-family: "Rubik Mono One", monospace;
   text-transform: uppercase;
+  padding: 2px;
+}
+
+.Design-2{
+  margin: 0px; 
+  font-size: 15px; 
+  font-weight: bold;
+  font-family: "Rubik Mono One", monospace;
+  text-transform: uppercase;
+  padding: 2px;
+  justify-content: left;
+  color: #00043f;
 }
   </style>
 </head>
@@ -364,20 +376,46 @@ input:checked + .slider:before {
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <div class="modal-body text-center">
-        <!-- This will be our print template -->
+      <div class="modal-body">
+        
         <div id="printTemplate" style="display: none;">
-          <div style="width: 3in; height: 1.7in; background: white; padding: 0px; margin: 0 auto; border: 1px solid #050505;">
-            <img src="img/tb-modal-tag.png" style=" width: 2.8in; height: 40px; padding-right: 3px;">
+          <!-- Design 1  -->
+          <!-- <div style="width: 2.5in; height: 1.5in; background: white; padding: 2px;  margin: 0 auto; border: 1px solid #050505;">
+            <div style="border: 1px solid black;">
+            <img src="img/tb-modal-tag.png" style=" width: 2.2in; height: auto; ">
             <h5 class="modal-head-text" style="border-top: 1px solid black;border-bottom: 1px solid black; background-color: #c7f7ff;" id="printProductName"><span id="printProductPrice"></span></h5>   
-            <div class="text-center" style="margin: 2px auto; width: 100%; " id="printBarcodeContainer">
+            <div class="text-center" style="margin: 2px auto; width: fit-content; " id="printBarcodeContainer">
             <span id="printBarcodeText" style="font-size: 9px; display: block;"></span>
-            </div>
-            <div class="text-left"><h5 class="modal-head-text" style="border-top: 1px solid black; padding-top: 1px; padding-bottom: 1px; padding-left: 30px;">Product Size:</h5></div>
-              
-           
-            <h5 class="modal-head-text" style="font-size: 14px; border-top: 1px solid black; padding-top: 1.5px;">Thank you! Visit us again. 🛒</h5>
+            </div>              
+            <h5 class="modal-head-text" style="font-size: 12px; border-top: 1px solid black;">Thank you! Visit us again. 🛒</h5>
           </div>
+          </div> -->
+          <!-- Design 1  -->
+
+          <!-- Design 2 -->
+          <div style="width: 2.5in; height: 1.5in; background: white; padding: 2px; margin: 0 auto; border: 1px solid #050505;">
+            <div style="border: 1px solid black; position: relative;">
+              <!-- Image positioned absolutely to the right -->
+              <img src="img/logotab.png" style="width: 0.7in; height: auto; position: absolute; right: 0; top: 20px;">
+              
+              <!-- Text container that will flow over the image -->
+              <div class="text-left" style="position: relative; z-index: 1;">
+                <h5 class="Design-2" style="border-bottom: 1px solid black; margin-right: 0.8in; white-space: nowrap;  text-overflow: ellipsis;" id="printProductName">
+                  <span id="printProductPrice"></span>
+                </h5>  
+                <h5 class="modal-head-text" style="font-size: 12px; border-bottom: 1px solid black;margin-right: 0.8in; white-space: nowrap;  text-overflow: ellipsis;">Thank you!<br> Visit us again. 🛒</h5>
+ 
+              </div>
+              
+              <div class="text-center" style="margin: 2px auto; width: fit-content;" id="printBarcodeContainer">
+                <span id="printBarcodeText" style="font-size: 9px; display: block;"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Design 2 -->
+
+        
+        
         </div>
         <!-- Preview container -->
         <div id="printPreview"></div>
@@ -1531,7 +1569,11 @@ function showPrintModal(key, name, price, barcode) {
   
   // Set product info - fixed to match your HTML structure
   const productNameElement = clone.querySelector('#printProductName');
-  productNameElement.innerHTML = `${name},<span id="printProductPrice"> ₹${price}`;
+  // Design 1
+  //productNameElement.innerHTML = `${name},<span id="printProductPrice"> ₹${price}`;
+
+  //  Design 2
+  productNameElement.innerHTML = `${name}<br>Price:<span id="printProductPrice"> ₹${price}`;
   
   // Create canvas for barcode
   const canvas = document.createElement('canvas');
@@ -1546,8 +1588,8 @@ function showPrintModal(key, name, price, barcode) {
   JsBarcode(canvas, barcode, {
     format: "CODE128",
     lineColor: "#000",
-    width: 2,
-    height: 40,
+    width: 1.5,
+    height: 38,
     displayValue: false,
     fontSize: 16,
     margin: 0,
@@ -1629,9 +1671,10 @@ function showPrintModal(key, name, price, barcode) {
   const price = priceElement ? priceElement.textContent.replace('₹', '').trim() : '0';
 
   // Temporarily scale the element up for higher resolution
-  clone.style.transform = 'scale(2)';
+  //clone.style.transform = 'scale(2)';
   clone.style.transformOrigin = 'top left';
-  clone.style.width = '288px';
+  clone.style.width = '2.5in';
+  clone.style.hight = '1.5in';
 
 
   html2canvas(clone, {
