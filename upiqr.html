@@ -145,7 +145,61 @@
 
   <script>
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    // After firebase.initializeApp
+const database = firebase.database();
+
+// Connection state monitoring
+database.ref('.info/connected').on('value', (snapshot) => {
+  if (snapshot.val() === true) {
+    console.log('Connected to Firebase');
+    if (!database.ref('ScreenSaver').on) {
+      setupScreenSaverListener();
+    }
+  } else {
+    console.log('Disconnected from Firebase');
+  }
+});
+
+function setupScreenSaverListener() {
+  const screensaverRef = database.ref('ScreenSaver');
+  screensaverRef.on('value', (snapshot) => {
+    try {
+      const screensaverEnabled = snapshot.val();
+      toggleScreensaver(screensaverEnabled === true);
+    } catch (error) {
+      console.error('Screensaver listener error:', error);
+      setTimeout(setupScreenSaverListener, 5000);
+    }
+  }, (error) => {
+    console.error('Screensaver listener failed:', error);
+    setTimeout(setupScreenSaverListener, 5000);
+  });
+}
+
+// Visibility change detection
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    if (database.ref('.info/connected').snapshot.val() !== true) {
+      window.location.reload();
+    }
+  }
+});
+
+// Periodic refresh
+setInterval(() => {
+  if (database.ref('.info/connected').snapshot.val() !== true) {
+    console.log('Attempting to reconnect...');
+    window.location.reload();
+  }
+}, 30 * 60 * 1000); // 30 minutes
+
+// Initialize the screensaver listener
+setupScreenSaverListener();
+
+
+
+
+
 
     // Format date for display
     function formatDate(dateString) {
