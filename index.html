@@ -70,7 +70,63 @@
 #barcodeInput.d-none {
   display: none;
 }
+.setting-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 15px 0;
+}
 
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;  /* Reduced from 60px to better match the height */
+  height: 20px; /* Changed from 34px to 20px */
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #b35f5f;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;  /* Reduced from 26px */
+  width: 16px;   /* Reduced from 26px */
+  left: 2px;     /* Adjusted from 4px */
+  bottom: 2px;   /* Adjusted from 4px */
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #4b9762;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px); /* Adjusted from 26px */
+}
+
+.slider.round {
+  border-radius: 20px; /* Changed from 34px to match height */
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
   </style>
 </head>
 <body>
@@ -97,8 +153,11 @@
           <li class="nav-item">
             <a class="btn btn1 btn-sm mr-2 mb-1" href="till-now.html" style="padding: 6px; margin-top: 4px;">View All Bills</a>
           </li>
+          <li class="nav-item">
+            <a class="btn btn1 btn-sm mr-2 mb-1" href="upiqr.html" target="_blank" style="padding: 6px; margin-top: 4px;">QR Page</a>
+          </li>
           
-          <span id="main-content" class="hide-auth">
+          <span id="main-content" class="hide-auth mb-1">
             <div class="dropdown">
               <button class="btn btn1 mr-2 dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Pages
@@ -113,6 +172,12 @@
           
           </span>
           <li class="nav-item">
+            <span class="btn   px-3" title="Screen Saver On OFF">
+              <label class="switch">
+                <input type="checkbox" id="ScreenSaverToggle" >
+                <span class="slider round"></span>
+              </label> 
+            </span>
             <button class="btn btn-danger btn-sm mb-1" onclick="logout()" title="Logout">
               <i class="fas fa-sign-out-alt"></i> LogOut
             </button>
@@ -343,54 +408,7 @@
       priceInput.value = productSelect.value ? productSelect.value : "";
     }
 
-//     function addItem() {
-//   let productSelect = document.getElementById("productSelect");
-//   let price = parseFloat(document.getElementById("price").value);
-//   let quantity = parseInt(document.getElementById("quantity").value);
-//   let productName = productSelect.options[productSelect.selectedIndex].text;
 
-//   if (!productName || isNaN(price) || isNaN(quantity) || price <= 0 || quantity <= 0) {
-//     showMessagered('Please select a valid product and enter quantity.');
-//     return;
-//   }
-
-//   let total = price * quantity;
-//   grandTotal += total;
-
-//   let table = document.getElementById("billTable");
-//   let rowCount = table.rows.length;
-//   let row = table.insertRow();
-  
-//   row.innerHTML = `
-//     <td>${rowCount + 1}</td>
-//     <td>${productName}</td>
-//     <td>₹${price.toFixed(2)}</td>
-//     <td>
-//       <div class="d-flex align-items-center">
-//         <button class="btn btn-table btn-sm btn-danger d-none" onclick="decreaseQuantity(this, ${price})">
-//           <i class="fas fa-minus"></i>
-//         </button>
-//         <span class="mx-2 quantity-display">${quantity}</span>
-//         <button class="btn btn-table btn-sm btn-success" onclick="increaseQuantity(this, ${price})">
-//           <i class="fas fa-plus"></i>
-//         </button>
-//       </div>
-//     </td>
-//     <td class="total-cell">₹${total.toFixed(2)}</td>
-//     <td class="text-center align-middle">
-//       <button class="btn  btn-danger btn-sm" onclick="removeItem(this)">
-//         <i class="fas fa-trash"></i>
-//       </button>
-//     </td>
-//   `;
-  
-//   // Store the price as a data attribute for later reference
-//   row.querySelector('.total-cell').dataset.price = price;
-//   row.querySelector('.total-cell').dataset.quantity = quantity;
-
-//   updateTotals();
-//   document.getElementById("quantity").value = "";
-// }
 
 function addItem() {
   let productSelect = document.getElementById("productSelect");
@@ -565,88 +583,7 @@ function removeItem(button, itemTotal) {
       }
     }
 
-// Add this function to generate the next Bill ID
-// async function getNextBillId() {
-//   try {
-//     const snapshot = await database.ref("bills").orderByKey().limitToLast(1).once("value");
-//     let lastBillId = "BTB0"; // Default starting point
-    
-//     if (snapshot.exists()) {
-//       const lastBillKey = Object.keys(snapshot.val())[0];
-//       const lastBillData = snapshot.val()[lastBillKey];
-      
-//       if (lastBillData.billId) {
-//         lastBillId = lastBillData.billId;
-//       }
-//     }
-    
-//     // Extract the number part and increment
-//     const lastNumber = parseInt(lastBillId.replace("BTB", "")) || 0;
-//     return `BTB${lastNumber + 1}`;
-//   } catch (error) {
-//     console.error("Error fetching last bill ID:", error);
-//     return "BTB1"; // Fallback if there's an error
-//   }
-// }
 
-// async function getNextBillId() {
-//   try {
-//     // 1. Get current date components
-//     const now = new Date();
-//     const currentYear = now.getFullYear().toString().slice(-2); // e.g., "25"
-//     const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-//     const currentMonth = monthNames[now.getMonth()]; // e.g., "APR"
-
-//     // 2. Format: B25APRTB[number]
-//     const prefix = `B${currentYear}${currentMonth}TB`;
-
-//     // 3. Query the last bill of the current month
-//     const snapshot = await database.ref("bills")
-//       .orderByChild("billId")
-//       .startAt(prefix)
-//       .endAt(prefix + "\uf8ff")
-//       .limitToLast(50) // More for safety
-//       .once("value");
-
-//     let lastNumber = 0;
-
-//     if (snapshot.exists()) {
-//       const bills = Object.values(snapshot.val());
-
-//       for (const bill of bills) {
-//         if (bill.billId && bill.billId.startsWith(prefix)) {
-//           const num = parseInt(bill.billId.replace(prefix, ''), 10);
-//           if (!isNaN(num) && num > lastNumber) {
-//             lastNumber = num;
-//           }
-//         }
-//       }
-
-//      // console.log("Last Bill Number:", lastNumber);
-//     }
-
-//     // 4. Create next bill ID
-//     const nextNumber = lastNumber + 1;
-
-//     if (nextNumber > 99999) {
-//       throw new Error("Maximum 99999 bills per month exceeded.");
-//     }
-
-//     const paddedNumber = nextNumber.toString().padStart(5, '0'); // e.g., TB00001
-//     const newBillId = `${prefix}${paddedNumber}`;
-
-//     // console.log("New Bill ID:", newBillId);
-//     return newBillId;
-
-//   } catch (error) {
-//     console.error("Error generating bill ID:", error);
-//     const now = new Date();
-//     const currentYear = now.getFullYear().toString().slice(-2);
-//     const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-//     const currentMonth = monthNames[now.getMonth()];
-//     return `B${currentYear}${currentMonth}TB00001`;
-//   }
-// }
 
 async function getNextBillId() {
   try {
@@ -736,6 +673,19 @@ async function generateBill() {
     return;
   }
 
+  // Turn off ScreenSaverToggle if it's on
+  const screenSaverToggle = document.getElementById("ScreenSaverToggle");
+  if (screenSaverToggle.checked) {
+    screenSaverToggle.checked = false;
+    database.ref("ScreenSaver").set(false)
+      .then(() => {
+       // console.log("Screen saver turned off for billing");
+      })
+      .catch((error) => {
+        console.error("Error turning off screen saver:", error);
+      });
+  }
+
   // Get the selected bill type
   const billType = document.getElementById("billType").value;
 
@@ -796,17 +746,31 @@ async function generateBill() {
     ) || new Date().toISOString()
   };
 
-  // Save to database
+ // Save to database - both in bills collection and lastBill node
   const newBillRef = database.ref("bills").push();
   
-  // First save the bill
-  newBillRef.set(billData)
+  // Create a batch update
+  const updates = {};
+  updates[`bills/${newBillRef.key}`] = billData;
+  updates['lastBill'] = billData; // This will overwrite any existing lastBill
+  
+  // Execute both updates atomically
+  database.ref().update(updates)
     .then(() => {
       // After saving the bill, update stock quantities
       return updateStockQuantities(items);
     })
     .then(() => {
       localStorage.setItem("currentBillData", JSON.stringify(billData));
+
+
+      
+      // Get the bill type and modify the redirect URL if needed
+      let billType = document.getElementById("billType").value;
+      if (billType === "slip-bill.html") {
+        billType = `slip-bill.html?id=${newBillRef.key}`;
+      }
+      
       window.location.href = billType;
     })
     .catch((error) => {
@@ -1268,6 +1232,51 @@ function decreaseQuantity(button, price) {
     // Update grand total
     recalculateGrandTotal();
   }
+}
+
+
+
+// Initialize the toggle button
+function initScreenSaverToggle() {
+  database.ref("ScreenSaver").on('value', (snapshot) => {
+    const shouldCalculate = snapshot.val();
+    document.getElementById("ScreenSaverToggle").checked = shouldCalculate === true;
+  });
+  
+  // Add event listener for toggle changes
+  document.getElementById("ScreenSaverToggle").addEventListener('change', (e) => {
+    const newValue = e.target.checked;
+    database.ref("ScreenSaver").set(newValue)
+      .then(() => {
+        showToastMessage(`Screen Saver: ${newValue ? 'ON' : 'OFF'}`);
+      })
+      .catch((error) => {
+        console.error("Error updating setting:", error);
+        showToastMessage("Error updating setting", true);
+      });
+  });
+}
+
+// Call this when your app loads
+initScreenSaverToggle();
+
+// Helper function for notifications
+function showToastMessage(message, isError = false) {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.style.position = 'fixed';
+  toast.style.bottom = '20px';
+  toast.style.right = '20px';
+  toast.style.padding = '10px 20px';
+  toast.style.backgroundColor = isError ? '#ff4444' : '#4CAF50';
+  toast.style.color = 'white';
+  toast.style.borderRadius = '4px';
+  toast.style.zIndex = '1000';
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
 }
   </script>
 </body>

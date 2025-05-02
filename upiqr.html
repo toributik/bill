@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UPI QR Payment</title>
+  <link rel="icon" type="image/png" href="img/logotab.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="css/all.js"></script>
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
+    .qr-code-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 10px auto;
+      padding: 5px;
+      background: rgb(95, 95, 95);
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      width: fit-content;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+
+    #qrCanvas {
+      display: block; /* Change from none to block when showing */
+      max-width: 100%;
+      height: auto;
+    }
+    
+    .qr-container {
+      max-width: 500px;
+      margin: 10px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1),inset 0 0 50px rgba(3, 0, 46, 0.377);
+      text-align: center;
+      border: 3px solid rgb(3, 0, 46);
+    }
+    
+    #screensaver {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f8f9fa;
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    
+    #screensaver-logo {
+      max-width: 300px;
+      max-height: 300px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .amount {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 5px 0;
+      color: #28a745;
+    }
+    .upi-id {
+      font-size: 18px;
+      margin: 5px 0;
+      color: #333;
+    }
+    .btn-back {
+      margin-top: 20px;
+    }
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0,0,0,.1);
+      border-radius: 50%;
+      border-top-color: #007bff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .text-design{
+      background-color: #dddddd;
+      border-radius: 5px;
+      border-left: 3px solid #007bff;
+      
+    }
+  </style>
+</head>
+<body>
+  <!-- Screensaver div (initially hidden) -->
+  <div id="screensaver">
+    <img id="screensaver-logo" src="img/logotab.png" alt="Logo">
+    
+  </div>
+
+  <!-- Main content container -->
+  <div class="container">
+    <div class="qr-container">
+      <h2>Scan & Pay</h2>
+      <p class="text-design"><strong>BILL ID: <span id="billIdDisplay"></strong></span></p>
+      <div class="amount" id="amountDisplay">
+        <span class="loading-spinner"></span> Loading amount...
+      </div>
+      <div class="upi-id d-none" id="upiIdDisplay">
+        <span class="loading-spinner"></span> Loading UPI ID...
+      </div>
+      <div class="qr-code-container">
+        <canvas id="qrCanvas" style="display: none;"></canvas>
+        <div id="qrCode"></div>
+      </div>
+      <p id="instructions" class="text-design">Scan this QR code with any UPI app to complete payment</p>
+      <div id="billInfo" style="display: none; margin-top: 20px; text-align: left;" class="text-center text-capitalize">
+        <h5>Customer Information:</h5>
+        <p><strong><i class="fas fa-user-circle text-primary me-1"></i> <span id="customerNameDisplay"></span></strong><br>
+        <strong>Date:</strong> <span id="billDateDisplay"></span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Code Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+  <script>
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Format date for display
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleString();
+    }
+
+    // Function to toggle screensaver
+    function toggleScreensaver(show) {
+      const screensaver = document.getElementById('screensaver');
+      const qrContainer = document.querySelector('.qr-container');
+      
+      if (show) {
+        screensaver.style.display = 'flex';
+        qrContainer.style.display = 'none';
+      } else {
+        screensaver.style.display = 'none';
+        qrContainer.style.display = 'block';
+      }
+    }
+
+    // Main function to load and display everything
+    async function loadPaymentPage() {
+      try {
+        // 1. First check screensaver status
+        const screensaverRef = database.ref('ScreenSaver');
+        screensaverRef.on('value', (snapshot) => {
+          const screensaverEnabled = snapshot.val();
+          toggleScreensaver(screensaverEnabled === true);
+        });
+
+        // 2. Fetch the UPI ID from database
+        const upiSnapshot = await database.ref('UpiID').once('value');
+        const upiId = upiSnapshot.val();
+        
+        if (!upiId) {
+          throw new Error('UPI ID not configured in database');
+        }
+        
+        document.getElementById('upiIdDisplay').textContent = upiId;
+        
+        // 3. Set up a realtime listener for the last bill data
+        database.ref('lastBill').on('value', (billSnapshot) => {
+          const billData = billSnapshot.val();
+          
+          if (!billData) {
+            throw new Error('No recent bill found');
+          }
+
+          // Check if this is the first load or a change
+          const currentBillId = document.getElementById('billIdDisplay').textContent;
+          
+          // If bill ID has changed, reload the page
+          if (currentBillId && currentBillId !== billData.billId) {
+            window.location.reload();
+            return; // Exit early since we're reloading
+          }
+
+          // 4. Display bill info
+          document.getElementById('amountDisplay').textContent = `₹${parseFloat(billData.grandTotal).toFixed(2)}`;
+          document.getElementById('billIdDisplay').textContent = billData.billId;
+          document.getElementById('customerNameDisplay').textContent = billData.customer?.name || 'Walk-in Customer';
+          document.getElementById('billDateDisplay').textContent = formatDate(billData.date);
+          document.getElementById('billInfo').style.display = 'block';
+          
+          // 5. Generate UPI payment link
+          const upiLink = `upi://pay?pa=${upiId}&pn=Your%20Store%20Name&am=${billData.grandTotal}&cu=INR&tn=Payment%20for%20Bill%20${billData.billId}`;
+          
+          // 6. Generate QR code with logo
+          const canvas = document.getElementById('qrCanvas');
+          const logo = new Image();
+          logo.src = 'img/logotab.png';
+          
+          logo.onload = function() {
+            QRCode.toCanvas(canvas, upiLink, {
+              width: 200,
+              margin: 2,
+              color: {
+                dark: '#000000',
+                light: '#ffffff'
+              }
+            }, function (error) {
+              if (error) {
+                console.error(error);
+                document.getElementById('qrCode').innerHTML = '<p class="text-danger">Failed to generate QR code</p>';
+              } else {
+                // Add logo to the center of the QR code
+                const ctx = canvas.getContext('2d');
+                const qrSize = canvas.width;
+                const logoSize = qrSize / 5;
+                const logoPos = (qrSize - logoSize) / 2;
+                
+                ctx.drawImage(logo, logoPos, logoPos, logoSize, logoSize);
+                canvas.style.display = 'block';
+                document.getElementById('qrCode').style.display = 'none';
+              }
+            });
+          };
+          
+          logo.onerror = function() {
+            console.error('Failed to load logo');
+            // Generate QR code without logo if logo fails to load
+            QRCode.toCanvas(canvas, upiLink, {
+              width: 200,
+              margin: 2,
+              color: {
+                dark: '#000000',
+                light: '#ffffff'
+              }
+            }, function (error) {
+              if (error) {
+                console.error(error);
+                document.getElementById('qrCode').innerHTML = '<p class="text-danger">Failed to generate QR code</p>';
+              } else {
+                canvas.style.display = 'block';
+                document.getElementById('qrCode').style.display = 'none';
+              }
+            });
+          };
+        });
+        
+      } catch (error) {
+        console.error('Error loading payment page:', error);
+        document.getElementById('amountDisplay').innerHTML = 'Error loading payment details';
+        document.getElementById('upiIdDisplay').innerHTML = 'Please contact support';
+        document.getElementById('qrCode').innerHTML = '<p class="text-danger">' + error.message + '</p>';
+        document.getElementById('instructions').style.display = 'none';
+      }
+    }
+
+    // Start loading the page when DOM is ready
+    document.addEventListener('DOMContentLoaded', loadPaymentPage);
+
+    // Clean up Firebase listeners when page unloads
+    window.addEventListener('beforeunload', () => {
+      if (database.ref('lastBill').on) {
+        database.ref('lastBill').off();
+      }
+      if (database.ref('ScreenSaver').on) {
+        database.ref('ScreenSaver').off();
+      }
+    });
+  </script>
+</body>
+</html>
