@@ -311,6 +311,80 @@ input:checked + .slider:before {
   justify-content: left;
   color: #00043f;
 }
+
+/* Filter Sidebar Styles */
+.filter-sidebar {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 280px;
+  height: 100vh;
+  background-color: white;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+  z-index: 1050;
+  transition: left 0.3s ease;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.filter-sidebar.show {
+  left: 0;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.filter-header h5 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.filter-body {
+  padding: 5px;
+}
+
+/* Overlay for when sidebar is open */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1040;
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .filter-sidebar {
+    width: 250px;
+  }
+}
+
+/* Add to your existing styles */
+.gap-2 {
+  gap: 0.5rem;
+}
+
+/* Ensure dropdown menu stays right-aligned */
+.dropdown-menu-right {
+  right: 0;
+  left: auto;
+}
+
+/* Adjust for mobile view */
+@media (max-width: 576px) {
+  .navbar .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
   </style>
 </head>
 <body>
@@ -328,7 +402,12 @@ input:checked + .slider:before {
       <a class="navbar-brand d-flex align-items-center" href="index.html" style="padding: 8px 12px; border-radius: 50%; background-color: #17a2b8;">
         <i class="fas fa-arrow-left text-white"></i>
       </a>
-       
+      
+      <div class="d-flex align-items-center gap-2">
+       <!-- Filter Toggle Button -->
+    <button class="btn btn-outline-light" id="filterToggleBtn">
+      <i class="fas fa-filter"></i><span class="d-none d-sm-inline"> Filter</span>
+    </button>
   
       <!-- Dropdown Menu -->
       <div class="dropdown">
@@ -365,7 +444,55 @@ input:checked + .slider:before {
         </div>
       </div>
     </div>
+    </div>
   </nav>
+
+  <!-- Filter Sidebar -->
+<div id="filterSidebar" class="filter-sidebar">
+  <div class="filter-header">
+    <h5>Filter Products</h5>
+    <button id="closeFilterBtn" class="btn btn-sm btn-outline-secondary">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="filter-body">
+    <div class="form-group">
+      <label for="priceRangeFilter">Price Range:</label>
+      <div class="d-flex justify-content-between mb-2">
+        <input type="number" id="minPrice" class="form-control form-control-sm" placeholder="Min">
+        <span class="px-2">to</span>
+        <input type="number" id="maxPrice" class="form-control form-control-sm" placeholder="Max">
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="stockFilter">Stock Status:</label>
+      <select id="stockFilter" class="form-control form-control-sm">
+        <option value="all">All</option>
+        <option value="inStock">In Stock</option>
+        <option value="outOfStock">Out of Stock</option>
+        <option value="lowStock">Low Stock (< 5)</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="missingInfoFilter">Missing Info:</label>
+      <select id="missingInfoFilter" class="form-control form-control-sm">
+        <option value="all">All Products</option>
+        <option value="missingPrice">Missing Purchase Price</option>
+        <option value="missingStock">Missing Stock</option>
+        <option value="missingBarcode">Missing Barcode</option>
+      </select>
+    </div>
+    
+    <button id="applyFilterBtn" class="btn btn-primary btn-sm btn-block mt-3">
+      <i class="fas fa-filter"></i> Apply Filters
+    </button>
+    <button id="resetFilterBtn" class="btn btn-outline-secondary btn-sm btn-block mt-2">
+      <i class="fas fa-undo"></i> Reset
+    </button>
+  </div>
+</div>
 <!-- Print Modal -->
 <div class="modal fade" id="printModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -1699,6 +1826,105 @@ function showPrintModal(key, name, price, barcode) {
   });
 }
 
+
+// Filter functionality
+let currentFilters = {
+  minPrice: null,
+  maxPrice: null,
+  stockStatus: 'all',
+  missingInfo: 'all'
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Toggle filter sidebar
+  document.getElementById('filterToggleBtn').addEventListener('click', function() {
+    document.getElementById('filterSidebar').classList.add('show');
+    document.querySelector('.sidebar-overlay').style.display = 'block';
+  });
+
+  // Close filter sidebar
+  document.getElementById('closeFilterBtn').addEventListener('click', closeFilterSidebar);
+  
+  // Apply filters
+  document.getElementById('applyFilterBtn').addEventListener('click', function() {
+    currentFilters = {
+      minPrice: document.getElementById('minPrice').value ? parseFloat(document.getElementById('minPrice').value) : null,
+      maxPrice: document.getElementById('maxPrice').value ? parseFloat(document.getElementById('maxPrice').value) : null,
+      stockStatus: document.getElementById('stockFilter').value,
+      missingInfo: document.getElementById('missingInfoFilter').value
+    };
+    applyFilters();
+    closeFilterSidebar();
+  });
+  
+  // Reset filters
+  document.getElementById('resetFilterBtn').addEventListener('click', function() {
+    document.getElementById('minPrice').value = '';
+    document.getElementById('maxPrice').value = '';
+    document.getElementById('stockFilter').value = 'all';
+    document.getElementById('missingInfoFilter').value = 'all';
+    currentFilters = {
+      minPrice: null,
+      maxPrice: null,
+      stockStatus: 'all',
+      missingInfo: 'all'
+    };
+    applyFilters();
+  });
+  
+  // Create overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'sidebar-overlay';
+  overlay.addEventListener('click', closeFilterSidebar);
+  document.body.appendChild(overlay);
+});
+
+function closeFilterSidebar() {
+  document.getElementById('filterSidebar').classList.remove('show');
+  document.querySelector('.sidebar-overlay').style.display = 'none';
+}
+
+function applyFilters() {
+  const filteredProducts = allProducts.filter(product => {
+    // Price range filter
+    if (currentFilters.minPrice !== null && parseFloat(product.price) < currentFilters.minPrice) {
+      return false;
+    }
+    if (currentFilters.maxPrice !== null && parseFloat(product.price) > currentFilters.maxPrice) {
+      return false;
+    }
+    
+    // Stock status filter
+    switch(currentFilters.stockStatus) {
+      case 'inStock':
+        if (!product.stockQuantity || product.stockQuantity <= 0) return false;
+        break;
+      case 'outOfStock':
+        if (product.stockQuantity && product.stockQuantity > 0) return false;
+        break;
+      case 'lowStock':
+        if (!product.stockQuantity || product.stockQuantity >= 5) return false;
+        break;
+    }
+    
+    // Missing info filter
+    switch(currentFilters.missingInfo) {
+      case 'missingPrice':
+        if (product.purchasePrice && product.purchasePrice !== 0) return false;
+        break;
+      case 'missingStock':
+        if (product.stockQuantity && product.stockQuantity !== 0) return false;
+        break;
+      case 'missingBarcode':
+        if (product.barcode && product.barcode.trim() !== '') return false;
+        break;
+    }
+    
+    return true;
+  });
+  
+  displayProducts(filteredProducts);
+}
   </script>
   
 </body>
