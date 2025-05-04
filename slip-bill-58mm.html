@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bill</title>
+  <link rel="icon" type="image/png" href="img/logotab.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+  @font-face {
+  font-family: 'BingBamBoum';
+  src: url('fonts/BingBamBoum.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Hatolie';
+  src: url('fonts/Hatolie.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'KGChasingCars';
+  src: url('fonts/KGChasingCars.ttf') format('truetype');
+}
+
+.fonts1 {
+  font-family: 'BingBamBoum', sans-serif;
+}
+
+.fonts2 {
+  letter-spacing: 1px;
+  font-family: 'Hatolie', sans-serif;
+  font-size: 12px;
+}
+
+.fonts3 {
+  letter-spacing: 0px;
+  font-family: 'KGChasingCars', sans-serif;
+
+  
+}
+
+    @media print {
+      body {
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 12px;
+  }
+  .container {
+    width: 58mm;
+    max-width: 58mm;
+    padding: 0;
+    margin: 0 !important;
+  }
+  .slip-container {
+    margin: 0 !important;
+    padding: 10px;
+    box-shadow: none;
+  }
+    /*  body {
+        padding: 0;
+        margin: 0;
+        font-size: 12px;
+      }
+      .container {
+        width: 58mm;
+        max-width: 58mm;
+        padding: 0;
+      }*/
+      .no-print {
+        display: none !important;
+      }
+    }
+    body {
+      background-color: #cee6ff;
+      font-family: Arial, sans-serif;
+    }
+    .slip-container {
+      width: 58mm;
+      margin: 0 auto;
+      background: white;
+      padding: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 10px;
+      border-bottom: 1px dashed #070707;
+      padding-bottom: 10px;
+    }
+    .shop-name {
+      font-weight: bold;
+      font-size: 37px;
+      margin-bottom: 3px;
+    }
+    .shop-address {
+      font-size: 9px;
+      color: #1c1c1c;
+    }
+    .note {
+    font-size: 8px;
+    text-align: justify;
+    border-left: 2px solid black;
+    border-radius: 10px;
+    padding: 5px;
+    background-color: #c3c3c327;
+    border-right: 2px solid black;
+    }
+    .bill-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 10px;
+    }
+    .customer-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  font-size: 10px;
+  text-transform: capitalize;
+}
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+      font-size: 9px;
+    }
+    .items-table th {
+      border-bottom: 1px dashed #000000;
+      border-top: 1px dashed #000000;
+      text-align: left;
+      padding: 3px 3px;
+    }
+    .items-table td {
+      padding: 3px 3px;
+    }
+    .total-section {
+      border-top: 1px dashed #000000;
+      margin-top: 10px;
+      padding-top: 10px;
+      font-size: 9px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 18px;
+      color: #555;
+      border-top: 1px dashed #000000;
+      padding-top: 10px;
+    }
+    .btn-print {
+      width: 100%;
+      margin-top: 20px;
+    }
+    .ndHead{
+     background-color: #dedede4b;
+     border-radius: 10px;
+     border-bottom: 2px solid black;
+     border-top: 2px solid black;
+    }
+    .dashed-line {
+    border: none;
+    border-top: 1px dashed #000; /* You can change color and thickness */
+    margin: 10px 0; /* Optional spacing */
+    }
+    thead{
+      background-color: #bebebe83;
+    }
+
+    .container {
+  margin-left: 0;
+}
+
+.slip-container {
+  margin-left: 0;
+}
+    
+  </style>
+</head>
+<body>
+   
+  <div class="container mt-2">
+       <!-- Print button (hidden when printing) -->
+       <div class=" mb-2">
+        <button class="btn btn-primary btn2 no-print" onclick="window.print()">
+          <i class="fas fa-print"></i>
+        </button>
+        <button class="btn btn-info btn2 no-print" onclick="downloadBillImage()">
+          <i class="fas fa-download"></i>
+        </button>
+        <button class="btn btn-success btn2 no-print" onclick="shareBill()">
+          <i class="fas fa-share-alt"></i>
+        </button>
+        <button class="btn btn-secondary btn2 no-print" onclick="window.history.back()">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        </div>
+    <div class="slip-container">
+      <!-- Header with shop info -->
+      <div class="header">
+        <div class="shop-name fonts3">Tori Butik</div>
+        <div class="ndHead ">
+        <div class="shop-address">Suryanagar, Alipurduar, Pin-736122</div>
+        <div class="shop-address"> <i class="bi bi-telephone"></i> 9832280847 / 7679876754</div>
+       
+      </div>
+      </div>
+
+      <!-- Bill info -->
+      <div class="bill-info">
+        <div>Bill No: <span id="billNo">--</span></div>
+        <div>Date: <span id="billDate">--</span></div>
+      </div>
+
+      <!-- Customer info -->
+      <!-- Customer info -->
+      <div class="customer-info">
+        <div id="customerInfoContainer">
+          <!-- Customer info will be inserted here conditionally -->
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <img src="img/logobill.png" style="width: 40px; height: 40px; margin-right: 0px;">
+        </div>
+      </div>
+
+      <!-- Items table -->
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>SL</th>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="itemsList">
+        </tbody>
+      </table>
+
+      <!-- Totals section -->
+      <div class="total-section">
+        <div class="total-row">
+          <span>Sub Total:</span>
+          <span id="subTotal">₹0.00</span>
+        </div>
+        <div class="total-row" id="discountRow">
+          <span>Discount:</span>
+          <span id="discount">₹0.00 (0%)</span>
+        </div>
+        <div class="total-row" id="gstRow">
+          <span>GST (18%):</span>
+          <span id="gstAmount">₹0.00</span>
+        </div>
+        <div class="total-row" style="font-weight: bold;">
+          <span>Grand Total:</span>
+          <span id="grandTotal">₹0.00</span>
+        </div>
+      </div>
+
+      
+      <!-- Footer -->
+      <div class="footer">
+        <div class="note"><b>Note: For any product issues, such as size problems or defects, the Bill or Bill Number is required for changes or replacements.
+          Requests must be made within 5 days of purchase.</b></div>
+        <div class="shop-address "> <i class="bi bi-envelope"></i> toributik33@gmail.com</div>
+        <div class="fonts2"><b>Thank you for shopping with us! <br>Please visit again</b></div>
+        <!-- <div class="fonts2">Please visit again</div>       -->
+      </div>
+      <hr class="dashed-line">
+      
+      
+    </div>
+
+  
+
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+   <script>
+    // Load bill data from localStorage
+    document.addEventListener('DOMContentLoaded', function() {
+      const billData = JSON.parse(localStorage.getItem('currentBillData'));
+      if (!billData) {
+        alert('No bill data found');
+        window.close();
+        return;
+      }
+
+      // Use the billId from the billData instead of generating a new one
+      document.getElementById('billNo').textContent = billData.billId || 'BTB' + Date.now().toString().slice(-6);
+      
+      // Format date
+      const billDate = new Date(billData.date);
+      const formattedDate = billDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      const formattedTime = billDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  
+      document.getElementById('billDate').textContent = `${formattedDate}, ${formattedTime}`;
+
+      // Handle customer info display based on conditions
+      const customerInfoContainer = document.getElementById('customerInfoContainer');
+      const customerName = billData.customer.name;
+      const customerMobile = billData.customer.mobile || '';
+      
+      // Show customer info only if:
+      // 1. Customer name is NOT "Walk-in Customer" OR
+      // 2. Customer mobile is provided
+      if (customerName !== "Walk-in Customer" || customerMobile) {
+        let customerInfoHTML = '';
+        
+        // Only show name if it's not "Walk-in Customer"
+        if (customerName !== "Walk-in Customer") {
+          customerInfoHTML += `<div>BILL TO: <br><i class="bi bi-person-square"></i> <span id="customerName">${customerName}</span></div>`;
+        }
+        
+        // Show mobile if provided
+        if (customerMobile) {
+          customerInfoHTML += `<div><i class="bi bi-telephone"></i> <span id="customerMobile">${customerMobile}</span></div>`;
+        }
+        
+        customerInfoContainer.innerHTML = customerInfoHTML;
+      }
+
+      // Fill items
+      const itemsList = document.getElementById('itemsList');
+      billData.items.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${item.name}</td>
+          <td>${item.quantity}</td>
+          <td>₹${item.price.toFixed(2)}</td>
+          <td>₹${item.total.toFixed(2)}</td>
+        `;
+        itemsList.appendChild(row);
+      });
+
+      // Fill totals
+      document.getElementById('subTotal').textContent = `₹${parseFloat(billData.subTotal).toFixed(2)}`;
+      
+      // Only show discount if it was applied
+      const discountValue = parseFloat(billData.discount) || 0;
+      const discountRow = document.getElementById('discountRow');
+      if (discountValue > 0) {
+        const discountAmount = (parseFloat(billData.subTotal) * discountValue / 100);
+        document.getElementById('discount').textContent = 
+          `₹${discountAmount.toFixed(2)} (${discountValue}%)`;
+      } else {
+        discountRow.style.display = 'none';
+      }
+      
+      // Only show GST if it was enabled
+      const gstAmount = parseFloat(billData.gstAmount) || 0;
+      const gstRow = document.getElementById('gstRow');
+      if (gstAmount > 0) {
+        document.getElementById('gstAmount').textContent = `₹${gstAmount.toFixed(2)}`;
+      } else {
+        gstRow.style.display = 'none';
+      }
+      
+      document.getElementById('grandTotal').textContent = `₹${parseFloat(billData.grandTotal).toFixed(2)}`;
+    });
+
+    // Function to download bill as image
+    async function downloadBillImage() {
+      try {
+        const slipContainer = document.querySelector('.slip-container');
+        
+        // Capture the bill as an image
+        const canvas = await html2canvas(slipContainer, {
+          scale: 2, // Higher quality
+          logging: false,
+          useCORS: true,
+          allowTaint: true
+        });
+        
+        // Convert canvas to image and download
+        const link = document.createElement('a');
+        link.download = 'ToriButik_' + document.getElementById('billNo').textContent + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+      } catch (error) {
+        console.error('Error generating image:', error);
+        alert('Failed to generate bill image. Please try printing instead.');
+      }
+    }
+
+
+    // Add this new function for sharing the bill
+    async function shareBill() {
+      try {
+        const slipContainer = document.querySelector('.slip-container');
+        
+        // Capture the bill as an image
+        const canvas = await html2canvas(slipContainer, {
+          scale: 2, // Higher quality
+          logging: false,
+          useCORS: true,
+          allowTaint: true
+        });
+        
+        // Convert canvas to blob
+        canvas.toBlob(async (blob) => {
+          try {
+            const file = new File([blob], 'bill.png', { type: 'image/png' });
+            
+            // Check if Web Share API is available
+            if (navigator.share && navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                title: 'Your Bill from Tori Butik',
+                text: 'Here is your purchase bill',
+                files: [file]
+              });
+            } else {
+              // Fallback for browsers without Web Share API
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = 'ToriButik_bill.png';
+              link.click();
+              alert('Bill image downloaded. You can now share it manually.');
+            }
+          } catch (error) {
+            console.error('Error sharing:', error);
+            alert('Could not share the bill. Please try printing instead.');
+          }
+        }, 'image/png');
+      } catch (error) {
+        console.error('Error generating image:', error);
+        alert('Failed to generate bill image. Please try printing instead.');
+      }
+    }
+</script>
+<script>
+
+
+new QRCode(document.getElementById("qrcode"), {
+  text: "https://toributik.github.io/tori/",
+  width: 70,
+  height: 55,
+  colorDark: "#000000",  // Ensure good contrast
+  colorLight: "#ffffff",
+  correctLevel: QRCode.CorrectLevel.H  // Higher error correction
+});
+</script>
+</body>
+</html>
