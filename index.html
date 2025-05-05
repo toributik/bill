@@ -127,6 +127,10 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
+
+.price-input{
+  min-width: 65px;
+}
   </style>
 </head>
 <body>
@@ -154,7 +158,7 @@ input:checked + .slider:before {
             <a class="btn btn1 btn-sm mr-2 mb-1" href="till-now.html" style="padding: 6px; margin-top: 4px;">View All Bills</a>
           </li>
           <li class="nav-item">
-            <a class="btn btn1 btn-sm mr-2 mb-1" href="upiqr.html" target="_blank" style="padding: 6px; margin-top: 4px;">QR Page</a>
+            <a class="btn btn1 btn-sm mr-2 mb-1" href="upiqr.html" style="padding: 6px; margin-top: 4px;">QR Page</a>
           </li>
           
           <span id="main-content" class="hide-auth mb-1">
@@ -189,7 +193,7 @@ input:checked + .slider:before {
   <div id="productMessage">
     <p class="indi"> <i class="fa-solid fa-circle-check"></i> Success</p>
   </div>
-  <div class="container mt-5" style="padding-top: 35px;">
+  <div class="container mt-5" style="padding-top: 40px;">
     <!-- Customer Details -->
     <div class="row mb-2">
       <div class="col-md-2">
@@ -262,6 +266,7 @@ input:checked + .slider:before {
     </div>
     
     <!-- Items Table -->
+    <div class="table-responsive">
     <table class="table table-bordered">
       <thead class="table-dark">
         <tr>
@@ -275,6 +280,7 @@ input:checked + .slider:before {
       </thead>
       <tbody id="billTable"></tbody>
     </table>
+    </div>
 
     <!-- Total & Discount Section -->
     <div class="row justify-content-end">
@@ -464,7 +470,7 @@ function addItem() {
       <td><input type="number" class="form-control form-control-sm price-input" value="${price.toFixed(2)}" oninput="updateRowTotal(this)"></td>
       <td>
         <div class="d-flex align-items-center">
-          <button class="btn btn-table btn-sm btn-danger" onclick="decreaseQuantity(this, this.parentElement.parentElement.parentElement.querySelector('.price-input').value)">
+          <button class="btn btn-table btn-sm btn-danger d-none" onclick="decreaseQuantity(this, this.parentElement.parentElement.parentElement.querySelector('.price-input').value)">
             <i class="fas fa-minus"></i>
           </button>
           <span class="mx-2 quantity-display">${quantity}</span>
@@ -699,7 +705,7 @@ async function generateBill() {
   document.getElementById("billId").value = billId;
 
   const customerName = document.getElementById("customerName").value || "Walk-in Customer";
-  const customerMobile = document.getElementById("customerMobile").value || "";
+  const customerMobile = document.getElementById("customerMobile").value || "Not Provided";
   const subTotal = document.getElementById("subTotal").value;
   const discount = document.getElementById("discount").value;
   const gstAmount = document.getElementById("gstAmount").value;

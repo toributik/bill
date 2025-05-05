@@ -311,7 +311,7 @@
       // Show customer info only if:
       // 1. Customer name is NOT "Walk-in Customer" OR
       // 2. Customer mobile is provided
-      if (customerName !== "Walk-in Customer" || customerMobile) {
+      if (customerName !== "Walk-in Customer" || customerMobile !== "Not Provided") {
         let customerInfoHTML = '';
         
         // Only show name if it's not "Walk-in Customer"
@@ -320,7 +320,7 @@
         }
         
         // Show mobile if provided
-        if (customerMobile) {
+        if (customerMobile && customerMobile !== "Not Provided") {
           customerInfoHTML += `<div><i class="bi bi-telephone"></i> <span id="customerMobile">${customerMobile}</span></div>`;
         }
         
