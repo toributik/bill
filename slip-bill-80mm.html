@@ -30,13 +30,12 @@
 }
 
 .fonts2 {
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   font-family: 'Hatolie', sans-serif;
-  font-size: 12px;
 }
 
 .fonts3 {
-  letter-spacing: 0px;
+  letter-spacing: 5px;
   font-family: 'KGChasingCars', sans-serif;
 
   
@@ -49,8 +48,8 @@
     font-size: 12px;
   }
   .container {
-    width: 58mm;
-    max-width: 58mm;
+    width: 80mm;
+    max-width: 80mm;
     padding: 0;
     margin: 0 !important;
   }
@@ -65,8 +64,8 @@
         font-size: 12px;
       }
       .container {
-        width: 58mm;
-        max-width: 58mm;
+        width: 80mm;
+        max-width: 80mm;
         padding: 0;
       }*/
       .no-print {
@@ -78,7 +77,7 @@
       font-family: Arial, sans-serif;
     }
     .slip-container {
-      width: 58mm;
+      width: 80mm;
       margin: 0 auto;
       background: white;
       padding: 10px;
@@ -96,7 +95,7 @@
       margin-bottom: 3px;
     }
     .shop-address {
-      font-size: 9px;
+      font-size: 12px;
       color: #1c1c1c;
     }
     .note {
@@ -119,14 +118,14 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 10px;
-  font-size: 10px;
+  font-size: 12px;
   text-transform: capitalize;
 }
     .items-table {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 10px;
-      font-size: 9px;
+      font-size: 12px;
     }
     .items-table th {
       border-bottom: 1px dashed #000000;
@@ -141,7 +140,7 @@
       border-top: 1px dashed #000000;
       margin-top: 10px;
       padding-top: 10px;
-      font-size: 9px;
+      font-size: 12px;
     }
     .total-row {
       display: flex;
@@ -189,7 +188,7 @@
    
   <div class="container mt-2">
        <!-- Print button (hidden when printing) -->
-       <div class=" mb-2">
+       <div class="px-5 mb-2">
         <button class="btn btn-primary btn2 no-print" onclick="window.print()">
           <i class="fas fa-print"></i>
         </button>
@@ -436,24 +435,6 @@
         alert('Failed to generate bill image. Please try printing instead.');
       }
     }
-
-
-    // Add this at the end of your slip-bill.html script
-document.addEventListener('DOMContentLoaded', function() {
-  // Check if we're in an iframe
-  if (window.self !== window.top) {
-    // Hide the print/download buttons when in iframe
-    document.querySelectorAll('.no-print').forEach(el => {
-      el.style.display = 'none';
-    });
-    
-    // Adjust styling for iframe
-    document.body.style.background = 'transparent';
-    document.querySelector('.slip-container').style.boxShadow = 'none';
-    document.querySelector('.slip-container').style.margin = '0';
-    document.querySelector('.slip-container').style.padding = '5px';
-  }
-});
 </script>
 <script>
 
