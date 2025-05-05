@@ -283,6 +283,25 @@
     .hide-auth{
       display: none;
     }
+
+    /* Add to your existing styles */
+#slipModal .modal-dialog {
+  max-width: 250px;
+  margin: 0 auto;
+}
+
+#slipModal .modal-content {
+  background: transparent;
+  border: none;
+}
+
+#slipModal .modal-body {
+  padding: 0;
+}
+
+#slipIframe {
+  background: white;
+}
   </style>
 </head>
 <body class="body-text">
@@ -942,11 +961,16 @@
     <div>
       <small class="text-dark"><i class="fas fa-file-invoice me-1 text-secondary"></i> <b>${bill.billId}</b> | ${formattedDate},<span class="d-none d-sm-inline"> ${formattedTime}</span></small>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2"> 
+      <button class="btn btn-sm btn-success mr-2" onclick="printSlip58mm('${bill.id}')">
+      <i class="fas fa-print"></i> Print
+      </button>
+
       <button class="btn btn-sm btn-primary mr-2" onclick="viewSlip('${bill.id}')">
         <i class="fas fa-receipt me-1"></i> <span class="d-none d-sm-inline">Bill</span>
       </button>
-      <button class="btn btn-sm btn-success mr-2" onclick="viewInvo('${bill.id}')">
+      
+      <button class="btn btn-sm btn-success mr-2 d-none" onclick="viewInvo('${bill.id}')">
         <i class="fas fa-file-invoice-dollar"></i> <span class="d-none d-sm-inline">Bill</span>
       </button>
       <div class="dropdown">
@@ -1017,6 +1041,83 @@
         showLoading(false);
       });
     }
+    function printSlip58mm(billId) {
+  showLoading(true);
+  database.ref('bills/' + billId).once('value').then(snapshot => {
+    const billData = snapshot.val();
+    if (billData) {
+      // Store bill data temporarily
+      localStorage.setItem('currentBillData', JSON.stringify(billData));
+      
+      // Create a modal to display the slip
+      const modalHtml = `
+        <div class="modal fade" id="slipModal" tabindex="-1" role="dialog" aria-hidden="true">
+          <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Bill</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body" id="slipModalBody">
+                <iframe id="slipIframe" src="slip-bill.html" style="width:100%; height:500px; border:none;"></iframe>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="clearSlipModal()" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="printSlip(); clearSlipModal()">
+                  <i class="fas fa-print"></i> Print
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Add modal to DOM if not already there
+      if (!document.getElementById('slipModal')) {
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+      }
+      
+      // Show the modal
+      $('#slipModal').modal('show');
+      
+      // Clear data when modal is hidden
+      $('#slipModal').on('hidden.bs.modal', function () {
+        clearSlipModal();
+      });
+    } else {
+      alert('Bill data not found!');
+    }
+    showLoading(false);
+  }).catch(error => {
+    console.error("Error loading bill:", error);
+    alert('Error loading bill: ' + error.message);
+    showLoading(false);
+  });
+}
+
+function printSlip() {
+  const iframe = document.getElementById('slipIframe');
+  iframe.contentWindow.print();
+}
+
+function clearSlipModal() {
+  // Clear the localStorage data
+  localStorage.removeItem('currentBillData');
+  
+  // Remove the iframe content
+  const iframe = document.getElementById('slipIframe');
+  if (iframe) {
+    iframe.src = 'about:blank';
+  }
+  
+  // Optional: Remove the modal from DOM
+  const modal = document.getElementById('slipModal');
+  if (modal) {
+    modal.remove();
+  }
+}
 
     function viewInvo(billId) {
       showLoading(true);
