@@ -437,6 +437,10 @@ input:checked + .slider:before {
             <i class="fas fa-barcode"></i> Generate All
           </button>
           <div class="dropdown-divider"></div>
+          <button id="sendWhatsAppBtn" class="btn" onclick="sendStockReportViaWhatsApp()">
+            <i class="fab fa-whatsapp"></i> Send Stock Report
+          </button>
+          <div class="dropdown-divider"></div>
           <a class="dropdown-item" href="#" onclick="logout()">
             <i class="fas fa-sign-out-alt mr-2"></i>Logout
           </a>
@@ -2055,6 +2059,42 @@ function applyFilters() {
   });
   
   displayProducts(filteredProducts);
+}
+
+    function sendStockReportViaWhatsApp() {
+  // Get the currently displayed products (sorted/filtered)
+  const displayedProducts = getDisplayedProducts();
+  
+  // Sort products by name
+  const sortedProducts = displayedProducts.sort((a, b) => a.name.localeCompare(b.name));
+  
+  // Prepare the message
+  let message = "📊 *Current Stock Report* 📊\n\n";
+  message += `*Total Products:* ${sortedProducts.length}\n\n`;
+  
+  // Add product details
+  sortedProducts.forEach((product, index) => {
+    const stock = product.stockQuantity || 0;
+    const stockEmoji = stock > 5 ? '✅' : stock > 0 ? '⚠️' : '❌';
+    message += `${index + 1}. ${product.name} - ${stock} ${stockEmoji}\n`;
+  });
+  
+  // Add summary
+  const inStockCount = sortedProducts.filter(p => (p.stockQuantity || 0) > 0).length;
+  const outOfStockCount = sortedProducts.length - inStockCount;
+  message += `\n*Summary:*\nIn Stock: ${inStockCount}\nOut of Stock: ${outOfStockCount}`;
+  
+  // Encode the message for URL
+  const encodedMessage = encodeURIComponent(message);
+  
+  // WhatsApp number (9832280847)
+  const whatsappNumber = '9832280847';
+  
+  // Create WhatsApp URL
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+  
+  // Open in new tab
+  window.open(whatsappUrl, '_blank');
 }
   </script>
   
