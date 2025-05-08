@@ -2069,7 +2069,7 @@ function applyFilters() {
   const sortedProducts = displayedProducts.sort((a, b) => a.name.localeCompare(b.name));
   
   // Prepare the message
-  let message = "📊 *Current Stock Report* 📊\n\n";
+  let message = "*Current Stock Report of Toributik*\n";
   message += `*Total Products:* ${sortedProducts.length}\n\n`;
   
   // Add product details
@@ -2082,7 +2082,7 @@ function applyFilters() {
   // Add summary
   const inStockCount = sortedProducts.filter(p => (p.stockQuantity || 0) > 0).length;
   const outOfStockCount = sortedProducts.length - inStockCount;
-  message += `\n*Summary:*\nIn Stock: ${inStockCount}\nOut of Stock: ${outOfStockCount}`;
+  message += `\n*Summary:*\nIn Stock: ${inStockCount}\nOut of Stock: ${outOfStockCount}\n*ToriButik Admin System*`;
   
   // Encode the message for URL
   const encodedMessage = encodeURIComponent(message);
